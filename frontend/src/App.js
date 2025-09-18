@@ -1200,6 +1200,47 @@ function CompanyAdminDashboard() {
           </Card>
         )}
 
+        {/* Edit Courier Dialog */}
+        <Dialog open={showEditCourier} onOpenChange={setShowEditCourier}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.editCourier}</DialogTitle>
+              <DialogDescription className="text-sm">{t.editCourierDescription}</DialogDescription>
+            </DialogHeader>
+            {editingCourier && (
+              <form onSubmit={updateCourier} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCourierUsername" className="text-sm">{t.courierUsername}</Label>
+                  <Input
+                    id="editCourierUsername"
+                    value={editingCourier.username}
+                    onChange={(e) => setEditingCourier({ ...editingCourier, username: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCourierPassword" className="text-sm">{t.courierPassword}</Label>
+                  <Input
+                    id="editCourierPassword"
+                    type="password"
+                    value={editingCourier.password}
+                    onChange={(e) => setEditingCourier({ ...editingCourier, password: e.target.value })}
+                    placeholder={t.leaveEmptyToKeepCurrent}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.updateCourier}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditCourier(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {activeTab === 'orders' && (
           <Card className="bg-white shadow-sm border-0">
             <CardHeader className="p-4 sm:p-6">
