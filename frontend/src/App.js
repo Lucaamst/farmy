@@ -1273,6 +1273,9 @@ function CompanyAdminDashboard() {
                           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{order.customer_name}</h3>
                           <p className="text-gray-600 text-xs sm:text-sm break-words">{order.delivery_address}</p>
                           <p className="text-gray-500 text-xs sm:text-sm">📞 {order.phone_number}</p>
+                          {order.reference_number && (
+                            <p className="text-gray-500 text-xs sm:text-sm">📋 Rif: {order.reference_number}</p>
+                          )}
                           {order.courier_id && (
                             <p className="text-gray-500 text-xs sm:text-sm">
                               Corriere: {couriers.find(c => c.id === order.courier_id)?.username || 'Sconosciuto'}
