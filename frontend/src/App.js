@@ -372,7 +372,7 @@ function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
   const fetchCompanies = async () => {
@@ -381,8 +381,8 @@ function SuperAdminDashboard() {
       setCompanies(response.data);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch companies",
+        title: t.error,
+        description: t.failedToFetchData,
         variant: "destructive",
       });
     } finally {
@@ -395,16 +395,16 @@ function SuperAdminDashboard() {
     try {
       await axios.post(`${API}/companies`, newCompany);
       toast({
-        title: "Success",
-        description: "Company created successfully",
+        title: t.success,
+        description: t.companyCreatedSuccessfully,
       });
       setNewCompany({ name: '', admin_username: '', admin_password: '' });
       setShowCreateDialog(false);
       fetchCompanies();
     } catch (error) {
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to create company",
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateCompany,
         variant: "destructive",
       });
     }
@@ -414,13 +414,13 @@ function SuperAdminDashboard() {
     try {
       await axios.patch(`${API}/companies/${companyId}/toggle`);
       toast({
-        title: "Success",
-        description: "Company status updated",
+        title: t.success,
+        description: t.statusUpdated,
       });
       fetchCompanies();
     } catch (error) {
       toast({
-        title: "Error",
+        title: t.error,
         description: "Failed to update company status",
         variant: "destructive",
       });
@@ -441,8 +441,8 @@ function SuperAdminDashboard() {
               <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Super Admin</h1>
-              <p className="text-gray-600">System Management Dashboard</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t.superAdminTitle}</h1>
+              <p className="text-gray-600">{t.systemManagement}</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -450,50 +450,53 @@ function SuperAdminDashboard() {
               <DialogTrigger asChild>
                 <Button className="bg-violet-600 hover:bg-violet-700">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Company
+                  {t.addCompany}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Company</DialogTitle>
-                  <DialogDescription>Add a new company and create its admin account</DialogDescription>
+                  <DialogTitle>{t.createNewCompany}</DialogTitle>
+                  <DialogDescription>{t.addNewCompanyDescription}</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={createCompany} className="space-y-4">
                   <div>
-                    <Label htmlFor="companyName">Company Name</Label>
+                    <Label htmlFor="companyName">{t.companyName}</Label>
                     <Input
                       id="companyName"
                       value={newCompany.name}
                       onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                      placeholder={t.enterCompanyName}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="adminUsername">Admin Username</Label>
+                    <Label htmlFor="adminUsername">{t.adminUsername}</Label>
                     <Input
                       id="adminUsername"
                       value={newCompany.admin_username}
                       onChange={(e) => setNewCompany({ ...newCompany, admin_username: e.target.value })}
+                      placeholder={t.enterAdminUsername}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="adminPassword">Admin Password</Label>
+                    <Label htmlFor="adminPassword">{t.adminPassword}</Label>
                     <Input
                       id="adminPassword"
                       type="password"
                       value={newCompany.admin_password}
                       onChange={(e) => setNewCompany({ ...newCompany, admin_password: e.target.value })}
+                      placeholder={t.enterAdminPassword}
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full">Create Company</Button>
+                  <Button type="submit" className="w-full">{t.createCompany}</Button>
                 </form>
               </DialogContent>
             </Dialog>
             <Button onClick={logout} variant="outline" size="sm">
               <LogOut className="w-4 h-4 mr-2" />
-              Logout
+              {t.logout}
             </Button>
           </div>
         </div>
@@ -501,25 +504,25 @@ function SuperAdminDashboard() {
         {/* Companies Table */}
         <Card className="bg-white shadow-sm border-0">
           <CardHeader>
-            <CardTitle>Companies Management</CardTitle>
-            <CardDescription>Manage all registered companies</CardDescription>
+            <CardTitle>{t.companiesManagement}</CardTitle>
+            <CardDescription>{t.manageAllCompanies}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading companies...</p>
+                <p className="text-gray-500 mt-2">{t.loading}</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Company Name</TableHead>
-                    <TableHead>Total Deliveries</TableHead>
-                    <TableHead>Active Couriers</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t.companyName}</TableHead>
+                    <TableHead>{t.totalDeliveries}</TableHead>
+                    <TableHead>{t.activeCouriers}</TableHead>
+                    <TableHead>{t.status}</TableHead>
+                    <TableHead>{t.created}</TableHead>
+                    <TableHead>{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -530,7 +533,7 @@ function SuperAdminDashboard() {
                       <TableCell>{company.active_couriers}</TableCell>
                       <TableCell>
                         <Badge variant={company.is_active ? 'default' : 'destructive'}>
-                          {company.is_active ? 'Active' : 'Disabled'}
+                          {company.is_active ? t.active : t.disabled}
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(company.created_at).toLocaleDateString()}</TableCell>
@@ -540,7 +543,7 @@ function SuperAdminDashboard() {
                           variant={company.is_active ? 'destructive' : 'default'}
                           size="sm"
                         >
-                          {company.is_active ? 'Disable' : 'Enable'}
+                          {company.is_active ? t.disable : t.enable}
                         </Button>
                       </TableCell>
                     </TableRow>
