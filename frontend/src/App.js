@@ -1,53 +1,621 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import axios from 'axios';
+import './App.css';
+
+// Import UI components
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Badge } from './components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Label } from './components/ui/label';
+import { Separator } from './components/ui/separator';
+import { useToast } from './hooks/use-toast';
+import { Toaster } from './components/ui/toaster';
+import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+// Auth Context
+const AuthContext = React.createContext();
+
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [company, setCompany] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    const companyData = localStorage.getItem('company');
+    
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+      if (companyData) {
+        setCompany(JSON.parse(companyData));
+      }
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    setLoading(false);
+  }, []);
+
+  const login = (token, userData, companyData = null) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    if (companyData) {
+      localStorage.setItem('company', JSON.stringify(companyData));
+      setCompany(companyData);
+    }
+    setUser(userData);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('company');
+    setUser(null);
+    setCompany(null);
+    delete axios.defaults.headers.common['Authorization'];
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, company, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+function useAuth() {
+  return React.useContext(AuthContext);
+}
+
+// Login Component
+function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.post(`${API}/auth/login`, {
+        username,
+        password
+      });
+
+      const { access_token, user, company } = response.data;
+      login(access_token, user, company);
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.username}!`,
+      });
+    } catch (error) {
+      toast({
+        title: "Login Failed",
+        description: error.response?.data?.detail || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iNCIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
+      
+      <Card className="w-full max-w-md backdrop-blur-sm bg-white/10 border-white/20">
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+            <Truck className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold text-white">DeliveryHub</CardTitle>
+            <CardDescription className="text-blue-100">Sign in to your account</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-white">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                placeholder="Enter your username"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-white">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                placeholder="Enter your password"
+              />
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
+          
+          <div className="mt-6 p-4 bg-blue-950/30 rounded-lg border border-blue-800/30">
+            <p className="text-xs text-blue-200 mb-2 font-medium">Demo Credentials:</p>
+            <p className="text-xs text-blue-300">Super Admin: superadmin / admin123</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Courier Dashboard
+function CourierDashboard() {
+  const [deliveries, setDeliveries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+  const fetchDeliveries = async () => {
+    try {
+      const response = await axios.get(`${API}/courier/deliveries`);
+      setDeliveries(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch deliveries",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsDelivered = async (orderId) => {
+    try {
+      await axios.patch(`${API}/courier/deliveries/mark-delivered`, {
+        order_id: orderId
+      });
+      
+      toast({
+        title: "Success",
+        description: "Delivery marked as completed and customer notified!",
+      });
+      
+      // Remove from list or refresh
+      fetchDeliveries();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to mark delivery",
+        variant: "destructive",
+      });
     }
   };
 
   useEffect(() => {
-    helloWorldApi();
+    fetchDeliveries();
   }, []);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
+      <div className="container mx-auto p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
+              <Truck className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Courier Dashboard</h1>
+              <p className="text-gray-600">Welcome back, {user.username}</p>
+            </div>
+          </div>
+          <Button onClick={logout} variant="outline" size="sm">
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-white shadow-sm border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Deliveries</p>
+                  <p className="text-3xl font-bold text-gray-900">{deliveries.length}</p>
+                </div>
+                <Package className="w-8 h-8 text-emerald-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white shadow-sm border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">In Progress</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {deliveries.filter(d => d.status === 'in_progress').length}
+                  </p>
+                </div>
+                <Clock className="w-8 h-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white shadow-sm border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Assigned</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {deliveries.filter(d => d.status === 'assigned').length}
+                  </p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-amber-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Deliveries List */}
+        <Card className="bg-white shadow-sm border-0">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Your Deliveries</CardTitle>
+            <CardDescription>Manage your assigned delivery orders</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading deliveries...</p>
+              </div>
+            ) : deliveries.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No active deliveries at the moment</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {deliveries.map((delivery) => (
+                  <div key={delivery.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{delivery.customer_name}</h3>
+                        <p className="text-gray-600 text-sm">{delivery.delivery_address}</p>
+                        <p className="text-gray-500 text-sm">📞 {delivery.phone_number}</p>
+                      </div>
+                      <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'}>
+                        {delivery.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-500">
+                        Created: {new Date(delivery.created_at).toLocaleDateString()}
+                      </p>
+                      <Button 
+                        onClick={() => markAsDelivered(delivery.id)}
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Mark as Delivered
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-};
+}
 
+// Super Admin Dashboard
+function SuperAdminDashboard() {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await axios.get(`${API}/companies`);
+      setCompanies(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch companies",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/companies`, newCompany);
+      toast({
+        title: "Success",
+        description: "Company created successfully",
+      });
+      setNewCompany({ name: '', admin_username: '', admin_password: '' });
+      setShowCreateDialog(false);
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to create company",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCompanyStatus = async (companyId) => {
+    try {
+      await axios.patch(`${API}/companies/${companyId}/toggle`);
+      toast({
+        title: "Success",
+        description: "Company status updated",
+      });
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update company status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-indigo-50">
+      <div className="container mx-auto p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Super Admin</h1>
+              <p className="text-gray-600">System Management Dashboard</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-violet-600 hover:bg-violet-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Company
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Company</DialogTitle>
+                  <DialogDescription>Add a new company and create its admin account</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={createCompany} className="space-y-4">
+                  <div>
+                    <Label htmlFor="companyName">Company Name</Label>
+                    <Input
+                      id="companyName"
+                      value={newCompany.name}
+                      onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="adminUsername">Admin Username</Label>
+                    <Input
+                      id="adminUsername"
+                      value={newCompany.admin_username}
+                      onChange={(e) => setNewCompany({ ...newCompany, admin_username: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="adminPassword">Admin Password</Label>
+                    <Input
+                      id="adminPassword"
+                      type="password"
+                      value={newCompany.admin_password}
+                      onChange={(e) => setNewCompany({ ...newCompany, admin_password: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">Create Company</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+            <Button onClick={logout} variant="outline" size="sm">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+
+        {/* Companies Table */}
+        <Card className="bg-white shadow-sm border-0">
+          <CardHeader>
+            <CardTitle>Companies Management</CardTitle>
+            <CardDescription>Manage all registered companies</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading companies...</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>Total Deliveries</TableHead>
+                    <TableHead>Active Couriers</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companies.map((company) => (
+                    <TableRow key={company.id}>
+                      <TableCell className="font-medium">{company.name}</TableCell>
+                      <TableCell>{company.total_deliveries}</TableCell>
+                      <TableCell>{company.active_couriers}</TableCell>
+                      <TableCell>
+                        <Badge variant={company.is_active ? 'default' : 'destructive'}>
+                          {company.is_active ? 'Active' : 'Disabled'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(company.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => toggleCompanyStatus(company.id)}
+                          variant={company.is_active ? 'destructive' : 'default'}
+                          size="sm"
+                        >
+                          {company.is_active ? 'Disable' : 'Enable'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Company Admin Dashboard (placeholder)
+function CompanyAdminDashboard() {
+  const { logout } = useAuth();
+  
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Company Admin Dashboard</h1>
+        <Button onClick={logout} variant="outline">
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </Button>
+      </div>
+      <Card>
+        <CardContent className="p-6">
+          <p>Company Admin features coming soon...</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Protected Route Component
+function ProtectedRoute({ children, allowedRoles }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
+}
+
+// Dashboard Router
+function DashboardRouter() {
+  const { user } = useAuth();
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  switch (user.role) {
+    case 'super_admin':
+      return <SuperAdminDashboard />;
+    case 'company_admin':
+      return <CompanyAdminDashboard />;
+    case 'courier':
+      return <CourierDashboard />;
+    default:
+      return <Navigate to="/login" replace />;
+  }
+}
+
+// Main App Component
 function App() {
   return (
-    <div className="App">
+    <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <div className="App">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <DashboardRouter />
+              </ProtectedRoute>
+            } />
+            <Route path="/unauthorized" element={
+              <div className="min-h-screen flex items-center justify-center">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+                    <p>You don't have permission to access this page.</p>
+                  </CardContent>
+                </Card>
+              </div>
+            } />
+          </Routes>
+          <Toaster />
+        </div>
       </BrowserRouter>
-    </div>
+    </AuthProvider>
   );
 }
 
