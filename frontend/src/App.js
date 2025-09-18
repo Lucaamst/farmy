@@ -30,6 +30,8 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
+  const [t, setT] = useState(getTranslation(language));
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -45,6 +47,11 @@ function AuthProvider({ children }) {
     }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    setT(getTranslation(language));
+    localStorage.setItem('language', language);
+  }, [language]);
 
   const login = (token, userData, companyData = null) => {
     localStorage.setItem('token', token);
@@ -68,8 +75,12 @@ function AuthProvider({ children }) {
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  const changeLanguage = (newLanguage) => {
+    setLanguage(newLanguage);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, company, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, company, login, logout, loading, language, changeLanguage, t }}>
       {children}
     </AuthContext.Provider>
   );
