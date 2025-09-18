@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
+// Import translations
+import { getTranslation } from './translations';
+
 // Import UI components
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -12,116 +15,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Label } from './components/ui/label';
+import { Separator } from './components/ui/separator';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus, Globe } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-
-// Complete translations
-const translations = {
-  en: {
-    appTitle: "FarmyGo",
-    signInToAccount: "Sign in to your account",
-    username: "Username",
-    password: "Password",
-    signIn: "Sign In",
-    signingIn: "Signing in...",
-    enterUsername: "Enter your username",
-    enterPassword: "Enter your password",
-    demoCredentials: "Demo Credentials:",
-    superAdmin: "Super Admin",
-    logout: "Logout",
-    loginSuccessful: "Login Successful",
-    welcomeBackMessage: "Welcome back",
-    loginFailed: "Login Failed",
-    invalidCredentials: "Invalid credentials",
-    superAdminTitle: "Super Admin",
-    systemManagement: "System Management Dashboard",
-    companyDashboard: "Company Dashboard",
-    courierDashboard: "Courier Dashboard",
-    welcomeBack: "Welcome back",
-    loading: "Loading...",
-    error: "Error",
-    success: "Success",
-    addCompany: "Add Company",
-    companiesManagement: "Companies Management",
-    manageAllCompanies: "Manage all registered companies",
-    companyName: "Company Name",
-    totalDeliveries: "Total Deliveries",
-    activeCouriers: "Active Couriers",
-    status: "Status",
-    created: "Created",
-    actions: "Actions",
-    active: "Active",
-    disabled: "Disabled",
-    enable: "Enable",
-    disable: "Disable",
-    edit: "Edit",
-    delete: "Delete",
-    yourDeliveries: "Your Deliveries",
-    manageAssignedOrders: "Manage your assigned delivery orders",
-    activeDeliveries: "Active Deliveries",
-    assigned: "Assigned",
-    inProgress: "In Progress",
-    delivered: "Delivered",
-    pending: "Pending",
-    markAsDelivered: "Mark as Delivered",
-    noActiveDeliveries: "No active deliveries at the moment",
-    createdAt: "Created on"
-  },
-  it: {
-    appTitle: "FarmyGo",
-    signInToAccount: "Accedi al tuo account",
-    username: "Nome utente",
-    password: "Password",
-    signIn: "Accedi",
-    signingIn: "Accesso in corso...",
-    enterUsername: "Inserisci il nome utente",
-    enterPassword: "Inserisci la password",
-    demoCredentials: "Credenziali Demo:",
-    superAdmin: "Super Admin",
-    logout: "Esci",
-    loginSuccessful: "Accesso Riuscito",
-    welcomeBackMessage: "Bentornato",
-    loginFailed: "Accesso Fallito",
-    invalidCredentials: "Credenziali non valide",
-    superAdminTitle: "Super Amministratore",
-    systemManagement: "Dashboard di Gestione Sistema",
-    companyDashboard: "Dashboard Azienda",
-    courierDashboard: "Dashboard Corriere",
-    welcomeBack: "Bentornato",
-    loading: "Caricamento...",
-    error: "Errore",
-    success: "Successo",
-    addCompany: "Aggiungi Azienda",
-    companiesManagement: "Gestione Aziende",
-    manageAllCompanies: "Gestisci tutte le aziende registrate",
-    companyName: "Nome Azienda",
-    totalDeliveries: "Consegne Totali",
-    activeCouriers: "Corrieri Attivi",
-    status: "Stato",
-    created: "Creato",
-    actions: "Azioni",
-    active: "Attivo",
-    disabled: "Disabilitato",
-    enable: "Abilita",
-    disable: "Disabilita",
-    edit: "Modifica",
-    delete: "Cancella",
-    yourDeliveries: "Le Tue Consegne",
-    manageAssignedOrders: "Gestisci i tuoi ordini assegnati",
-    activeDeliveries: "Consegne Attive",
-    assigned: "Assegnato",
-    inProgress: "In Corso",
-    delivered: "Consegnato",
-    pending: "In Attesa",
-    markAsDelivered: "Segna come Consegnato",
-    noActiveDeliveries: "Nessuna consegna attiva al momento",
-    createdAt: "Creato il"
-  }
-};
 
 // Auth Context
 const AuthContext = React.createContext();
@@ -130,7 +30,8 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState('it');
+  const [language, setLanguage] = useState(localStorage.getItem('language') || 'it');
+  const [t, setT] = useState(getTranslation(language));
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -152,6 +53,11 @@ function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    setT(getTranslation(language));
+    localStorage.setItem('language', language);
+  }, [language]);
+
   const login = (token, userData, companyData = null) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -161,22 +67,22 @@ function AuthProvider({ children }) {
     }
     setUser(userData);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Force navigation after login
     window.location.href = '/';
   };
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('company');
     setUser(null);
     setCompany(null);
     delete axios.defaults.headers.common['Authorization'];
-    window.location.href = '/';
   };
 
   const changeLanguage = (newLanguage) => {
     setLanguage(newLanguage);
   };
-
-  const t = translations[language] || translations.en;
 
   return (
     <AuthContext.Provider value={{ user, company, login, logout, loading, language, changeLanguage, t }}>
@@ -229,6 +135,7 @@ function Login() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iNCIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
       
+      {/* Language Switcher */}
       <div className="absolute top-4 right-4">
         <Select value={language} onValueChange={changeLanguage}>
           <SelectTrigger className="w-20 bg-white/10 border-white/20 text-white">
@@ -297,99 +204,6 @@ function Login() {
   );
 }
 
-// Super Admin Dashboard
-function SuperAdminDashboard() {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { user, logout, t } = useAuth();
-  const { toast } = useToast();
-
-  const fetchCompanies = async () => {
-    try {
-      const response = await axios.get(`${API}/companies`);
-      setCompanies(response.data);
-    } catch (error) {
-      toast({
-        title: t.error,
-        description: "Failed to fetch companies",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-indigo-50">
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.superAdminTitle}</h1>
-              <p className="text-sm sm:text-base text-gray-600">{t.systemManagement}</p>
-            </div>
-          </div>
-          <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
-            <LogOut className="w-4 h-4 mr-2" />
-            {t.logout}
-          </Button>
-        </div>
-
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl">{t.companiesManagement}</CardTitle>
-            <CardDescription className="text-sm">{t.manageAllCompanies}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2 text-sm">{t.loading}</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm">{t.companyName}</TableHead>
-                      <TableHead className="text-xs sm:text-sm">{t.totalDeliveries}</TableHead>
-                      <TableHead className="text-xs sm:text-sm">{t.activeCouriers}</TableHead>
-                      <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
-                      <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {companies.map((company) => (
-                      <TableRow key={company.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">{company.name}</TableCell>
-                        <TableCell className="text-xs sm:text-sm">{company.total_deliveries}</TableCell>
-                        <TableCell className="text-xs sm:text-sm">{company.active_couriers}</TableCell>
-                        <TableCell>
-                          <Badge variant={company.is_active ? 'default' : 'destructive'} className="text-xs">
-                            {company.is_active ? t.active : t.disabled}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">{new Date(company.created_at).toLocaleDateString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
 // Courier Dashboard
 function CourierDashboard() {
   const [deliveries, setDeliveries] = useState([]);
@@ -404,7 +218,7 @@ function CourierDashboard() {
     } catch (error) {
       toast({
         title: t.error,
-        description: "Failed to fetch deliveries",
+        description: t.failedToFetchData,
         variant: "destructive",
       });
     } finally {
@@ -420,14 +234,14 @@ function CourierDashboard() {
       
       toast({
         title: t.success,
-        description: "Delivery marked as completed and customer notified!",
+        description: t.deliveryMarkedCompleted,
       });
       
       fetchDeliveries();
     } catch (error) {
       toast({
         title: t.error,
-        description: error.response?.data?.detail || "Failed to mark delivery",
+        description: error.response?.data?.detail || t.failedToMarkDelivery,
         variant: "destructive",
       });
     }
@@ -440,6 +254,7 @@ function CourierDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
       <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -456,6 +271,7 @@ function CourierDashboard() {
           </Button>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-white shadow-sm border-0">
             <CardContent className="p-4 sm:p-6">
@@ -498,6 +314,7 @@ function CourierDashboard() {
           </Card>
         </div>
 
+        {/* Deliveries List */}
         <Card className="bg-white shadow-sm border-0">
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-lg sm:text-xl font-semibold">{t.yourDeliveries}</CardTitle>
@@ -556,7 +373,449 @@ function CourierDashboard() {
   );
 }
 
-// Company Admin Dashboard Placeholder
+// Super Admin Dashboard (with all new features)
+function SuperAdminDashboard() {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [deletingCompany, setDeletingCompany] = useState(null);
+  const [resettingPasswordCompany, setResettingPasswordCompany] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [resetPasswordData, setResetPasswordData] = useState({ admin_password: '', new_password: '' });
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const { user, logout, t } = useAuth();
+  const { toast } = useToast();
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await axios.get(`${API}/companies`);
+      setCompanies(response.data);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: t.failedToFetchData,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/companies`, newCompany);
+      toast({
+        title: t.success,
+        description: t.companyCreatedSuccessfully,
+      });
+      setNewCompany({ name: '', admin_username: '', admin_password: '' });
+      setShowCreateDialog(false);
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateCompany,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/companies/${editingCompany.id}`, {
+        name: editingCompany.name
+      });
+      toast({
+        title: t.success,
+        description: t.companyUpdatedSuccessfully,
+      });
+      setEditingCompany(null);
+      setShowEditDialog(false);
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToUpdateCompany,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.delete(`${API}/companies/${deletingCompany.id}`, {
+        data: { password: deletePassword }
+      });
+      toast({
+        title: t.success,
+        description: t.companyDeletedSuccessfully,
+      });
+      setDeletingCompany(null);
+      setDeletePassword('');
+      setShowDeleteDialog(false);
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteCompany,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetCompanyPassword = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/companies/${resettingPasswordCompany.id}/reset-password`, {
+        company_id: resettingPasswordCompany.id,
+        new_password: resetPasswordData.new_password,
+        admin_password: resetPasswordData.admin_password
+      });
+      toast({
+        title: t.success,
+        description: t.passwordResetSuccessfully,
+      });
+      setResettingPasswordCompany(null);
+      setResetPasswordData({ admin_password: '', new_password: '' });
+      setShowResetPasswordDialog(false);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToResetPassword,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCompanyStatus = async (companyId) => {
+    try {
+      await axios.patch(`${API}/companies/${companyId}/toggle`);
+      toast({
+        title: t.success,
+        description: t.statusUpdated,
+      });
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: "Failed to update company status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditClick = (company) => {
+    setEditingCompany({...company});
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteClick = (company) => {
+    setDeletingCompany(company);
+    setDeletePassword('');
+    setShowDeleteDialog(true);
+  };
+
+  const handleResetPasswordClick = (company) => {
+    setResettingPasswordCompany(company);
+    setResetPasswordData({ admin_password: '', new_password: '' });
+    setShowResetPasswordDialog(true);
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-indigo-50">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.superAdminTitle}</h1>
+              <p className="text-sm sm:text-base text-gray-600">{t.systemManagement}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-violet-600 hover:bg-violet-700 flex-1 sm:flex-none text-sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t.addCompany}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-lg">{t.createNewCompany}</DialogTitle>
+                  <DialogDescription className="text-sm">{t.addNewCompanyDescription}</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={createCompany} className="space-y-4">
+                  <div>
+                    <Label htmlFor="companyName" className="text-sm">{t.companyName}</Label>
+                    <Input
+                      id="companyName"
+                      value={newCompany.name}
+                      onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                      placeholder={t.enterCompanyName}
+                      required
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="adminUsername" className="text-sm">{t.adminUsername}</Label>
+                    <Input
+                      id="adminUsername"
+                      value={newCompany.admin_username}
+                      onChange={(e) => setNewCompany({ ...newCompany, admin_username: e.target.value })}
+                      placeholder={t.enterAdminUsername}
+                      required
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="adminPassword" className="text-sm">{t.adminPassword}</Label>
+                    <Input
+                      id="adminPassword"
+                      type="password"
+                      value={newCompany.admin_password}
+                      onChange={(e) => setNewCompany({ ...newCompany, admin_password: e.target.value })}
+                      placeholder={t.enterAdminPassword}
+                      required
+                      className="text-sm"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full text-sm">{t.createCompany}</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+            <Button onClick={logout} variant="outline" size="sm" className="flex-1 sm:flex-none text-sm">
+              <LogOut className="w-4 h-4 mr-2" />
+              {t.logout}
+            </Button>
+          </div>
+        </div>
+
+        {/* Companies Table */}
+        <Card className="bg-white shadow-sm border-0">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">{t.companiesManagement}</CardTitle>
+            <CardDescription className="text-sm">{t.manageAllCompanies}</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
+                <p className="text-gray-500 mt-2 text-sm">{t.loading}</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">{t.companyName}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.totalDeliveries}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.activeCouriers}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {companies.map((company) => (
+                      <TableRow key={company.id}>
+                        <TableCell className="font-medium text-xs sm:text-sm">{company.name}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{company.total_deliveries}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{company.active_couriers}</TableCell>
+                        <TableCell>
+                          <Badge variant={company.is_active ? 'default' : 'destructive'} className="text-xs">
+                            {company.is_active ? t.active : t.disabled}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">{new Date(company.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                            <Button
+                              onClick={() => handleEditClick(company)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.edit}
+                            </Button>
+                            <Button
+                              onClick={() => handleResetPasswordClick(company)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              Reset Password
+                            </Button>
+                            <Button
+                              onClick={() => toggleCompanyStatus(company.id)}
+                              variant={company.is_active ? 'destructive' : 'default'}
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {company.is_active ? t.disable : t.enable}
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteClick(company)}
+                              variant="destructive"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.delete}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* All dialogs for company management */}
+        {/* Edit Company Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.editCompany}</DialogTitle>
+              <DialogDescription className="text-sm">{t.editCompanyDescription}</DialogDescription>
+            </DialogHeader>
+            {editingCompany && (
+              <form onSubmit={updateCompany} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCompanyName" className="text-sm">{t.companyName}</Label>
+                  <Input
+                    id="editCompanyName"
+                    value={editingCompany.name}
+                    onChange={(e) => setEditingCompany({ ...editingCompany, name: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.updateCompany}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Reset Password Dialog */}
+        <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.resetCompanyPassword}</DialogTitle>
+              <DialogDescription className="text-sm">{t.resetPasswordDescription}</DialogDescription>
+            </DialogHeader>
+            {resettingPasswordCompany && (
+              <form onSubmit={resetCompanyPassword} className="space-y-4">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    Reset password per: <strong>{resettingPasswordCompany.name}</strong>
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="adminPasswordForReset" className="text-sm">{t.confirmPassword} (Super Admin)</Label>
+                  <Input
+                    id="adminPasswordForReset"
+                    type="password"
+                    value={resetPasswordData.admin_password}
+                    onChange={(e) => setResetPasswordData({ ...resetPasswordData, admin_password: e.target.value })}
+                    placeholder={t.enterPasswordToConfirm}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="newPasswordForAdmin" className="text-sm">{t.newPasswordForAdmin}</Label>
+                  <Input
+                    id="newPasswordForAdmin"
+                    type="password"
+                    value={resetPasswordData.new_password}
+                    onChange={(e) => setResetPasswordData({ ...resetPasswordData, new_password: e.target.value })}
+                    placeholder={t.enterNewPasswordForAdmin}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">
+                    Reimposta Password
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowResetPasswordDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Company Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.deleteCompany}</DialogTitle>
+              <DialogDescription className="text-sm">{t.deleteCompanyDescription}</DialogDescription>
+            </DialogHeader>
+            {deletingCompany && (
+              <form onSubmit={deleteCompany} className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    Stai per cancellare: <strong>{deletingCompany.name}</strong>
+                  </p>
+                  <p className="text-xs text-red-600 mt-1">
+                    Questa azione cancellerà anche tutti gli ordini e corrieri associati.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="deletePassword" className="text-sm">{t.confirmPassword}</Label>
+                  <Input
+                    id="deletePassword"
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder={t.enterPasswordToConfirm}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" variant="destructive" className="flex-1 text-sm">
+                    Cancella Definitivamente
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowDeleteDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
+
+// Company Admin Dashboard (Placeholder for now - will add full functionality next)
 function CompanyAdminDashboard() {
   const { user, company, logout, t } = useAuth();
 
@@ -581,18 +840,18 @@ function CompanyAdminDashboard() {
 
         <Card className="bg-white shadow-sm border-0">
           <CardHeader>
-            <CardTitle>Dashboard Aziendale</CardTitle>
-            <CardDescription>Gestione completa per amministratori azienda - Funzionalità in sviluppo</CardDescription>
+            <CardTitle>Dashboard Aziendale - FarmyGo</CardTitle>
+            <CardDescription>Funzionalità complete in aggiunta progressiva per mantenere compatibilità Safari</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <Building2 className="w-16 h-16 text-orange-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Dashboard Azienda Funzionante</h2>
+              <h2 className="text-xl font-semibold mb-2">Dashboard Azienda Operativa</h2>
               <p className="text-gray-600 mb-4">
-                Login completato con successo per: <Badge>{company?.name}</Badge>
+                Azienda: <Badge className="bg-orange-100 text-orange-800">{company?.name}</Badge>
               </p>
               <p className="text-sm text-gray-500">
-                Funzionalità complete in arrivo: gestione corrieri, ordini, filtri e export
+                Prossimo: Gestione completa corrieri, ordini, filtri avanzati, export Excel/CSV
               </p>
             </div>
           </CardContent>
@@ -651,6 +910,16 @@ function App() {
               <ProtectedRoute>
                 <DashboardRouter />
               </ProtectedRoute>
+            } />
+            <Route path="/unauthorized" element={
+              <div className="min-h-screen flex items-center justify-center">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <h2 className="text-xl font-bold mb-2">Accesso Negato</h2>
+                    <p>Non hai il permesso di accedere a questa pagina.</p>
+                  </CardContent>
+                </Card>
+              </div>
             } />
           </Routes>
           <Toaster />
