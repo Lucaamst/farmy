@@ -372,8 +372,11 @@ function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
   const [editingCompany, setEditingCompany] = useState(null);
+  const [deletingCompany, setDeletingCompany] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
@@ -434,6 +437,29 @@ function SuperAdminDashboard() {
     }
   };
 
+  const deleteCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.delete(`${API}/companies/${deletingCompany.id}`, {
+        data: { password: deletePassword }
+      });
+      toast({
+        title: t.success,
+        description: t.companyDeletedSuccessfully,
+      });
+      setDeletingCompany(null);
+      setDeletePassword('');
+      setShowDeleteDialog(false);
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteCompany,
+        variant: "destructive",
+      });
+    }
+  };
+
   const toggleCompanyStatus = async (companyId) => {
     try {
       await axios.patch(`${API}/companies/${companyId}/toggle`);
@@ -454,6 +480,12 @@ function SuperAdminDashboard() {
   const handleEditClick = (company) => {
     setEditingCompany({...company});
     setShowEditDialog(true);
+  };
+
+  const handleDeleteClick = (company) => {
+    setDeletingCompany(company);
+    setDeletePassword('');
+    setShowDeleteDialog(true);
   };
 
   useEffect(() => {
@@ -571,7 +603,7 @@ function SuperAdminDashboard() {
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">{new Date(company.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
+                          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
                             <Button
                               onClick={() => handleEditClick(company)}
                               variant="outline"
@@ -587,6 +619,14 @@ function SuperAdminDashboard() {
                               className="text-xs"
                             >
                               {company.is_active ? t.disable : t.enable}
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteClick(company)}
+                              variant="destructive"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.delete}
                             </Button>
                           </div>
                         </TableCell>
@@ -621,6 +661,48 @@ function SuperAdminDashboard() {
                 <div className="flex space-x-2">
                   <Button type="submit" className="flex-1 text-sm">{t.updateCompany}</Button>
                   <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Company Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.deleteCompany}</DialogTitle>
+              <DialogDescription className="text-sm">{t.deleteCompanyDescription}</DialogDescription>
+            </DialogHeader>
+            {deletingCompany && (
+              <form onSubmit={deleteCompany} className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    Stai per cancellare: <strong>{deletingCompany.name}</strong>
+                  </p>
+                  <p className="text-xs text-red-600 mt-1">
+                    Questa azione cancellerà anche tutti gli ordini e corrieri associati.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="deletePassword" className="text-sm">{t.confirmPassword}</Label>
+                  <Input
+                    id="deletePassword"
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder={t.enterPasswordToConfirm}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" variant="destructive" className="flex-1 text-sm">
+                    Cancella Definitivamente
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowDeleteDialog(false)} className="flex-1 text-sm">
                     {t.cancel}
                   </Button>
                 </div>
