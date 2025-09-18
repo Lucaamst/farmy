@@ -62,6 +62,7 @@ class Order(BaseModel):
     customer_name: str
     delivery_address: str
     phone_number: str
+    reference_number: Optional[str] = None
     company_id: str
     courier_id: Optional[str] = None
     status: str = "pending"  # pending, assigned, in_progress, delivered
