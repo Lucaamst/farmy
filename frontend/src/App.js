@@ -518,6 +518,12 @@ function SuperAdminDashboard() {
     setShowDeleteDialog(true);
   };
 
+  const handleResetPasswordClick = (company) => {
+    setResettingPasswordCompany(company);
+    setResetPasswordData({ admin_password: '', new_password: '' });
+    setShowResetPasswordDialog(true);
+  };
+
   useEffect(() => {
     fetchCompanies();
   }, []);
