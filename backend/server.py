@@ -597,6 +597,8 @@ async def assign_order(
     request: AssignOrderRequest,
     current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
 ):
+    print(f"Assign order request: {request}")  # Debug log
+    
     # Verify courier belongs to same company
     courier = await db.users.find_one({
         "id": request.courier_id,
