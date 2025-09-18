@@ -530,6 +530,28 @@ async def get_orders(
     
     return [Order(**order) for order in orders]
 
+@api_router.delete("/orders/{order_id}")
+async def delete_order(
+    order_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Find order and verify it belongs to same company
+    order = await db.orders.find_one({
+        "id": order_id,
+        "company_id": current_user.company_id
+    })
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Don't allow deletion of delivered orders
+    if order["status"] == "delivered":
+        raise HTTPException(status_code=400, detail="Cannot delete delivered orders")
+    
+    # Delete order
+    await db.orders.delete_one({"id": order_id})
+    
+    return {"message": "Order deleted successfully"}
+
 @api_router.patch("/orders/{order_id}")
 async def update_order(
     order_id: str,
