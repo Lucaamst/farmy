@@ -859,7 +859,8 @@ function CompanyAdminDashboard() {
       const response = await axios.patch(`${API}/orders/${editingOrder.id}`, {
         customer_name: editingOrder.customer_name,
         delivery_address: editingOrder.delivery_address,
-        phone_number: editingOrder.phone_number
+        phone_number: editingOrder.phone_number,
+        reference_number: editingOrder.reference_number
       });
       
       if (response.data.suggest_reassignment) {
