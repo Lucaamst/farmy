@@ -649,6 +649,14 @@ function SuperAdminDashboard() {
                               {t.edit}
                             </Button>
                             <Button
+                              onClick={() => handleResetPasswordClick(company)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              Reset Password
+                            </Button>
+                            <Button
                               onClick={() => toggleCompanyStatus(company.id)}
                               variant={company.is_active ? 'destructive' : 'default'}
                               size="sm"
