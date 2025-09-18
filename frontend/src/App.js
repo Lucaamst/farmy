@@ -1419,6 +1419,16 @@ function CompanyAdminDashboard() {
                     className="text-sm"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="editReferenceNumber" className="text-sm">{t.referenceNumber}</Label>
+                  <Input
+                    id="editReferenceNumber"
+                    value={editingOrder.reference_number}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, reference_number: e.target.value })}
+                    placeholder={t.enterReferenceNumber}
+                    className="text-sm"
+                  />
+                </div>
                 <div className="flex space-x-2">
                   <Button type="submit" className="flex-1 text-sm">Aggiorna Ordine</Button>
                   <Button type="button" variant="outline" onClick={() => setShowEditOrder(false)} className="flex-1 text-sm">
