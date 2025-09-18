@@ -84,6 +84,11 @@ export const italian = {
   assigned: "Assegnato",
   inProgress: "In Corso",
   delivered: "Consegnato",
+  editOrder: "Modifica Ordine",
+  editOrderDescription: "Modifica i dettagli dell'ordine di consegna",
+  updateOrder: "Aggiorna Ordine",
+  orderUpdatedSuccessfully: "Ordine aggiornato con successo",
+  failedToUpdateOrder: "Impossibile aggiornare l'ordine",
 
   // Courier
   courierDashboard: "Dashboard Corriere",
