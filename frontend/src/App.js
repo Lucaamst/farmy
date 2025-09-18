@@ -1444,6 +1444,16 @@ function CompanyAdminDashboard() {
                               {order.status === 'pending' ? t.assignCourier : 'Riassegna Corriere'}
                             </Button>
                           )}
+                          {order.status !== 'delivered' && (
+                            <Button 
+                              onClick={() => deleteOrder(order.id)}
+                              size="sm"
+                              variant="destructive"
+                              className="w-full sm:w-auto text-xs"
+                            >
+                              {t.deleteOrder}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
