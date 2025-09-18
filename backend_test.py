@@ -23,7 +23,7 @@ class DeliveryManagementAPITester:
             print(f"❌ {name} - FAILED {details}")
         return success
 
-    def make_request(self, method, endpoint, data=None, token=None, expected_status=200):
+    def make_request(self, method, endpoint, data=None, token=None, expected_status=200, params=None):
         """Make HTTP request with proper headers"""
         url = f"{self.api_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'}
@@ -33,11 +33,13 @@ class DeliveryManagementAPITester:
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, params=params)
             elif method == 'POST':
                 response = requests.post(url, json=data, headers=headers)
             elif method == 'PATCH':
                 response = requests.patch(url, json=data, headers=headers)
+            elif method == 'DELETE':
+                response = requests.delete(url, json=data, headers=headers)
             
             success = response.status_code == expected_status
             return success, response.status_code, response.json() if response.content else {}
