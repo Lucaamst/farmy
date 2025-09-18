@@ -846,6 +846,7 @@ function CompanyAdminDashboard() {
       ]);
       setCouriers(couriersRes.data);
       setOrders(ordersRes.data);
+      setFilteredOrders(ordersRes.data);
     } catch (error) {
       toast({
         title: t.error,
@@ -854,6 +855,73 @@ function CompanyAdminDashboard() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const searchOrders = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (searchFilters.customer_name) params.append('customer_name', searchFilters.customer_name);
+      if (searchFilters.courier_id) params.append('courier_id', searchFilters.courier_id);
+      if (searchFilters.date_from) params.append('date_from', searchFilters.date_from);
+      if (searchFilters.date_to) params.append('date_to', searchFilters.date_to);
+      if (searchFilters.status) params.append('status', searchFilters.status);
+      
+      const response = await axios.get(`${API}/orders/search?${params}`);
+      setFilteredOrders(response.data);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: "Errore nella ricerca ordini",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchFilters({
+      customer_name: '',
+      courier_id: '',
+      date_from: '',
+      date_to: '',
+      status: ''
+    });
+    setFilteredOrders(orders);
+  };
+
+  const exportOrders = async (format = 'excel') => {
+    try {
+      const params = new URLSearchParams();
+      if (searchFilters.customer_name) params.append('customer_name', searchFilters.customer_name);
+      if (searchFilters.courier_id) params.append('courier_id', searchFilters.courier_id);
+      if (searchFilters.date_from) params.append('date_from', searchFilters.date_from);
+      if (searchFilters.date_to) params.append('date_to', searchFilters.date_to);
+      if (searchFilters.status) params.append('status', searchFilters.status);
+      params.append('format', format);
+      
+      const response = await axios.get(`${API}/orders/export?${params}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', format === 'excel' ? 'ordini.xlsx' : 'ordini.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: t.success,
+        description: `Export completato in ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: "Errore nell'export",
+        variant: "destructive",
+      });
     }
   };
 
