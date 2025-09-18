@@ -92,6 +92,11 @@ class UpdateCompanyRequest(BaseModel):
 class DeleteCompanyRequest(BaseModel):
     password: str
 
+class ResetCompanyPasswordRequest(BaseModel):
+    company_id: str
+    new_password: str
+    admin_password: str
+
 class CreateCourierRequest(BaseModel):
     username: str
     password: str
