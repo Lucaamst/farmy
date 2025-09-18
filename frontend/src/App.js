@@ -919,6 +919,11 @@ function CompanyAdminDashboard() {
     setShowEditOrder(true);
   };
 
+  const handleEditCourierClick = (courier) => {
+    setEditingCourier({...courier, password: ''});
+    setShowEditCourier(true);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
