@@ -56,6 +56,13 @@ export const italian = {
   updateCompany: "Aggiorna Azienda",
   companyUpdatedSuccessfully: "Azienda aggiornata con successo",
   failedToUpdateCompany: "Impossibile aggiornare l'azienda",
+  deleteCompany: "Cancella Azienda",
+  deleteCompanyDescription: "Inserisci la password per confermare la cancellazione dell'azienda",
+  confirmPassword: "Conferma Password",
+  enterPasswordToConfirm: "Inserisci la password per confermare",
+  companyDeletedSuccessfully: "Azienda cancellata con successo",
+  failedToDeleteCompany: "Impossibile cancellare l'azienda",
+  incorrectPassword: "Password non corretta",
 
   // Company Admin
   companyDashboard: "Dashboard Azienda",
