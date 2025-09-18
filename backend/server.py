@@ -96,6 +96,10 @@ class CreateCourierRequest(BaseModel):
     username: str
     password: str
 
+class UpdateCourierRequest(BaseModel):
+    username: str
+    password: Optional[str] = None
+
 class CreateOrderRequest(BaseModel):
     customer_name: str
     delivery_address: str
