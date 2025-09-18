@@ -508,6 +508,14 @@ async def mark_delivery_completed(
     
     return {"message": "Delivery marked as completed and customer notified"}
 
+@api_router.get("/sms-logs")
+async def get_sms_logs(
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN]))
+):
+    """Get SMS logs for verification"""
+    sms_logs = await db.sms_logs.find().sort("sent_at", -1).to_list(50)
+    return sms_logs
+
 # Include the router in the main app
 app.include_router(api_router)
 
