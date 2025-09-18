@@ -563,34 +563,31 @@ function CompanyAdminDashboard() {
   const [couriers, setCouriers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
   const [showCreateCourier, setShowCreateCourier] = useState(false);
   const [showCreateOrder, setShowCreateOrder] = useState(false);
+  const [showEditOrder, setShowEditOrder] = useState(false);
+  const [showAssignOrder, setShowAssignOrder] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [editingOrder, setEditingOrder] = useState(null);
   const [newCourier, setNewCourier] = useState({ username: '', password: '' });
   const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '' });
-  const { user, company, logout } = useAuth();
+  const [assignData, setAssignData] = useState({ order_id: '', courier_id: '' });
+  const { user, company, logout, t } = useAuth();
   const { toast } = useToast();
 
-  const fetchCouriers = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(`${API}/couriers`);
-      setCouriers(response.data);
+      const [couriersRes, ordersRes] = await Promise.all([
+        axios.get(`${API}/couriers`),
+        axios.get(`${API}/orders`)
+      ]);
+      setCouriers(couriersRes.data);
+      setOrders(ordersRes.data);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch couriers",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchOrders = async () => {
-    try {
-      const response = await axios.get(`${API}/orders`);
-      setOrders(response.data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch orders",
+        title: t.error,
+        description: t.failedToFetchData,
         variant: "destructive",
       });
     } finally {
@@ -603,16 +600,33 @@ function CompanyAdminDashboard() {
     try {
       await axios.post(`${API}/couriers`, newCourier);
       toast({
-        title: "Success",
-        description: "Courier created successfully",
+        title: t.success,
+        description: t.courierCreatedSuccessfully,
       });
       setNewCourier({ username: '', password: '' });
       setShowCreateCourier(false);
-      fetchCouriers();
+      fetchData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to create courier",
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateCourier,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCourierStatus = async (courierId) => {
+    try {
+      await axios.patch(`${API}/couriers/${courierId}/toggle`);
+      toast({
+        title: t.success,
+        description: t.statusUpdated,
+      });
+      fetchData();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: "Failed to update courier status",
         variant: "destructive",
       });
     }
@@ -623,327 +637,544 @@ function CompanyAdminDashboard() {
     try {
       await axios.post(`${API}/orders`, newOrder);
       toast({
-        title: "Success",
-        description: "Order created successfully",
+        title: t.success,
+        description: t.orderCreatedSuccessfully,
       });
       setNewOrder({ customer_name: '', delivery_address: '', phone_number: '' });
       setShowCreateOrder(false);
-      fetchOrders();
+      fetchData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to create order",
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateOrder,
         variant: "destructive",
       });
     }
   };
 
-  const assignOrder = async (orderId, courierId) => {
+  const updateOrder = async (e) => {
+    e.preventDefault();
     try {
-      await axios.patch(`${API}/orders/assign`, {
-        order_id: orderId,
-        courier_id: courierId
+      await axios.patch(`${API}/orders/${editingOrder.id}`, {
+        customer_name: editingOrder.customer_name,
+        delivery_address: editingOrder.delivery_address,
+        phone_number: editingOrder.phone_number
       });
       toast({
-        title: "Success",
-        description: "Order assigned successfully",
+        title: t.success,
+        description: "Ordine aggiornato con successo",
       });
-      fetchOrders();
+      setEditingOrder(null);
+      setShowEditOrder(false);
+      fetchData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to assign order",
+        title: t.error,
+        description: "Impossibile aggiornare l'ordine",
         variant: "destructive",
       });
     }
   };
 
-  const toggleCourierStatus = async (courierId) => {
+  const assignOrder = async (e) => {
+    e.preventDefault();
     try {
-      await axios.patch(`${API}/couriers/${courierId}/toggle`);
+      await axios.patch(`${API}/orders/assign`, assignData);
       toast({
-        title: "Success",
-        description: "Courier status updated",
+        title: t.success,
+        description: t.orderAssignedSuccessfully,
       });
-      fetchCouriers();
+      setAssignData({ order_id: '', courier_id: '' });
+      setShowAssignOrder(false);
+      setSelectedOrder(null);
+      fetchData();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update courier status",
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToAssignOrder,
         variant: "destructive",
       });
     }
+  };
+
+  const handleAssignClick = (order) => {
+    setSelectedOrder(order);
+    setAssignData({ ...assignData, order_id: order.id });
+    setShowAssignOrder(true);
+  };
+
+  const handleEditClick = (order) => {
+    setEditingOrder({...order});
+    setShowEditOrder(true);
   };
 
   useEffect(() => {
-    fetchCouriers();
-    fetchOrders();
+    fetchData();
   }, []);
 
+  const activeCouriers = couriers.filter(c => c.is_active).length;
+  const pendingOrders = orders.filter(o => o.status === 'pending').length;
+  const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
+  const inProgressOrders = orders.filter(o => o.status === 'in_progress' || o.status === 'assigned').length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="container mx-auto p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Company Admin</h1>
-              <p className="text-gray-600">{company?.name || 'Company Dashboard'}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.companyDashboard}</h1>
+              <p className="text-sm sm:text-base text-gray-600 truncate">{company?.name} • {user.username}</p>
             </div>
           </div>
-          <Button onClick={logout} variant="outline" size="sm">
+          <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            {t.logout}
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                  <p className="text-3xl font-bold text-gray-900">{orders.length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.activeCouriers}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{activeCouriers}</p>
                 </div>
-                <Package className="w-8 h-8 text-blue-600" />
+                <Users className="w-5 h-5 sm:w-6 sm:w-8 text-orange-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Active Couriers</p>
-                  <p className="text-3xl font-bold text-gray-900">{couriers.filter(c => c.is_active).length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.pending}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{pendingOrders}</p>
                 </div>
-                <Users className="w-8 h-8 text-green-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:w-8 text-blue-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Orders</p>
-                  <p className="text-3xl font-bold text-gray-900">{orders.filter(o => o.status === 'pending').length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.inProgress}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{inProgressOrders}</p>
                 </div>
-                <Clock className="w-8 h-8 text-amber-600" />
+                <Truck className="w-5 h-5 sm:w-6 sm:w-8 text-amber-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Delivered</p>
-                  <p className="text-3xl font-bold text-gray-900">{orders.filter(o => o.status === 'delivered').length}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.delivered}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{deliveredOrders}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:w-8 text-green-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Couriers Management */}
+        {/* Tabs Navigation */}
+        <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1 mb-6 bg-white p-1 rounded-lg shadow-sm border-0">
+          <Button
+            variant={activeTab === 'overview' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('overview')}
+            className="flex-1 text-xs sm:text-sm"
+          >
+            {t.overview}
+          </Button>
+          <Button
+            variant={activeTab === 'couriers' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('couriers')}
+            className="flex-1 text-xs sm:text-sm"
+          >
+            {t.courierManagement}
+          </Button>
+          <Button
+            variant={activeTab === 'orders' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('orders')}
+            className="flex-1 text-xs sm:text-sm"
+          >
+            {t.orderManagement}
+          </Button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <Card className="bg-white shadow-sm border-0">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">{t.recentOrders}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="space-y-3">
+                  {orders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-medium text-sm truncate">{order.customer_name}</p>
+                        <p className="text-xs text-gray-600 truncate">{order.delivery_address}</p>
+                      </div>
+                      <Badge variant={
+                        order.status === 'delivered' ? 'default' : 
+                        order.status === 'pending' ? 'secondary' : 'outline'
+                      } className="text-xs shrink-0">
+                        {order.status === 'delivered' ? t.delivered.toUpperCase() :
+                         order.status === 'pending' ? t.pending.toUpperCase() :
+                         order.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-sm border-0">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">{t.activeCouriers}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="space-y-3">
+                  {couriers.filter(c => c.is_active).slice(0, 5).map((courier) => (
+                    <div key={courier.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3 min-w-0 flex-1">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                        </div>
+                        <p className="font-medium text-sm truncate">{courier.username}</p>
+                      </div>
+                      <Badge variant="default" className="text-xs shrink-0">{t.active.toUpperCase()}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'couriers' && (
           <Card className="bg-white shadow-sm border-0">
-            <CardHeader>
-              <div className="flex justify-between items-center">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                 <div>
-                  <CardTitle className="text-xl font-semibold">Couriers</CardTitle>
-                  <CardDescription>Manage your delivery couriers</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl">{t.courierManagement}</CardTitle>
+                  <CardDescription className="text-sm">{t.manageYourCouriers}</CardDescription>
                 </div>
                 <Dialog open={showCreateCourier} onOpenChange={setShowCreateCourier}>
                   <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Button className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto text-sm">
                       <UserPlus className="w-4 h-4 mr-2" />
-                      Add Courier
+                      {t.addCourier}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Create New Courier</DialogTitle>
-                      <DialogDescription>Add a new courier to your team</DialogDescription>
+                      <DialogTitle className="text-lg">{t.createNewCourier}</DialogTitle>
+                      <DialogDescription className="text-sm">{t.addNewCourierDescription}</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={createCourier} className="space-y-4">
                       <div>
-                        <Label htmlFor="courierUsername">Username</Label>
+                        <Label htmlFor="courierUsername" className="text-sm">{t.courierUsername}</Label>
                         <Input
                           id="courierUsername"
                           value={newCourier.username}
                           onChange={(e) => setNewCourier({ ...newCourier, username: e.target.value })}
+                          placeholder={t.enterCourierUsername}
                           required
+                          className="text-sm"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="courierPassword">Password</Label>
+                        <Label htmlFor="courierPassword" className="text-sm">{t.courierPassword}</Label>
                         <Input
                           id="courierPassword"
                           type="password"
                           value={newCourier.password}
                           onChange={(e) => setNewCourier({ ...newCourier, password: e.target.value })}
+                          placeholder={t.enterCourierPassword}
                           required
+                          className="text-sm"
                         />
                       </div>
-                      <Button type="submit" className="w-full">Create Courier</Button>
+                      <Button type="submit" className="w-full text-sm">{t.createCourier}</Button>
                     </form>
                   </DialogContent>
                 </Dialog>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               {loading ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-2 text-sm">{t.loading}</p>
                 </div>
-              ) : couriers.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No couriers yet</p>
               ) : (
-                <div className="space-y-3">
-                  {couriers.map((courier) => (
-                    <div key={courier.id} className="flex justify-between items-center p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{courier.username}</p>
-                        <p className="text-sm text-gray-500">
-                          Created: {new Date(courier.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={courier.is_active ? 'default' : 'destructive'}>
-                          {courier.is_active ? 'Active' : 'Blocked'}
-                        </Badge>
-                        <Button
-                          onClick={() => toggleCourierStatus(courier.id)}
-                          variant={courier.is_active ? 'destructive' : 'default'}
-                          size="sm"
-                        >
-                          {courier.is_active ? 'Block' : 'Activate'}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">{t.username}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {couriers.map((courier) => (
+                        <TableRow key={courier.id}>
+                          <TableCell className="font-medium text-xs sm:text-sm">{courier.username}</TableCell>
+                          <TableCell>
+                            <Badge variant={courier.is_active ? 'default' : 'destructive'} className="text-xs">
+                              {courier.is_active ? t.active : t.blocked}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm">{new Date(courier.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() => toggleCourierStatus(courier.id)}
+                              variant={courier.is_active ? 'destructive' : 'default'}
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {courier.is_active ? t.block : t.activate}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>
           </Card>
+        )}
 
-          {/* Orders Management */}
+        {activeTab === 'orders' && (
           <Card className="bg-white shadow-sm border-0">
-            <CardHeader>
-              <div className="flex justify-between items-center">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                 <div>
-                  <CardTitle className="text-xl font-semibold">Orders</CardTitle>
-                  <CardDescription>Manage delivery orders</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl">{t.orderManagement}</CardTitle>
+                  <CardDescription className="text-sm">{t.manageDeliveryOrders}</CardDescription>
                 </div>
-                <Dialog open={showCreateOrder} onOpenChange={setShowCreateOrder}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-green-600 hover:bg-green-700">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Order
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Order</DialogTitle>
-                      <DialogDescription>Create a new delivery order</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={createOrder} className="space-y-4">
-                      <div>
-                        <Label htmlFor="customerName">Customer Name</Label>
-                        <Input
-                          id="customerName"
-                          value={newOrder.customer_name}
-                          onChange={(e) => setNewOrder({ ...newOrder, customer_name: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="deliveryAddress">Delivery Address</Label>
-                        <Input
-                          id="deliveryAddress"
-                          value={newOrder.delivery_address}
-                          onChange={(e) => setNewOrder({ ...newOrder, delivery_address: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phoneNumber">Phone Number</Label>
-                        <Input
-                          id="phoneNumber"
-                          value={newOrder.phone_number}
-                          onChange={(e) => setNewOrder({ ...newOrder, phone_number: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">Create Order</Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                <Button 
+                  onClick={() => setShowCreateOrder(true)}
+                  className="bg-orange-600 hover:bg-orange-700 w-full sm:w-auto text-sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t.addOrder}
+                </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               {loading ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-2 text-sm">{t.loading}</p>
                 </div>
-              ) : orders.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No orders yet</p>
               ) : (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-4">
                   {orders.map((order) => (
-                    <div key={order.id} className="border rounded-lg p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <p className="font-medium">{order.customer_name}</p>
-                          <p className="text-sm text-gray-600">{order.delivery_address}</p>
-                          <p className="text-sm text-gray-500">📞 {order.phone_number}</p>
+                    <div key={order.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
+                        <div className="flex-1 min-w-0 pr-0 sm:pr-4">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{order.customer_name}</h3>
+                          <p className="text-gray-600 text-xs sm:text-sm break-words">{order.delivery_address}</p>
+                          <p className="text-gray-500 text-xs sm:text-sm">📞 {order.phone_number}</p>
+                          {order.courier_id && (
+                            <p className="text-gray-500 text-xs sm:text-sm">
+                              Corriere: {couriers.find(c => c.id === order.courier_id)?.username || 'Sconosciuto'}
+                            </p>
+                          )}
                         </div>
                         <Badge variant={
-                          order.status === 'delivered' ? 'default' :
-                          order.status === 'assigned' || order.status === 'in_progress' ? 'secondary' :
-                          'outline'
-                        }>
-                          {order.status.replace('_', ' ').toUpperCase()}
+                          order.status === 'delivered' ? 'default' : 
+                          order.status === 'pending' ? 'secondary' : 'outline'
+                        } className="text-xs shrink-0">
+                          {order.status === 'delivered' ? t.delivered.toUpperCase() :
+                           order.status === 'pending' ? t.pending.toUpperCase() :
+                           order.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
                         </Badge>
                       </div>
                       
-                      {order.status === 'pending' && couriers.filter(c => c.is_active).length > 0 && (
-                        <div className="mt-2">
-                          <Select onValueChange={(courierId) => assignOrder(order.id, courierId)}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Assign to courier" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {couriers.filter(c => c.is_active).map((courier) => (
-                                <SelectItem key={courier.id} value={courier.id}>
-                                  {courier.username}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                        <p className="text-xs text-gray-500">
+                          {t.createdAt}: {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                          {(order.status === 'pending' || order.status === 'assigned') && (
+                            <Button 
+                              onClick={() => handleEditClick(order)}
+                              size="sm"
+                              variant="outline"
+                              className="w-full sm:w-auto text-xs"
+                            >
+                              {t.edit}
+                            </Button>
+                          )}
+                          {order.status === 'pending' && (
+                            <Button 
+                              onClick={() => handleAssignClick(order)}
+                              size="sm"
+                              variant="outline"
+                              className="w-full sm:w-auto text-xs"
+                            >
+                              {t.assignCourier}
+                            </Button>
+                          )}
                         </div>
-                      )}
-                      
-                      <p className="text-xs text-gray-500 mt-2">
-                        Created: {new Date(order.created_at).toLocaleDateString()}
-                        {order.delivered_at && (
-                          <span> • Delivered: {new Date(order.delivered_at).toLocaleDateString()}</span>
-                        )}
-                      </p>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
-        </div>
+        )}
+
+        {/* Create Order Dialog */}
+        <Dialog open={showCreateOrder} onOpenChange={setShowCreateOrder}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.createNewOrder}</DialogTitle>
+              <DialogDescription className="text-sm">{t.addNewOrderDescription}</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={createOrder} className="space-y-4">
+              <div>
+                <Label htmlFor="customerName" className="text-sm">{t.customerName}</Label>
+                <Input
+                  id="customerName"
+                  value={newOrder.customer_name}
+                  onChange={(e) => setNewOrder({ ...newOrder, customer_name: e.target.value })}
+                  placeholder={t.enterCustomerName}
+                  required
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <Label htmlFor="deliveryAddress" className="text-sm">{t.deliveryAddress}</Label>
+                <Input
+                  id="deliveryAddress"
+                  value={newOrder.delivery_address}
+                  onChange={(e) => setNewOrder({ ...newOrder, delivery_address: e.target.value })}
+                  placeholder={t.enterDeliveryAddress}
+                  required
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phoneNumber" className="text-sm">{t.phoneNumber}</Label>
+                <Input
+                  id="phoneNumber"
+                  value={newOrder.phone_number}
+                  onChange={(e) => setNewOrder({ ...newOrder, phone_number: e.target.value })}
+                  placeholder={t.enterPhoneNumber}
+                  required
+                  className="text-sm"
+                />
+              </div>
+              <Button type="submit" className="w-full text-sm">{t.createOrder}</Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Order Dialog */}
+        <Dialog open={showEditOrder} onOpenChange={setShowEditOrder}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">Modifica Ordine</DialogTitle>
+              <DialogDescription className="text-sm">Modifica i dettagli dell'ordine di consegna</DialogDescription>
+            </DialogHeader>
+            {editingOrder && (
+              <form onSubmit={updateOrder} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCustomerName" className="text-sm">{t.customerName}</Label>
+                  <Input
+                    id="editCustomerName"
+                    value={editingOrder.customer_name}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, customer_name: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editDeliveryAddress" className="text-sm">{t.deliveryAddress}</Label>
+                  <Input
+                    id="editDeliveryAddress"
+                    value={editingOrder.delivery_address}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, delivery_address: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editPhoneNumber" className="text-sm">{t.phoneNumber}</Label>
+                  <Input
+                    id="editPhoneNumber"
+                    value={editingOrder.phone_number}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, phone_number: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">Aggiorna Ordine</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditOrder(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Assign Order Dialog */}
+        <Dialog open={showAssignOrder} onOpenChange={setShowAssignOrder}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.assignOrderToCourier}</DialogTitle>
+              <DialogDescription className="text-sm">
+                {t.selectCourier} {selectedOrder?.customer_name}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={assignOrder} className="space-y-4">
+              <div>
+                <Label htmlFor="courierSelect" className="text-sm">Seleziona Corriere</Label>
+                <Select 
+                  value={assignData.courier_id} 
+                  onValueChange={(value) => setAssignData({ ...assignData, courier_id: value })}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder={t.chooseCourier} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {couriers.filter(c => c.is_active).map((courier) => (
+                      <SelectItem key={courier.id} value={courier.id} className="text-sm">
+                        {courier.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full text-sm" disabled={!assignData.courier_id}>
+                {t.assignOrder}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
