@@ -51,6 +51,11 @@ export const italian = {
   disable: "Disabilita",
   enabled: "Abilitato",
   disabled: "Disabilitato",
+  editCompany: "Modifica Azienda",
+  editCompanyDescription: "Modifica i dettagli dell'azienda",
+  updateCompany: "Aggiorna Azienda",
+  companyUpdatedSuccessfully: "Azienda aggiornata con successo",
+  failedToUpdateCompany: "Impossibile aggiornare l'azienda",
 
   // Company Admin
   companyDashboard: "Dashboard Azienda",
