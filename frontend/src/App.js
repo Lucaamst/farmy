@@ -715,7 +715,7 @@ function CompanyAdminDashboard() {
         title: t.success,
         description: t.orderCreatedSuccessfully,
       });
-      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '' });
+      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '' });
       setShowCreateOrder(false);
       fetchData();
     } catch (error) {
