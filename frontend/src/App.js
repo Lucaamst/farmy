@@ -914,7 +914,7 @@ function CompanyAdminDashboard() {
 
   const handleAssignClick = (order) => {
     setSelectedOrder(order);
-    setAssignData({ ...assignData, order_id: order.id });
+    setAssignData({ order_id: order.id, courier_id: '' });
     setShowAssignOrder(true);
   };
 
