@@ -548,17 +548,26 @@ async def assign_order(
     if not courier:
         raise HTTPException(status_code=404, detail="Courier not found or inactive")
     
+    # Find order and verify it belongs to same company
+    order = await db.orders.find_one({
+        "id": request.order_id,
+        "company_id": current_user.company_id
+    })
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Don't allow reassignment of delivered orders
+    if order["status"] == "delivered":
+        raise HTTPException(status_code=400, detail="Cannot reassign delivered orders")
+    
     # Update order
-    result = await db.orders.update_one(
+    await db.orders.update_one(
         {"id": request.order_id, "company_id": current_user.company_id},
         {"$set": {
             "courier_id": request.courier_id,
             "status": "assigned"
         }}
     )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Order not found")
     
     return {"message": "Order assigned successfully"}
 
