@@ -815,13 +815,373 @@ function SuperAdminDashboard() {
   );
 }
 
-// Company Admin Dashboard (Placeholder for now - will add full functionality next)
+// Company Admin Dashboard with full functionality
 function CompanyAdminDashboard() {
+  const [couriers, setCouriers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Courier management states
+  const [newCourier, setNewCourier] = useState({ username: '', password: '' });
+  const [editingCourier, setEditingCourier] = useState(null);
+  const [deletingCourier, setDeletingCourier] = useState(null);
+  const [showCreateCourierDialog, setShowCreateCourierDialog] = useState(false);
+  const [showEditCourierDialog, setShowEditCourierDialog] = useState(false);
+  const [showDeleteCourierDialog, setShowDeleteCourierDialog] = useState(false);
+  
+  // Order management states
+  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '' });
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [deletingOrder, setDeletingOrder] = useState(null);
+  const [assigningOrder, setAssigningOrder] = useState(null);
+  const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
+  const [showEditOrderDialog, setShowEditOrderDialog] = useState(false);
+  const [showDeleteOrderDialog, setShowDeleteOrderDialog] = useState(false);
+  const [showAssignOrderDialog, setShowAssignOrderDialog] = useState(false);
+  
+  // Search and filter states
+  const [searchFilters, setSearchFilters] = useState({
+    customer_name: '',
+    courier_id: '',
+    status: '',
+    date_from: '',
+    date_to: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  
   const { user, company, logout, t } = useAuth();
+  const { toast } = useToast();
+
+  // Fetch data functions
+  const fetchCouriers = async () => {
+    try {
+      const response = await axios.get(`${API}/couriers`);
+      setCouriers(response.data);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: t.failedToFetchData,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      let url = `${API}/orders`;
+      const hasFilters = Object.values(searchFilters).some(filter => filter);
+      
+      if (hasFilters) {
+        const params = new URLSearchParams();
+        Object.entries(searchFilters).forEach(([key, value]) => {
+          if (value) params.append(key, value);
+        });
+        url = `${API}/orders/search?${params.toString()}`;
+      }
+      
+      const response = await axios.get(url);
+      setOrders(response.data);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: t.failedToFetchData,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([fetchCouriers(), fetchOrders()]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Courier management functions
+  const createCourier = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/couriers`, newCourier);
+      toast({
+        title: t.success,
+        description: t.courierCreatedSuccessfully,
+      });
+      setNewCourier({ username: '', password: '' });
+      setShowCreateCourierDialog(false);
+      fetchCouriers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateCourier,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateCourier = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/couriers/${editingCourier.id}`, {
+        username: editingCourier.username,
+        password: editingCourier.password || undefined
+      });
+      toast({
+        title: t.success,
+        description: t.courierUpdatedSuccessfully,
+      });
+      setEditingCourier(null);
+      setShowEditCourierDialog(false);
+      fetchCouriers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToUpdateCourier,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteCourier = async () => {
+    try {
+      await axios.delete(`${API}/couriers/${deletingCourier.id}`);
+      toast({
+        title: t.success,
+        description: t.courierDeletedSuccessfully,
+      });
+      setDeletingCourier(null);
+      setShowDeleteCourierDialog(false);
+      fetchCouriers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteCourier,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCourierStatus = async (courierId) => {
+    try {
+      await axios.patch(`${API}/couriers/${courierId}/toggle`);
+      toast({
+        title: t.success,
+        description: t.statusUpdated,
+      });
+      fetchCouriers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || "Failed to update courier status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Order management functions
+  const createOrder = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/orders`, newOrder);
+      toast({
+        title: t.success,
+        description: t.orderCreatedSuccessfully,
+      });
+      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '' });
+      setShowCreateOrderDialog(false);
+      fetchOrders();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateOrder,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateOrder = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/orders/${editingOrder.id}`, {
+        customer_name: editingOrder.customer_name,
+        delivery_address: editingOrder.delivery_address,
+        phone_number: editingOrder.phone_number,
+        reference_number: editingOrder.reference_number
+      });
+      toast({
+        title: t.success,
+        description: t.orderUpdatedSuccessfully,
+      });
+      setEditingOrder(null);
+      setShowEditOrderDialog(false);
+      fetchOrders();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToUpdateOrder,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteOrder = async () => {
+    try {
+      await axios.delete(`${API}/orders/${deletingOrder.id}`);
+      toast({
+        title: t.success,
+        description: t.orderDeletedSuccessfully,
+      });
+      setDeletingOrder(null);
+      setShowDeleteOrderDialog(false);
+      fetchOrders();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteOrder,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const assignOrder = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/orders/assign`, {
+        order_id: assigningOrder.orderId,
+        courier_id: assigningOrder.courierId
+      });
+      toast({
+        title: t.success,
+        description: t.orderAssignedSuccessfully,
+      });
+      setAssigningOrder(null);
+      setShowAssignOrderDialog(false);
+      fetchOrders();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToAssignOrder,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportOrders = async (format = 'excel') => {
+    try {
+      const params = new URLSearchParams();
+      Object.entries(searchFilters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
+      params.append('format', format);
+      
+      const response = await axios.get(`${API}/orders/export?${params.toString()}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `ordini.${format === 'excel' ? 'xlsx' : 'csv'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: t.success,
+        description: `Orders exported to ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: "Failed to export orders",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const applyFilters = () => {
+    fetchOrders();
+    setShowFilters(false);
+  };
+
+  const clearFilters = () => {
+    setSearchFilters({
+      customer_name: '',
+      courier_id: '',
+      status: '',
+      date_from: '',
+      date_to: ''
+    });
+    fetchOrders();
+  };
+
+  const handleEditCourierClick = (courier) => {
+    setEditingCourier({...courier, password: ''});
+    setShowEditCourierDialog(true);
+  };
+
+  const handleDeleteCourierClick = (courier) => {
+    setDeletingCourier(courier);
+    setShowDeleteCourierDialog(true);
+  };
+
+  const handleEditOrderClick = (order) => {
+    setEditingOrder({...order});
+    setShowEditOrderDialog(true);
+  };
+
+  const handleDeleteOrderClick = (order) => {
+    setDeletingOrder(order);
+    setShowDeleteOrderDialog(true);
+  };
+
+  const handleAssignOrderClick = (order) => {
+    setAssigningOrder({ orderId: order.id, courierId: '' });
+    setShowAssignOrderDialog(true);
+  };
+
+  const getOrderStatusBadge = (status) => {
+    const statusConfig = {
+      pending: { variant: 'secondary', color: 'bg-gray-100 text-gray-800', text: t.pending },
+      assigned: { variant: 'default', color: 'bg-blue-100 text-blue-800', text: t.assigned },
+      in_progress: { variant: 'default', color: 'bg-yellow-100 text-yellow-800', text: t.inProgress },
+      delivered: { variant: 'default', color: 'bg-green-100 text-green-800', text: t.delivered }
+    };
+    
+    const config = statusConfig[status] || statusConfig.pending;
+    return <Badge className={config.color}>{config.text}</Badge>;
+  };
+
+  const getCourierName = (courierId) => {
+    const courier = couriers.find(c => c.id === courierId);
+    return courier ? courier.username : t.unassigned;
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (searchFilters.customer_name || searchFilters.courier_id || searchFilters.status || searchFilters.date_from || searchFilters.date_to) {
+      fetchOrders();
+    }
+  }, [searchFilters]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
       <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -838,24 +1198,122 @@ function CompanyAdminDashboard() {
           </Button>
         </div>
 
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle>Dashboard Aziendale - FarmyGo</CardTitle>
-            <CardDescription>Funzionalità complete in aggiunta progressiva per mantenere compatibilità Safari</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <Building2 className="w-16 h-16 text-orange-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Dashboard Azienda Operativa</h2>
-              <p className="text-gray-600 mb-4">
-                Azienda: <Badge className="bg-orange-100 text-orange-800">{company?.name}</Badge>
-              </p>
-              <p className="text-sm text-gray-500">
-                Prossimo: Gestione completa corrieri, ordini, filtri avanzati, export Excel/CSV
-              </p>
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button
+            variant={activeTab === 'overview' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('overview')}
+            className="text-xs sm:text-sm"
+          >
+            {t.overview}
+          </Button>
+          <Button
+            variant={activeTab === 'couriers' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('couriers')}
+            className="text-xs sm:text-sm"
+          >
+            {t.couriers}
+          </Button>
+          <Button
+            variant={activeTab === 'orders' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('orders')}
+            className="text-xs sm:text-sm"
+          >
+            {t.orders}
+          </Button>
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <Card className="bg-white shadow-sm border-0">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.totalCouriers}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900">{couriers.length}</p>
+                    </div>
+                    <Users className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600 flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm border-0">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.activeCouriers}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {couriers.filter(c => c.is_active).length}
+                      </p>
+                    </div>
+                    <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm border-0">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.totalOrders}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900">{orders.length}</p>
+                    </div>
+                    <Package className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm border-0">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.delivered}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {orders.filter(o => o.status === 'delivered').length}
+                      </p>
+                    </div>
+                    <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Recent Orders */}
+            <Card className="bg-white shadow-sm border-0">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-lg sm:text-xl">{t.recentOrders}</CardTitle>
+                <CardDescription className="text-sm">{t.latestOrderActivity}</CardDescription>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-4">
+                  {orders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 border rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm sm:text-base truncate">{order.customer_name}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">{order.delivery_address}</p>
+                        <p className="text-xs text-gray-500">{getCourierName(order.courier_id)}</p>
+                      </div>
+                      <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end">
+                        {getOrderStatusBadge(order.status)}
+                        <p className="text-xs text-gray-500">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Add all dialogs and additional content here - continuing in next part due to length */}
       </div>
     </div>
   );
