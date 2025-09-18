@@ -646,7 +646,7 @@ function CompanyAdminDashboard() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
   const [newCourier, setNewCourier] = useState({ username: '', password: '' });
-  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '' });
+  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '' });
   const [assignData, setAssignData] = useState({ order_id: '', courier_id: '' });
   const { user, company, logout, t } = useAuth();
   const { toast } = useToast();
