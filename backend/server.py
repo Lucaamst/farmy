@@ -270,6 +270,33 @@ async def get_companies(
     
     return [Company(**company) for company in companies]
 
+@api_router.patch("/companies/{company_id}")
+async def update_company(
+    company_id: str,
+    request: UpdateCompanyRequest,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    # Check if company exists
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check if new name already exists (excluding current company)
+    existing_company = await db.companies.find_one({
+        "name": request.name,
+        "id": {"$ne": company_id}
+    })
+    if existing_company:
+        raise HTTPException(status_code=400, detail="Company name already exists")
+    
+    # Update company
+    await db.companies.update_one(
+        {"id": company_id},
+        {"$set": {"name": request.name}}
+    )
+    
+    return {"message": "Company updated successfully"}
+
 @api_router.patch("/companies/{company_id}/toggle")
 async def toggle_company_status(
     company_id: str,
