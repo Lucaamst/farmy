@@ -42,7 +42,19 @@ class DeliveryManagementAPITester:
                 response = requests.delete(url, json=data, headers=headers)
             
             success = response.status_code == expected_status
-            return success, response.status_code, response.json() if response.content else {}
+            
+            # Try to parse JSON, but handle non-JSON responses
+            try:
+                response_data = response.json() if response.content else {}
+            except:
+                # For non-JSON responses (like file downloads), return content info
+                response_data = {
+                    "content_type": response.headers.get('content-type', ''),
+                    "content_length": len(response.content),
+                    "is_binary": True
+                }
+            
+            return success, response.status_code, response_data
         
         except Exception as e:
             return False, 0, {"error": str(e)}
