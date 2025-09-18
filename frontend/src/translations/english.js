@@ -148,5 +148,62 @@ export const english = {
   leaveEmptyToKeepCurrent: "Leave empty to keep current password",
   enterCustomerName: "Enter customer name",
   enterDeliveryAddress: "Enter delivery address",
-  enterPhoneNumber: "Enter phone number"
+  enterPhoneNumber: "Enter phone number",
+  
+  // Additional translations for Company Admin Dashboard
+  couriers: "Couriers",
+  orders: "Orders",
+  totalCouriers: "Total Couriers",
+  totalOrders: "Total Orders",
+  couriersManagement: "Couriers Management",
+  manageAllCouriers: "Manage all couriers",
+  ordersManagement: "Orders Management",
+  manageAllOrders: "Manage all orders",
+  latestOrderActivity: "Latest order activity",
+  
+  // Filter and search
+  filters: "Filters",
+  applyFilters: "Apply Filters",
+  searchByCustomer: "Search by customer",
+  selectStatus: "Select status",
+  allStatuses: "All statuses",
+  allCouriers: "All couriers",
+  unassigned: "Unassigned",
+  
+  // Actions
+  assign: "Assign",
+  reassign: "Reassign",
+  assignOrderDescription: "Select a courier for this order",
+  
+  // Delete confirmations
+  deleteCourierDescription: "This action cannot be undone",
+  deleteOrderDescription: "This action cannot be undone",
+  confirmDeleteCourier: "Are you sure you want to delete this courier",
+  confirmDeleteOrder: "Are you sure you want to delete this order",
+  deleteConfirm: "Delete Permanently",
+  
+  // Form fields
+  optional: "optional",
+  reference: "Reference",
+  customer: "Customer",
+  address: "Address",
+  phone: "Phone",
+  courier: "Courier",
+  
+  // Order management specific
+  editOrder: "Edit Order",
+  editOrderDescription: "Edit delivery order details",
+  updateOrder: "Update Order",
+  orderUpdatedSuccessfully: "Order updated successfully",
+  failedToUpdateOrder: "Failed to update order",
+  deleteOrder: "Delete Order",
+  orderDeletedSuccessfully: "Order deleted successfully",
+  failedToDeleteOrder: "Failed to delete order",
+  referenceNumber: "Reference Number",
+  enterReferenceNumber: "Enter reference number (optional)",
+  
+  // Date filters
+  dateFrom: "Date From",
+  dateTo: "Date To",
+  clearFilters: "Clear Filters"
 };
