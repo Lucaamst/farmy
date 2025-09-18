@@ -730,15 +730,25 @@ function CompanyAdminDashboard() {
   const updateOrder = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`${API}/orders/${editingOrder.id}`, {
+      const response = await axios.patch(`${API}/orders/${editingOrder.id}`, {
         customer_name: editingOrder.customer_name,
         delivery_address: editingOrder.delivery_address,
         phone_number: editingOrder.phone_number
       });
-      toast({
-        title: t.success,
-        description: "Ordine aggiornato con successo",
-      });
+      
+      if (response.data.suggest_reassignment) {
+        toast({
+          title: t.success,
+          description: "Ordine aggiornato. Considera di riassegnare il corriere per il nuovo indirizzo.",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: t.success,
+          description: "Ordine aggiornato con successo",
+        });
+      }
+      
       setEditingOrder(null);
       setShowEditOrder(false);
       fetchData();
