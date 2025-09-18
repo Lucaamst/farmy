@@ -365,6 +365,40 @@ async def get_orders(
     
     return [Order(**order) for order in orders]
 
+@api_router.patch("/orders/{order_id}")
+async def update_order(
+    order_id: str,
+    request: UpdateOrderRequest,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Find the order and verify it belongs to the same company
+    order = await db.orders.find_one({
+        "id": order_id,
+        "company_id": current_user.company_id
+    })
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Only allow editing of pending or assigned orders
+    if order["status"] not in ["pending", "assigned"]:
+        raise HTTPException(status_code=400, detail="Cannot edit orders that are in progress or delivered")
+    
+    # Update order
+    result = await db.orders.update_one(
+        {"id": order_id, "company_id": current_user.company_id},
+        {"$set": {
+            "customer_name": request.customer_name,
+            "delivery_address": request.delivery_address,
+            "phone_number": request.phone_number
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    return {"message": "Order updated successfully"}
+
 @api_router.patch("/orders/assign")
 async def assign_order(
     request: AssignOrderRequest,
