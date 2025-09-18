@@ -408,6 +408,7 @@ async def create_order(
         customer_name=request.customer_name,
         delivery_address=request.delivery_address,
         phone_number=request.phone_number,
+        reference_number=request.reference_number,
         company_id=current_user.company_id
     )
     await db.orders.insert_one(order.dict())
