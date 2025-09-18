@@ -336,6 +336,9 @@ function CourierDashboard() {
                         <h3 className="font-semibold text-gray-900 truncate">{delivery.customer_name}</h3>
                         <p className="text-gray-600 text-sm break-words">{delivery.delivery_address}</p>
                         <p className="text-gray-500 text-sm">📞 {delivery.phone_number}</p>
+                        {delivery.reference_number && (
+                          <p className="text-gray-500 text-sm">📋 Rif: {delivery.reference_number}</p>
+                        )}
                       </div>
                       <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="shrink-0">
                         {delivery.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
