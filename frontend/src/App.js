@@ -376,10 +376,13 @@ function SuperAdminDashboard() {
   const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
   const [editingCompany, setEditingCompany] = useState(null);
   const [deletingCompany, setDeletingCompany] = useState(null);
+  const [resettingPasswordCompany, setResettingPasswordCompany] = useState(null);
   const [deletePassword, setDeletePassword] = useState('');
+  const [resetPasswordData, setResetPasswordData] = useState({ admin_password: '', new_password: '' });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
