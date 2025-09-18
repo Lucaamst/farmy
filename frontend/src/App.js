@@ -466,6 +466,30 @@ function SuperAdminDashboard() {
     }
   };
 
+  const resetCompanyPassword = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/companies/${resettingPasswordCompany.id}/reset-password`, {
+        company_id: resettingPasswordCompany.id,
+        new_password: resetPasswordData.new_password,
+        admin_password: resetPasswordData.admin_password
+      });
+      toast({
+        title: t.success,
+        description: t.passwordResetSuccessfully,
+      });
+      setResettingPasswordCompany(null);
+      setResetPasswordData({ admin_password: '', new_password: '' });
+      setShowResetPasswordDialog(false);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToResetPassword,
+        variant: "destructive",
+      });
+    }
+  };
+
   const toggleCompanyStatus = async (companyId) => {
     try {
       await axios.patch(`${API}/companies/${companyId}/toggle`);
