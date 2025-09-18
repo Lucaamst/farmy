@@ -85,6 +85,9 @@ class CreateCompanyRequest(BaseModel):
     admin_username: str
     admin_password: str
 
+class UpdateCompanyRequest(BaseModel):
+    name: str
+
 class CreateCourierRequest(BaseModel):
     username: str
     password: str
