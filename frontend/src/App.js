@@ -52,6 +52,8 @@ function AuthProvider({ children }) {
     }
     setUser(userData);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Force navigation after login
+    window.location.href = '/';
   };
 
   const logout = () => {
