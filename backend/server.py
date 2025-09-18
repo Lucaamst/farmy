@@ -670,46 +670,6 @@ async def delete_order(
     
     return {"message": "Order deleted successfully"}
 
-@api_router.patch("/orders/{order_id}")
-async def update_order(
-    order_id: str,
-    request: UpdateOrderRequest,
-    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
-):
-    # Find the order and verify it belongs to the same company
-    order = await db.orders.find_one({
-        "id": order_id,
-        "company_id": current_user.company_id
-    })
-    
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    
-    # Only allow editing of pending or assigned orders
-    if order["status"] not in ["pending", "assigned"]:
-        raise HTTPException(status_code=400, detail="Cannot edit orders that are in progress or delivered")
-    
-    # Update order
-    result = await db.orders.update_one(
-        {"id": order_id, "company_id": current_user.company_id},
-        {"$set": {
-            "customer_name": request.customer_name,
-            "delivery_address": request.delivery_address,
-            "phone_number": request.phone_number,
-            "reference_number": request.reference_number
-        }}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Order not found")
-    
-    # If delivery address changed and order is assigned, suggest reassignment
-    if (order["delivery_address"] != request.delivery_address and 
-        order["status"] == "assigned"):
-        return {"message": "Order updated successfully", "suggest_reassignment": True}
-    
-    return {"message": "Order updated successfully"}
-
 @api_router.patch("/orders/assign")
 async def assign_order(
     request: AssignOrderRequest,
@@ -749,6 +709,46 @@ async def assign_order(
     )
     
     return {"message": "Order assigned successfully"}
+
+@api_router.patch("/orders/{order_id}")
+async def update_order(
+    order_id: str,
+    request: UpdateOrderRequest,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Find the order and verify it belongs to the same company
+    order = await db.orders.find_one({
+        "id": order_id,
+        "company_id": current_user.company_id
+    })
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Only allow editing of pending or assigned orders
+    if order["status"] not in ["pending", "assigned"]:
+        raise HTTPException(status_code=400, detail="Cannot edit orders that are in progress or delivered")
+    
+    # Update order
+    result = await db.orders.update_one(
+        {"id": order_id, "company_id": current_user.company_id},
+        {"$set": {
+            "customer_name": request.customer_name,
+            "delivery_address": request.delivery_address,
+            "phone_number": request.phone_number,
+            "reference_number": request.reference_number
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # If delivery address changed and order is assigned, suggest reassignment
+    if (order["delivery_address"] != request.delivery_address and 
+        order["status"] == "assigned"):
+        return {"message": "Order updated successfully", "suggest_reassignment": True}
+    
+    return {"message": "Order updated successfully"}
 
 # Courier Routes
 @api_router.get("/courier/deliveries", response_model=List[Order])
