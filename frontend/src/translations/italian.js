@@ -63,6 +63,18 @@ export const italian = {
   companyDeletedSuccessfully: "Azienda cancellata con successo",
   failedToDeleteCompany: "Impossibile cancellare l'azienda",
   incorrectPassword: "Password non corretta",
+  editCourier: "Modifica Corriere",
+  editCourierDescription: "Modifica i dettagli del corriere",
+  updateCourier: "Aggiorna Corriere",
+  deleteCourier: "Cancella Corriere",
+  courierUpdatedSuccessfully: "Corriere aggiornato con successo",
+  courierDeletedSuccessfully: "Corriere cancellato con successo",
+  failedToUpdateCourier: "Impossibile aggiornare il corriere",
+  failedToDeleteCourier: "Impossibile cancellare il corriere",
+  cannotDeleteCourierWithActiveDeliveries: "Impossibile cancellare corriere con consegne attive",
+  newPassword: "Nuova Password (opzionale)",
+  enterNewPassword: "Inserisci nuova password (lascia vuoto per non modificare)",
+  enterReferenceNumber: "Inserisci numero di riferimento (opzionale)",
 
   // Company Admin
   companyDashboard: "Dashboard Azienda",
