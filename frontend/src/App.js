@@ -1033,6 +1033,25 @@ function CompanyAdminDashboard() {
     setShowEditCourier(true);
   };
 
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm('Sei sicuro di voler cancellare questo ordine?')) return;
+    
+    try {
+      await axios.delete(`${API}/orders/${orderId}`);
+      toast({
+        title: t.success,
+        description: t.orderDeletedSuccessfully,
+      });
+      fetchData();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteOrder,
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
