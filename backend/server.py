@@ -427,6 +427,11 @@ async def update_order(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Order not found")
     
+    # If delivery address changed and order is assigned, suggest reassignment
+    if (order["delivery_address"] != request.delivery_address and 
+        order["status"] == "assigned"):
+        return {"message": "Order updated successfully", "suggest_reassignment": True}
+    
     return {"message": "Order updated successfully"}
 
 @api_router.patch("/orders/assign")
