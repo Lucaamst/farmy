@@ -94,6 +94,11 @@ class CreateOrderRequest(BaseModel):
     delivery_address: str
     phone_number: str
 
+class UpdateOrderRequest(BaseModel):
+    customer_name: str
+    delivery_address: str
+    phone_number: str
+
 class AssignOrderRequest(BaseModel):
     order_id: str
     courier_id: str
