@@ -1310,14 +1310,14 @@ function CompanyAdminDashboard() {
                               {t.edit}
                             </Button>
                           )}
-                          {order.status === 'pending' && (
+                          {(order.status === 'pending' || order.status === 'assigned' || order.status === 'in_progress') && (
                             <Button 
                               onClick={() => handleAssignClick(order)}
                               size="sm"
                               variant="outline"
                               className="w-full sm:w-auto text-xs"
                             >
-                              {t.assignCourier}
+                              {order.status === 'pending' ? t.assignCourier : 'Riassegna Corriere'}
                             </Button>
                           )}
                         </div>
