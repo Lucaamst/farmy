@@ -1163,14 +1163,32 @@ function CompanyAdminDashboard() {
                           </TableCell>
                           <TableCell className="text-xs sm:text-sm">{new Date(courier.created_at).toLocaleDateString()}</TableCell>
                           <TableCell>
-                            <Button
-                              onClick={() => toggleCourierStatus(courier.id)}
-                              variant={courier.is_active ? 'destructive' : 'default'}
-                              size="sm"
-                              className="text-xs"
-                            >
-                              {courier.is_active ? t.block : t.activate}
-                            </Button>
+                            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                              <Button
+                                onClick={() => handleEditCourierClick(courier)}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                              >
+                                {t.edit}
+                              </Button>
+                              <Button
+                                onClick={() => toggleCourierStatus(courier.id)}
+                                variant={courier.is_active ? 'destructive' : 'default'}
+                                size="sm"
+                                className="text-xs"
+                              >
+                                {courier.is_active ? t.block : t.activate}
+                              </Button>
+                              <Button
+                                onClick={() => deleteCourier(courier.id)}
+                                variant="destructive"
+                                size="sm"
+                                className="text-xs"
+                              >
+                                {t.delete}
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
