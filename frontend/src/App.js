@@ -791,6 +791,48 @@ function CompanyAdminDashboard() {
     }
   };
 
+  const updateCourier = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/couriers/${editingCourier.id}`, {
+        username: editingCourier.username,
+        password: editingCourier.password || undefined
+      });
+      toast({
+        title: t.success,
+        description: t.courierUpdatedSuccessfully,
+      });
+      setEditingCourier(null);
+      setShowEditCourier(false);
+      fetchData();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToUpdateCourier,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteCourier = async (courierId) => {
+    if (!window.confirm('Sei sicuro di voler cancellare questo corriere?')) return;
+    
+    try {
+      await axios.delete(`${API}/couriers/${courierId}`);
+      toast({
+        title: t.success,
+        description: t.courierDeletedSuccessfully,
+      });
+      fetchData();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteCourier,
+        variant: "destructive",
+      });
+    }
+  };
+
   const createOrder = async (e) => {
     e.preventDefault();
     try {
