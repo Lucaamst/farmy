@@ -1365,6 +1365,16 @@ function CompanyAdminDashboard() {
                   className="text-sm"
                 />
               </div>
+              <div>
+                <Label htmlFor="referenceNumber" className="text-sm">{t.referenceNumber}</Label>
+                <Input
+                  id="referenceNumber"
+                  value={newOrder.reference_number}
+                  onChange={(e) => setNewOrder({ ...newOrder, reference_number: e.target.value })}
+                  placeholder={t.enterReferenceNumber}
+                  className="text-sm"
+                />
+              </div>
               <Button type="submit" className="w-full text-sm">{t.createOrder}</Button>
             </form>
           </DialogContent>
