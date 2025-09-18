@@ -450,7 +450,8 @@ async def update_order(
         {"$set": {
             "customer_name": request.customer_name,
             "delivery_address": request.delivery_address,
-            "phone_number": request.phone_number
+            "phone_number": request.phone_number,
+            "reference_number": request.reference_number
         }}
     )
     
