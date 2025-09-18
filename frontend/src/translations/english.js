@@ -51,6 +51,11 @@ export const english = {
   disable: "Disable",
   enabled: "Enabled",
   disabled: "Disabled",
+  editCompany: "Edit Company",
+  editCompanyDescription: "Edit company details",
+  updateCompany: "Update Company",
+  companyUpdatedSuccessfully: "Company updated successfully",
+  failedToUpdateCompany: "Failed to update company",
 
   // Company Admin
   companyDashboard: "Company Dashboard",
