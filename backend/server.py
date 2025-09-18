@@ -382,6 +382,70 @@ async def get_couriers(
     
     return [User(**courier) for courier in couriers]
 
+@api_router.patch("/couriers/{courier_id}")
+async def update_courier(
+    courier_id: str,
+    request: UpdateCourierRequest,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Verify courier belongs to same company
+    courier = await db.users.find_one({
+        "id": courier_id,
+        "company_id": current_user.company_id,
+        "role": UserRole.COURIER
+    })
+    if not courier:
+        raise HTTPException(status_code=404, detail="Courier not found")
+    
+    # Check if new username already exists (excluding current courier)
+    if request.username != courier["username"]:
+        existing_user = await db.users.find_one({
+            "username": request.username,
+            "id": {"$ne": courier_id}
+        })
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Prepare update data
+    update_data = {"username": request.username}
+    if request.password:
+        update_data["password"] = hash_password(request.password)
+    
+    # Update courier
+    await db.users.update_one(
+        {"id": courier_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Courier updated successfully"}
+
+@api_router.delete("/couriers/{courier_id}")
+async def delete_courier(
+    courier_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Verify courier belongs to same company
+    courier = await db.users.find_one({
+        "id": courier_id,
+        "company_id": current_user.company_id,
+        "role": UserRole.COURIER
+    })
+    if not courier:
+        raise HTTPException(status_code=404, detail="Courier not found")
+    
+    # Check if courier has active deliveries
+    active_orders = await db.orders.count_documents({
+        "courier_id": courier_id,
+        "status": {"$in": ["assigned", "in_progress"]}
+    })
+    if active_orders > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete courier with active deliveries")
+    
+    # Delete courier
+    await db.users.delete_one({"id": courier_id})
+    
+    return {"message": "Courier deleted successfully"}
+
 @api_router.patch("/couriers/{courier_id}/toggle")
 async def toggle_courier_status(
     courier_id: str,
