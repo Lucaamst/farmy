@@ -119,6 +119,8 @@ export const english = {
   failedToFetchData: "Failed to fetch data",
   failedToCreateCompany: "Failed to create company",
   failedToCreateCourier: "Failed to create courier",
+  failedToUpdateCourier: "Failed to update courier",
+  failedToDeleteCourier: "Failed to delete courier",
   failedToCreateOrder: "Failed to create order",
   failedToAssignOrder: "Failed to assign order",
   failedToMarkDelivery: "Failed to mark delivery",
