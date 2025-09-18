@@ -801,6 +801,12 @@ async def get_sms_logs(
 ):
     """Get SMS logs for verification"""
     sms_logs = await db.sms_logs.find().sort("sent_at", -1).to_list(50)
+    
+    # Convert ObjectId to string for JSON serialization
+    for log in sms_logs:
+        if '_id' in log:
+            log['_id'] = str(log['_id'])
+    
     return sms_logs
 
 # Include the router in the main app
