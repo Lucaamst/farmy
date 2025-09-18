@@ -44,7 +44,7 @@ body {
 }
 
 /* iPhone specific optimizations */
-@media screen and (max-width: 428px) {
+@media screen and (max-width: 430px) {
   .container {
     padding-left: 1rem;
     padding-right: 1rem;
@@ -59,6 +59,36 @@ body {
   input, select, textarea {
     font-size: 16px; /* Prevent zoom on focus */
     min-height: 44px;
+  }
+}
+
+/* iPhone 15 Plus specific optimizations */
+@media screen and (max-width: 430px) and (max-height: 932px) {
+  .App {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.875rem !important;
+  }
+  
+  /* Better spacing for larger iPhone */
+  .container {
+    padding: 1.25rem;
+  }
+  
+  /* Optimize card layouts */
+  .grid {
+    gap: 1rem;
   }
 }
 
