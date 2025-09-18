@@ -713,6 +713,57 @@ function SuperAdminDashboard() {
           </DialogContent>
         </Dialog>
 
+        {/* Reset Password Dialog */}
+        <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.resetCompanyPassword}</DialogTitle>
+              <DialogDescription className="text-sm">{t.resetPasswordDescription}</DialogDescription>
+            </DialogHeader>
+            {resettingPasswordCompany && (
+              <form onSubmit={resetCompanyPassword} className="space-y-4">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    Reset password per: <strong>{resettingPasswordCompany.name}</strong>
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="adminPasswordForReset" className="text-sm">{t.confirmPassword} (Super Admin)</Label>
+                  <Input
+                    id="adminPasswordForReset"
+                    type="password"
+                    value={resetPasswordData.admin_password}
+                    onChange={(e) => setResetPasswordData({ ...resetPasswordData, admin_password: e.target.value })}
+                    placeholder={t.enterPasswordToConfirm}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="newPasswordForAdmin" className="text-sm">{t.newPasswordForAdmin}</Label>
+                  <Input
+                    id="newPasswordForAdmin"
+                    type="password"
+                    value={resetPasswordData.new_password}
+                    onChange={(e) => setResetPasswordData({ ...resetPasswordData, new_password: e.target.value })}
+                    placeholder={t.enterNewPasswordForAdmin}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">
+                    Reimposta Password
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowResetPasswordDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Delete Company Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
