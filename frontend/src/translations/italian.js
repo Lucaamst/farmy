@@ -120,6 +120,10 @@ export const italian = {
   updateOrder: "Aggiorna Ordine",
   orderUpdatedSuccessfully: "Ordine aggiornato con successo",
   failedToUpdateOrder: "Impossibile aggiornare l'ordine",
+  deleteOrder: "Cancella Ordine",
+  orderDeletedSuccessfully: "Ordine cancellato con successo",
+  failedToDeleteOrder: "Impossibile cancellare l'ordine",
+  cannotDeleteDeliveredOrders: "Impossibile cancellare ordini consegnati",
 
   // Courier
   courierDashboard: "Dashboard Corriere",
