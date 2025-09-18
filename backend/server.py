@@ -88,6 +88,9 @@ class CreateCompanyRequest(BaseModel):
 class UpdateCompanyRequest(BaseModel):
     name: str
 
+class DeleteCompanyRequest(BaseModel):
+    password: str
+
 class CreateCourierRequest(BaseModel):
     username: str
     password: str
