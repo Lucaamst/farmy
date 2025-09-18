@@ -996,9 +996,22 @@ function CompanyAdminDashboard() {
       setSelectedOrder(null);
       fetchData();
     } catch (error) {
+      console.error('Assign order error:', error);
+      let errorMessage = t.failedToAssignOrder;
+      
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail.map(err => err.msg || err).join(', ');
+        } else {
+          errorMessage = 'Errore di validazione';
+        }
+      }
+      
       toast({
         title: t.error,
-        description: error.response?.data?.detail || t.failedToAssignOrder,
+        description: errorMessage,
         variant: "destructive",
       });
     }
