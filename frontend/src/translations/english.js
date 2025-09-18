@@ -145,6 +145,7 @@ export const english = {
   enterAdminPassword: "Enter admin password",
   enterCourierUsername: "Enter courier username",
   enterCourierPassword: "Enter courier password",
+  leaveEmptyToKeepCurrent: "Leave empty to keep current password",
   enterCustomerName: "Enter customer name",
   enterDeliveryAddress: "Enter delivery address",
   enterPhoneNumber: "Enter phone number"
