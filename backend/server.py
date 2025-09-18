@@ -312,6 +312,38 @@ async def update_company(
     
     return {"message": "Company updated successfully"}
 
+@api_router.patch("/companies/{company_id}/reset-password")
+async def reset_company_admin_password(
+    company_id: str,
+    request: ResetCompanyPasswordRequest,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    # Verify super admin password
+    admin_user = await db.users.find_one({"id": current_user.id})
+    if not admin_user or not verify_password(request.admin_password, admin_user["password"]):
+        raise HTTPException(status_code=401, detail="Incorrect admin password")
+    
+    # Find company
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Find company admin
+    company_admin = await db.users.find_one({
+        "company_id": company_id,
+        "role": UserRole.COMPANY_ADMIN
+    })
+    if not company_admin:
+        raise HTTPException(status_code=404, detail="Company admin not found")
+    
+    # Update password
+    await db.users.update_one(
+        {"id": company_admin["id"]},
+        {"$set": {"password": hash_password(request.new_password)}}
+    )
+    
+    return {"message": "Company admin password reset successfully"}
+
 @api_router.delete("/companies/{company_id}")
 async def delete_company(
     company_id: str,
