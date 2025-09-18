@@ -203,7 +203,7 @@ function Login() {
 function CourierDashboard() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, logout } = useAuth();
+  const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
   const fetchDeliveries = async () => {
@@ -212,8 +212,8 @@ function CourierDashboard() {
       setDeliveries(response.data);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch deliveries",
+        title: t.error,
+        description: t.failedToFetchData,
         variant: "destructive",
       });
     } finally {
@@ -228,16 +228,16 @@ function CourierDashboard() {
       });
       
       toast({
-        title: "Success",
-        description: "Delivery marked as completed and customer notified!",
+        title: t.success,
+        description: t.deliveryMarkedCompleted,
       });
       
       // Remove from list or refresh
       fetchDeliveries();
     } catch (error) {
       toast({
-        title: "Error",
-        description: error.response?.data?.detail || "Failed to mark delivery",
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToMarkDelivery,
         variant: "destructive",
       });
     }
@@ -249,62 +249,62 @@ function CourierDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center">
-              <Truck className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-600 rounded-full flex items-center justify-center">
+              <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Courier Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {user.username}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.courierDashboard}</h1>
+              <p className="text-sm sm:text-base text-gray-600">{t.welcomeBack}, {user.username}</p>
             </div>
           </div>
           <Button onClick={logout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            {t.logout}
           </Button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Deliveries</p>
-                  <p className="text-3xl font-bold text-gray-900">{deliveries.length}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{t.activeDeliveries}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">{deliveries.length}</p>
                 </div>
-                <Package className="w-8 h-8 text-emerald-600" />
+                <Package className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">In Progress</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{t.inProgress}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {deliveries.filter(d => d.status === 'in_progress').length}
                   </p>
                 </div>
-                <Clock className="w-8 h-8 text-blue-600" />
+                <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white shadow-sm border-0">
-            <CardContent className="p-6">
+          <Card className="bg-white shadow-sm border-0 sm:col-span-2 lg:col-span-1">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Assigned</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{t.assigned}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-900">
                     {deliveries.filter(d => d.status === 'assigned').length}
                   </p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-amber-600" />
+                <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" />
               </div>
             </CardContent>
           </Card>
@@ -312,47 +312,47 @@ function CourierDashboard() {
 
         {/* Deliveries List */}
         <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Your Deliveries</CardTitle>
-            <CardDescription>Manage your assigned delivery orders</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl font-semibold">{t.yourDeliveries}</CardTitle>
+            <CardDescription className="text-sm">{t.manageAssignedOrders}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading deliveries...</p>
+                <p className="text-gray-500 mt-2 text-sm">{t.loading}</p>
               </div>
             ) : deliveries.length === 0 ? (
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No active deliveries at the moment</p>
+                <p className="text-gray-500 text-sm">{t.noActiveDeliveries}</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {deliveries.map((delivery) => (
                   <div key={delivery.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{delivery.customer_name}</h3>
-                        <p className="text-gray-600 text-sm">{delivery.delivery_address}</p>
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{delivery.customer_name}</h3>
+                        <p className="text-gray-600 text-sm break-words">{delivery.delivery_address}</p>
                         <p className="text-gray-500 text-sm">📞 {delivery.phone_number}</p>
                       </div>
-                      <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'}>
-                        {delivery.status.replace('_', ' ').toUpperCase()}
+                      <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="shrink-0">
+                        {delivery.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
                       </Badge>
                     </div>
                     
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                       <p className="text-xs text-gray-500">
-                        Created: {new Date(delivery.created_at).toLocaleDateString()}
+                        {t.createdAt}: {new Date(delivery.created_at).toLocaleDateString()}
                       </p>
                       <Button 
                         onClick={() => markAsDelivered(delivery.id)}
                         size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Mark as Delivered
+                        {t.markAsDelivered}
                       </Button>
                     </div>
                   </div>
