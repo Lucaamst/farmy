@@ -191,5 +191,45 @@ export const italian = {
   leaveEmptyToKeepCurrent: "Lascia vuoto per mantenere la password attuale",
   enterCustomerName: "Inserisci il nome del cliente",
   enterDeliveryAddress: "Inserisci l'indirizzo di consegna",
-  enterPhoneNumber: "Inserisci il numero di telefono"
+  enterPhoneNumber: "Inserisci il numero di telefono",
+  
+  // Additional translations for Company Admin Dashboard
+  couriers: "Corrieri",
+  orders: "Ordini",
+  totalCouriers: "Corrieri Totali",
+  totalOrders: "Ordini Totali",
+  couriersManagement: "Gestione Corrieri",
+  manageAllCouriers: "Gestisci tutti i corrieri",
+  ordersManagement: "Gestione Ordini",
+  manageAllOrders: "Gestisci tutti gli ordini",
+  latestOrderActivity: "Ultima attività degli ordini",
+  
+  // Filter and search
+  filters: "Filtri",
+  applyFilters: "Applica Filtri",
+  searchByCustomer: "Cerca per cliente",
+  selectStatus: "Seleziona stato",
+  allStatuses: "Tutti gli stati",
+  allCouriers: "Tutti i corrieri",
+  unassigned: "Non assegnato",
+  
+  // Actions
+  assign: "Assegna",
+  reassign: "Riassegna",
+  assignOrderDescription: "Seleziona un corriere per questo ordine",
+  
+  // Delete confirmations
+  deleteCourierDescription: "Questa azione non può essere annullata",
+  deleteOrderDescription: "Questa azione non può essere annullata",
+  confirmDeleteCourier: "Sei sicuro di voler cancellare questo corriere",
+  confirmDeleteOrder: "Sei sicuro di voler cancellare questo ordine",
+  deleteConfirm: "Cancella Definitivamente",
+  
+  // Form fields
+  optional: "opzionale",
+  reference: "Riferimento",
+  customer: "Cliente",
+  address: "Indirizzo",
+  phone: "Telefono",
+  courier: "Corriere"
 };
