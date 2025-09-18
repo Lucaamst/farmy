@@ -300,6 +300,29 @@ async def update_company(
     
     return {"message": "Company updated successfully"}
 
+@api_router.delete("/companies/{company_id}")
+async def delete_company(
+    company_id: str,
+    request: DeleteCompanyRequest,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    # Verify super admin password
+    admin_user = await db.users.find_one({"id": current_user.id})
+    if not admin_user or not verify_password(request.password, admin_user["password"]):
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    
+    # Check if company exists
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Delete all related data
+    await db.orders.delete_many({"company_id": company_id})
+    await db.users.delete_many({"company_id": company_id})
+    await db.companies.delete_one({"id": company_id})
+    
+    return {"message": "Company deleted successfully"}
+
 @api_router.patch("/companies/{company_id}/toggle")
 async def toggle_company_status(
     company_id: str,
