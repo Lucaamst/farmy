@@ -1314,6 +1314,573 @@ function CompanyAdminDashboard() {
         )}
 
         {/* Add all dialogs and additional content here - continuing in next part due to length */}
+
+        {/* Couriers Tab */}
+        {activeTab === 'couriers' && (
+          <Card className="bg-white shadow-sm border-0">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                <div>
+                  <CardTitle className="text-lg sm:text-xl">{t.couriersManagement}</CardTitle>
+                  <CardDescription className="text-sm">{t.manageAllCouriers}</CardDescription>
+                </div>
+                <Dialog open={showCreateCourierDialog} onOpenChange={setShowCreateCourierDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      {t.addCourier}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-lg">{t.createNewCourier}</DialogTitle>
+                      <DialogDescription className="text-sm">{t.addNewCourierDescription}</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={createCourier} className="space-y-4">
+                      <div>
+                        <Label htmlFor="courierUsername" className="text-sm">{t.username}</Label>
+                        <Input
+                          id="courierUsername"
+                          value={newCourier.username}
+                          onChange={(e) => setNewCourier({ ...newCourier, username: e.target.value })}
+                          placeholder={t.enterUsername}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="courierPassword" className="text-sm">{t.password}</Label>
+                        <Input
+                          id="courierPassword"
+                          type="password"
+                          value={newCourier.password}
+                          onChange={(e) => setNewCourier({ ...newCourier, password: e.target.value })}
+                          placeholder={t.enterPassword}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full text-sm">{t.createCourier}</Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">{t.username}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.activeDeliveries}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {couriers.map((courier) => (
+                      <TableRow key={courier.id}>
+                        <TableCell className="font-medium text-xs sm:text-sm">{courier.username}</TableCell>
+                        <TableCell>
+                          <Badge variant={courier.is_active ? 'default' : 'destructive'} className="text-xs">
+                            {courier.is_active ? t.active : t.blocked}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          {orders.filter(o => o.courier_id === courier.id && ['assigned', 'in_progress'].includes(o.status)).length}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          {new Date(courier.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                            <Button
+                              onClick={() => handleEditCourierClick(courier)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.edit}
+                            </Button>
+                            <Button
+                              onClick={() => toggleCourierStatus(courier.id)}
+                              variant={courier.is_active ? 'destructive' : 'default'}
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {courier.is_active ? t.block : t.activate}
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteCourierClick(courier)}
+                              variant="destructive"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.delete}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Orders Tab */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6">
+            {/* Orders Header with Actions */}
+            <Card className="bg-white shadow-sm border-0">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl">{t.ordersManagement}</CardTitle>
+                    <CardDescription className="text-sm">{t.manageAllOrders}</CardDescription>
+                  </div>
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                    <Dialog open={showCreateOrderDialog} onOpenChange={setShowCreateOrderDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-orange-600 hover:bg-orange-700 text-sm">
+                          <Plus className="w-4 h-4 mr-2" />
+                          {t.addOrder}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-lg">{t.createNewOrder}</DialogTitle>
+                          <DialogDescription className="text-sm">{t.addNewOrderDescription}</DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={createOrder} className="space-y-4">
+                          <div>
+                            <Label htmlFor="customerName" className="text-sm">{t.customerName}</Label>
+                            <Input
+                              id="customerName"
+                              value={newOrder.customer_name}
+                              onChange={(e) => setNewOrder({ ...newOrder, customer_name: e.target.value })}
+                              placeholder={t.enterCustomerName}
+                              required
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="deliveryAddress" className="text-sm">{t.deliveryAddress}</Label>
+                            <Input
+                              id="deliveryAddress"
+                              value={newOrder.delivery_address}
+                              onChange={(e) => setNewOrder({ ...newOrder, delivery_address: e.target.value })}
+                              placeholder={t.enterDeliveryAddress}
+                              required
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="phoneNumber" className="text-sm">{t.phoneNumber}</Label>
+                            <Input
+                              id="phoneNumber"
+                              value={newOrder.phone_number}
+                              onChange={(e) => setNewOrder({ ...newOrder, phone_number: e.target.value })}
+                              placeholder={t.enterPhoneNumber}
+                              required
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="referenceNumber" className="text-sm">{t.referenceNumber}</Label>
+                            <Input
+                              id="referenceNumber"
+                              value={newOrder.reference_number}
+                              onChange={(e) => setNewOrder({ ...newOrder, reference_number: e.target.value })}
+                              placeholder={t.enterReferenceNumber}
+                              className="text-sm"
+                            />
+                          </div>
+                          <Button type="submit" className="w-full text-sm">{t.createOrder}</Button>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Button
+                      onClick={() => setShowFilters(!showFilters)}
+                      variant="outline"
+                      size="sm"
+                      className="text-sm"
+                    >
+                      🔍 {t.filters}
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      <Button
+                        onClick={() => exportOrders('excel')}
+                        variant="outline"
+                        size="sm"
+                        className="text-sm"
+                      >
+                        📊 Excel
+                      </Button>
+                      <Button
+                        onClick={() => exportOrders('csv')}
+                        variant="outline"
+                        size="sm"
+                        className="text-sm"
+                      >
+                        📄 CSV
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              {/* Filters */}
+              {showFilters && (
+                <CardContent className="p-4 sm:p-6 border-t">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="filterCustomer" className="text-sm">{t.customerName}</Label>
+                      <Input
+                        id="filterCustomer"
+                        value={searchFilters.customer_name}
+                        onChange={(e) => setSearchFilters({ ...searchFilters, customer_name: e.target.value })}
+                        placeholder={t.searchByCustomer}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="filterCourier" className="text-sm">{t.courier}</Label>
+                      <Select
+                        value={searchFilters.courier_id}
+                        onValueChange={(value) => setSearchFilters({ ...searchFilters, courier_id: value })}
+                      >
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder={t.selectCourier} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">{t.allCouriers}</SelectItem>
+                          {couriers.map((courier) => (
+                            <SelectItem key={courier.id} value={courier.id}>
+                              {courier.username}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="filterStatus" className="text-sm">{t.status}</Label>
+                      <Select
+                        value={searchFilters.status}
+                        onValueChange={(value) => setSearchFilters({ ...searchFilters, status: value })}
+                      >
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder={t.selectStatus} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">{t.allStatuses}</SelectItem>
+                          <SelectItem value="pending">{t.pending}</SelectItem>
+                          <SelectItem value="assigned">{t.assigned}</SelectItem>
+                          <SelectItem value="in_progress">{t.inProgress}</SelectItem>
+                          <SelectItem value="delivered">{t.delivered}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="filterDateFrom" className="text-sm">{t.dateFrom}</Label>
+                      <Input
+                        id="filterDateFrom"
+                        type="date"
+                        value={searchFilters.date_from}
+                        onChange={(e) => setSearchFilters({ ...searchFilters, date_from: e.target.value })}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="filterDateTo" className="text-sm">{t.dateTo}</Label>
+                      <Input
+                        id="filterDateTo"
+                        type="date"
+                        value={searchFilters.date_to}
+                        onChange={(e) => setSearchFilters({ ...searchFilters, date_to: e.target.value })}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="flex items-end space-x-2">
+                      <Button onClick={applyFilters} size="sm" className="text-sm">
+                        {t.applyFilters}
+                      </Button>
+                      <Button onClick={clearFilters} variant="outline" size="sm" className="text-sm">
+                        {t.clearFilters}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            {/* Orders Table */}
+            <Card className="bg-white shadow-sm border-0">
+              <CardContent className="p-4 sm:p-6">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">{t.customer}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.address}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.phone}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.reference}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.courier}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium text-xs sm:text-sm">{order.customer_name}</TableCell>
+                          <TableCell className="text-xs sm:text-sm max-w-32 truncate">{order.delivery_address}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{order.phone_number}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{order.reference_number || '-'}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">{getCourierName(order.courier_id)}</TableCell>
+                          <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                              <Button
+                                onClick={() => handleEditOrderClick(order)}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                                disabled={order.status === 'delivered'}
+                              >
+                                {t.edit}
+                              </Button>
+                              <Button
+                                onClick={() => handleAssignOrderClick(order)}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                                disabled={order.status === 'delivered'}
+                              >
+                                {order.courier_id ? t.reassign : t.assign}
+                              </Button>
+                              <Button
+                                onClick={() => handleDeleteOrderClick(order)}
+                                variant="destructive"
+                                size="sm"
+                                className="text-xs"
+                                disabled={order.status === 'delivered'}
+                              >
+                                {t.delete}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* All Dialog Components */}
+        {/* Edit Courier Dialog */}
+        <Dialog open={showEditCourierDialog} onOpenChange={setShowEditCourierDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.editCourier}</DialogTitle>
+              <DialogDescription className="text-sm">{t.editCourierDescription}</DialogDescription>
+            </DialogHeader>
+            {editingCourier && (
+              <form onSubmit={updateCourier} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCourierUsername" className="text-sm">{t.username}</Label>
+                  <Input
+                    id="editCourierUsername"
+                    value={editingCourier.username}
+                    onChange={(e) => setEditingCourier({ ...editingCourier, username: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCourierPassword" className="text-sm">{t.newPassword} ({t.optional})</Label>
+                  <Input
+                    id="editCourierPassword"
+                    type="password"
+                    value={editingCourier.password}
+                    onChange={(e) => setEditingCourier({ ...editingCourier, password: e.target.value })}
+                    placeholder={t.leaveEmptyToKeepCurrent}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.updateCourier}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditCourierDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Courier Dialog */}
+        <Dialog open={showDeleteCourierDialog} onOpenChange={setShowDeleteCourierDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.deleteCourier}</DialogTitle>
+              <DialogDescription className="text-sm">{t.deleteCourierDescription}</DialogDescription>
+            </DialogHeader>
+            {deletingCourier && (
+              <div className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    {t.confirmDeleteCourier}: <strong>{deletingCourier.username}</strong>
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button onClick={deleteCourier} variant="destructive" className="flex-1 text-sm">
+                    {t.deleteConfirm}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowDeleteCourierDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Order Dialog */}
+        <Dialog open={showEditOrderDialog} onOpenChange={setShowEditOrderDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.editOrder}</DialogTitle>
+              <DialogDescription className="text-sm">{t.editOrderDescription}</DialogDescription>
+            </DialogHeader>
+            {editingOrder && (
+              <form onSubmit={updateOrder} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCustomerName" className="text-sm">{t.customerName}</Label>
+                  <Input
+                    id="editCustomerName"
+                    value={editingOrder.customer_name}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, customer_name: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editDeliveryAddress" className="text-sm">{t.deliveryAddress}</Label>
+                  <Input
+                    id="editDeliveryAddress"
+                    value={editingOrder.delivery_address}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, delivery_address: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editPhoneNumber" className="text-sm">{t.phoneNumber}</Label>
+                  <Input
+                    id="editPhoneNumber"
+                    value={editingOrder.phone_number}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, phone_number: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editReferenceNumber" className="text-sm">{t.referenceNumber}</Label>
+                  <Input
+                    id="editReferenceNumber"
+                    value={editingOrder.reference_number || ''}
+                    onChange={(e) => setEditingOrder({ ...editingOrder, reference_number: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.updateOrder}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditOrderDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Order Dialog */}
+        <Dialog open={showDeleteOrderDialog} onOpenChange={setShowDeleteOrderDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.deleteOrder}</DialogTitle>
+              <DialogDescription className="text-sm">{t.deleteOrderDescription}</DialogDescription>
+            </DialogHeader>
+            {deletingOrder && (
+              <div className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    {t.confirmDeleteOrder}: <strong>{deletingOrder.customer_name}</strong>
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button onClick={deleteOrder} variant="destructive" className="flex-1 text-sm">
+                    {t.deleteConfirm}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowDeleteOrderDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Assign Order Dialog */}
+        <Dialog open={showAssignOrderDialog} onOpenChange={setShowAssignOrderDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.assignOrder}</DialogTitle>
+              <DialogDescription className="text-sm">{t.assignOrderDescription}</DialogDescription>
+            </DialogHeader>
+            {assigningOrder && (
+              <form onSubmit={assignOrder} className="space-y-4">
+                <div>
+                  <Label htmlFor="assignCourier" className="text-sm">{t.selectCourier}</Label>
+                  <Select
+                    value={assigningOrder.courierId}
+                    onValueChange={(value) => setAssigningOrder({ ...assigningOrder, courierId: value })}
+                    required
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder={t.selectCourier} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {couriers.filter(c => c.is_active).map((courier) => (
+                        <SelectItem key={courier.id} value={courier.id}>
+                          {courier.username} ({orders.filter(o => o.courier_id === courier.id && ['assigned', 'in_progress'].includes(o.status)).length} {t.activeDeliveries})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.assignOrder}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowAssignOrderDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
