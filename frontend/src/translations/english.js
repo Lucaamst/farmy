@@ -110,6 +110,8 @@ export const english = {
   invalidCredentials: "Invalid credentials",
   companyCreatedSuccessfully: "Company created successfully",
   courierCreatedSuccessfully: "Courier created successfully",
+  courierUpdatedSuccessfully: "Courier updated successfully",
+  courierDeletedSuccessfully: "Courier deleted successfully",
   orderCreatedSuccessfully: "Order created successfully",
   orderAssignedSuccessfully: "Order assigned successfully",
   deliveryMarkedCompleted: "Delivery marked as completed and customer notified!",
