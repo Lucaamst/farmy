@@ -85,6 +85,7 @@ export const italian = {
   customerName: "Nome Cliente",
   deliveryAddress: "Indirizzo di Consegna",
   phoneNumber: "Numero di Telefono",
+  referenceNumber: "Numero di Riferimento",
   createOrder: "Crea Ordine",
   assignCourier: "Assegna Corriere",
   assignOrderToCourier: "Assegna Ordine al Corriere",
