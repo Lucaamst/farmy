@@ -274,3 +274,5 @@ test_plan:
 agent_communication:
     - agent: "main"
       message: "Starting restoration of Company Admin Dashboard with all advanced features. Need to implement courier management, order management with filters, search, and export functionality while maintaining Safari/iOS compatibility. Will implement gradually and test each addition."
+    - agent: "testing"
+      message: "Comprehensive backend API testing completed successfully! All 28 tests passed (100% success rate). Tested authentication (3 tests), super admin APIs (5 tests), company admin authentication (1 test), courier management (4 tests), order management (6 tests), courier APIs (3 tests), SMS notifications (1 test), security & access control (2 tests), and cleanup operations (3 tests). Fixed critical issues: 1) Route ordering for /orders/assign endpoint, 2) ObjectId serialization in SMS logs, 3) Courier status management in tests. All backend functionality is working correctly with proper authentication, role-based permissions, error handling, and data export capabilities."
