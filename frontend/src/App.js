@@ -371,7 +371,9 @@ function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
+  const [editingCompany, setEditingCompany] = useState(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
@@ -410,6 +412,28 @@ function SuperAdminDashboard() {
     }
   };
 
+  const updateCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/companies/${editingCompany.id}`, {
+        name: editingCompany.name
+      });
+      toast({
+        title: t.success,
+        description: t.companyUpdatedSuccessfully,
+      });
+      setEditingCompany(null);
+      setShowEditDialog(false);
+      fetchCompanies();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToUpdateCompany,
+        variant: "destructive",
+      });
+    }
+  };
+
   const toggleCompanyStatus = async (companyId) => {
     try {
       await axios.patch(`${API}/companies/${companyId}/toggle`);
@@ -427,60 +451,67 @@ function SuperAdminDashboard() {
     }
   };
 
+  const handleEditClick = (company) => {
+    setEditingCompany({...company});
+    setShowEditDialog(true);
+  };
+
   useEffect(() => {
     fetchCompanies();
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 to-indigo-50">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t.superAdminTitle}</h1>
-              <p className="text-gray-600">{t.systemManagement}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.superAdminTitle}</h1>
+              <p className="text-sm sm:text-base text-gray-600">{t.systemManagement}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
-                <Button className="bg-violet-600 hover:bg-violet-700">
+                <Button className="bg-violet-600 hover:bg-violet-700 flex-1 sm:flex-none text-sm">
                   <Plus className="w-4 h-4 mr-2" />
                   {t.addCompany}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>{t.createNewCompany}</DialogTitle>
-                  <DialogDescription>{t.addNewCompanyDescription}</DialogDescription>
+                  <DialogTitle className="text-lg">{t.createNewCompany}</DialogTitle>
+                  <DialogDescription className="text-sm">{t.addNewCompanyDescription}</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={createCompany} className="space-y-4">
                   <div>
-                    <Label htmlFor="companyName">{t.companyName}</Label>
+                    <Label htmlFor="companyName" className="text-sm">{t.companyName}</Label>
                     <Input
                       id="companyName"
                       value={newCompany.name}
                       onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
                       placeholder={t.enterCompanyName}
                       required
+                      className="text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="adminUsername">{t.adminUsername}</Label>
+                    <Label htmlFor="adminUsername" className="text-sm">{t.adminUsername}</Label>
                     <Input
                       id="adminUsername"
                       value={newCompany.admin_username}
                       onChange={(e) => setNewCompany({ ...newCompany, admin_username: e.target.value })}
                       placeholder={t.enterAdminUsername}
                       required
+                      className="text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="adminPassword">{t.adminPassword}</Label>
+                    <Label htmlFor="adminPassword" className="text-sm">{t.adminPassword}</Label>
                     <Input
                       id="adminPassword"
                       type="password"
@@ -488,13 +519,14 @@ function SuperAdminDashboard() {
                       onChange={(e) => setNewCompany({ ...newCompany, admin_password: e.target.value })}
                       placeholder={t.enterAdminPassword}
                       required
+                      className="text-sm"
                     />
                   </div>
-                  <Button type="submit" className="w-full">{t.createCompany}</Button>
+                  <Button type="submit" className="w-full text-sm">{t.createCompany}</Button>
                 </form>
               </DialogContent>
             </Dialog>
-            <Button onClick={logout} variant="outline" size="sm">
+            <Button onClick={logout} variant="outline" size="sm" className="flex-1 sm:flex-none text-sm">
               <LogOut className="w-4 h-4 mr-2" />
               {t.logout}
             </Button>
@@ -503,56 +535,99 @@ function SuperAdminDashboard() {
 
         {/* Companies Table */}
         <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle>{t.companiesManagement}</CardTitle>
-            <CardDescription>{t.manageAllCompanies}</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">{t.companiesManagement}</CardTitle>
+            <CardDescription className="text-sm">{t.manageAllCompanies}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">{t.loading}</p>
+                <p className="text-gray-500 mt-2 text-sm">{t.loading}</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t.companyName}</TableHead>
-                    <TableHead>{t.totalDeliveries}</TableHead>
-                    <TableHead>{t.activeCouriers}</TableHead>
-                    <TableHead>{t.status}</TableHead>
-                    <TableHead>{t.created}</TableHead>
-                    <TableHead>{t.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {companies.map((company) => (
-                    <TableRow key={company.id}>
-                      <TableCell className="font-medium">{company.name}</TableCell>
-                      <TableCell>{company.total_deliveries}</TableCell>
-                      <TableCell>{company.active_couriers}</TableCell>
-                      <TableCell>
-                        <Badge variant={company.is_active ? 'default' : 'destructive'}>
-                          {company.is_active ? t.active : t.disabled}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{new Date(company.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() => toggleCompanyStatus(company.id)}
-                          variant={company.is_active ? 'destructive' : 'default'}
-                          size="sm"
-                        >
-                          {company.is_active ? t.disable : t.enable}
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">{t.companyName}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.totalDeliveries}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.activeCouriers}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {companies.map((company) => (
+                      <TableRow key={company.id}>
+                        <TableCell className="font-medium text-xs sm:text-sm">{company.name}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{company.total_deliveries}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{company.active_couriers}</TableCell>
+                        <TableCell>
+                          <Badge variant={company.is_active ? 'default' : 'destructive'} className="text-xs">
+                            {company.is_active ? t.active : t.disabled}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">{new Date(company.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
+                            <Button
+                              onClick={() => handleEditClick(company)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.edit}
+                            </Button>
+                            <Button
+                              onClick={() => toggleCompanyStatus(company.id)}
+                              variant={company.is_active ? 'destructive' : 'default'}
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {company.is_active ? t.disable : t.enable}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Edit Company Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.editCompany}</DialogTitle>
+              <DialogDescription className="text-sm">{t.editCompanyDescription}</DialogDescription>
+            </DialogHeader>
+            {editingCompany && (
+              <form onSubmit={updateCompany} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCompanyName" className="text-sm">{t.companyName}</Label>
+                  <Input
+                    id="editCompanyName"
+                    value={editingCompany.name}
+                    onChange={(e) => setEditingCompany({ ...editingCompany, name: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.updateCompany}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
