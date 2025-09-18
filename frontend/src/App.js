@@ -1235,56 +1235,155 @@ function CompanyAdminDashboard() {
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-6">
+            {/* Filters Section */}
             <Card className="bg-white shadow-sm border-0">
               <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-lg sm:text-xl">{t.recentOrders}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">{t.searchOrders}</CardTitle>
+                <CardDescription className="text-sm">Filtra e cerca ordini per data, cliente o corriere</CardDescription>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                <div className="space-y-3">
-                  {orders.slice(0, 5).map((order) => (
-                    <div key={order.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-medium text-sm truncate">{order.customer_name}</p>
-                        <p className="text-xs text-gray-600 truncate">{order.delivery_address}</p>
-                        {order.reference_number && (
-                          <p className="text-xs text-gray-500">Rif: {order.reference_number}</p>
-                        )}
-                      </div>
-                      <Badge variant={
-                        order.status === 'delivered' ? 'default' : 
-                        order.status === 'pending' ? 'secondary' : 'outline'
-                      } className="text-xs shrink-0">
-                        {order.status === 'delivered' ? t.delivered.toUpperCase() :
-                         order.status === 'pending' ? t.pending.toUpperCase() :
-                         order.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
-                      </Badge>
-                    </div>
-                  ))}
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <Label className="text-sm">{t.filterByCustomer}</Label>
+                    <Input
+                      placeholder={t.searchCustomer}
+                      value={searchFilters.customer_name}
+                      onChange={(e) => setSearchFilters({...searchFilters, customer_name: e.target.value})}
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm">{t.filterByCourier}</Label>
+                    <Select 
+                      value={searchFilters.courier_id}
+                      onValueChange={(value) => setSearchFilters({...searchFilters, courier_id: value})}
+                    >
+                      <SelectTrigger className="text-sm">
+                        <SelectValue placeholder={t.selectCourierFilter} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t.allCouriers}</SelectItem>
+                        {couriers.map((courier) => (
+                          <SelectItem key={courier.id} value={courier.id}>
+                            {courier.username}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm">{t.filterByStatus}</Label>
+                    <Select 
+                      value={searchFilters.status}
+                      onValueChange={(value) => setSearchFilters({...searchFilters, status: value})}
+                    >
+                      <SelectTrigger className="text-sm">
+                        <SelectValue placeholder={t.selectStatusFilter} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t.allStatuses}</SelectItem>
+                        <SelectItem value="pending">{t.pending}</SelectItem>
+                        <SelectItem value="assigned">{t.assigned}</SelectItem>
+                        <SelectItem value="in_progress">{t.inProgress}</SelectItem>
+                        <SelectItem value="delivered">{t.delivered}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm">{t.dateFrom}</Label>
+                    <Input
+                      type="date"
+                      value={searchFilters.date_from}
+                      onChange={(e) => setSearchFilters({...searchFilters, date_from: e.target.value})}
+                      className="text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm">{t.dateTo}</Label>
+                    <Input
+                      type="date"
+                      value={searchFilters.date_to}
+                      onChange={(e) => setSearchFilters({...searchFilters, date_to: e.target.value})}
+                      className="text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <Button onClick={searchOrders} className="text-sm">
+                    Cerca Ordini
+                  </Button>
+                  <Button onClick={clearFilters} variant="outline" className="text-sm">
+                    {t.clearFilters}
+                  </Button>
+                  <Button onClick={() => exportOrders('excel')} variant="secondary" className="text-sm">
+                    {t.exportToExcel}
+                  </Button>
+                  <Button onClick={() => exportOrders('csv')} variant="secondary" className="text-sm">
+                    {t.exportToCsv}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white shadow-sm border-0">
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-lg sm:text-xl">{t.activeCouriers}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                <div className="space-y-3">
-                  {couriers.filter(c => c.is_active).slice(0, 5).map((courier) => (
-                    <div key={courier.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3 min-w-0 flex-1">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+            {/* Results */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl">Risultati Ricerca ({filteredOrders.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {filteredOrders.slice(0, 10).map((order) => (
+                      <div key={order.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div className="min-w-0 flex-1 pr-2">
+                          <p className="font-medium text-sm truncate">{order.customer_name}</p>
+                          <p className="text-xs text-gray-600 truncate">{order.delivery_address}</p>
+                          {order.reference_number && (
+                            <p className="text-xs text-gray-500">Rif: {order.reference_number}</p>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
                         </div>
-                        <p className="font-medium text-sm truncate">{courier.username}</p>
+                        <Badge variant={
+                          order.status === 'delivered' ? 'default' : 
+                          order.status === 'pending' ? 'secondary' : 'outline'
+                        } className="text-xs shrink-0">
+                          {order.status === 'delivered' ? t.delivered.toUpperCase() :
+                           order.status === 'pending' ? t.pending.toUpperCase() :
+                           order.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
+                        </Badge>
                       </div>
-                      <Badge variant="default" className="text-xs shrink-0">{t.active.toUpperCase()}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                    {filteredOrders.length === 0 && (
+                      <p className="text-center text-gray-500 py-4 text-sm">{t.noOrdersFound}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl">{t.activeCouriers}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="space-y-3">
+                    {couriers.filter(c => c.is_active).slice(0, 5).map((courier) => (
+                      <div key={courier.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                          </div>
+                          <p className="font-medium text-sm truncate">{courier.username}</p>
+                        </div>
+                        <Badge variant="default" className="text-xs shrink-0">{t.active.toUpperCase()}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
