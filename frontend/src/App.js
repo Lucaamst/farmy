@@ -816,6 +816,14 @@ function CompanyAdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchFilters, setSearchFilters] = useState({
+    customer_name: '',
+    courier_id: '',
+    date_from: '',
+    date_to: '',
+    status: ''
+  });
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [showCreateCourier, setShowCreateCourier] = useState(false);
   const [showEditCourier, setShowEditCourier] = useState(false);
   const [editingCourier, setEditingCourier] = useState(null);
