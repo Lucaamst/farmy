@@ -24,7 +24,7 @@ export const english = {
   management: "Management",
 
   // Login Page
-  appTitle: "DeliveryHub",
+  appTitle: "FarmyGo",
   signInToAccount: "Sign in to your account",
   enterUsername: "Enter your username",
   enterPassword: "Enter your password",
