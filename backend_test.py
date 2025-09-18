@@ -554,16 +554,20 @@ class DeliveryManagementAPITester:
         else:
             success1 = True
         
-        # Test accessing non-existent order
+        # Test accessing non-existent order with valid UUID format
         success2, status2, response2 = self.make_request(
-            'PATCH', 'orders/non-existent-id',
-            data={"customer_name": "Test"},
+            'PATCH', 'orders/00000000-0000-0000-0000-000000000000',
+            data={"customer_name": "Test", "delivery_address": "Test", "phone_number": "Test"},
             token=self.tokens.get('company_admin'),
             expected_status=404
         )
         
         overall_success = success1 and success2
-        return self.log_test("Error Handling", overall_success, f"- Error scenarios handled correctly")
+        if not overall_success:
+            details = f"- Duplicate company: {success1} ({status1}), Non-existent order: {success2} ({status2})"
+        else:
+            details = f"- Error scenarios handled correctly"
+        return self.log_test("Error Handling", overall_success, details)
 
     # ========== CLEANUP TESTS ==========
     
