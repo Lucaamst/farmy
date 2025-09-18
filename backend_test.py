@@ -426,7 +426,11 @@ class DeliveryManagementAPITester:
         )
         
         overall_success = success1 and success2
-        return self.log_test("Order Export", overall_success, f"- Export functionality working")
+        if not overall_success:
+            details = f"- Excel: {status1}, CSV: {status2}"
+        else:
+            details = f"- Export functionality working"
+        return self.log_test("Order Export", overall_success, details)
 
     # ========== COURIER API TESTS ==========
     
