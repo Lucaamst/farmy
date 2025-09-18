@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
+// Import translations
+import { getTranslation } from './translations';
+
 // Import UI components
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -15,7 +18,7 @@ import { Label } from './components/ui/label';
 import { Separator } from './components/ui/separator';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
-import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus } from 'lucide-react';
+import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus, Globe } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
