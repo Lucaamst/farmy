@@ -277,13 +277,22 @@ class DeliveryManagementAPITester:
         
         courier_id = self.test_data['courier_id']
         
-        success, status, response = self.make_request(
+        # First toggle (should disable)
+        success1, status1, response1 = self.make_request(
             'PATCH', f'couriers/{courier_id}/toggle',
             token=self.tokens.get('company_admin'),
             expected_status=200
         )
         
-        return self.log_test("Toggle Courier Status", success, f"- Courier status toggled")
+        # Second toggle (should re-enable for later tests)
+        success2, status2, response2 = self.make_request(
+            'PATCH', f'couriers/{courier_id}/toggle',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        overall_success = success1 and success2
+        return self.log_test("Toggle Courier Status", overall_success, f"- Courier status toggled twice (disable/enable)")
 
     # ========== ORDER MANAGEMENT TESTS ==========
     
