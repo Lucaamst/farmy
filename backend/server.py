@@ -100,11 +100,13 @@ class CreateOrderRequest(BaseModel):
     customer_name: str
     delivery_address: str
     phone_number: str
+    reference_number: Optional[str] = None
 
 class UpdateOrderRequest(BaseModel):
     customer_name: str
     delivery_address: str
     phone_number: str
+    reference_number: Optional[str] = None
 
 class AssignOrderRequest(BaseModel):
     order_id: str
