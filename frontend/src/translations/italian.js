@@ -162,6 +162,7 @@ export const italian = {
   enterAdminPassword: "Inserisci la password admin",
   enterCourierUsername: "Inserisci il nome utente del corriere",
   enterCourierPassword: "Inserisci la password del corriere",
+  leaveEmptyToKeepCurrent: "Lascia vuoto per mantenere la password attuale",
   enterCustomerName: "Inserisci il nome del cliente",
   enterDeliveryAddress: "Inserisci l'indirizzo di consegna",
   enterPhoneNumber: "Inserisci il numero di telefono"
