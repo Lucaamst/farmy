@@ -1044,6 +1044,9 @@ function CompanyAdminDashboard() {
                       <div className="min-w-0 flex-1 pr-2">
                         <p className="font-medium text-sm truncate">{order.customer_name}</p>
                         <p className="text-xs text-gray-600 truncate">{order.delivery_address}</p>
+                        {order.reference_number && (
+                          <p className="text-xs text-gray-500">Rif: {order.reference_number}</p>
+                        )}
                       </div>
                       <Badge variant={
                         order.status === 'delivered' ? 'default' : 
