@@ -520,6 +520,124 @@ async def create_order(
     
     return {"message": "Order created successfully", "order": order}
 
+@api_router.get("/orders/search")
+async def search_orders(
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN])),
+    customer_name: Optional[str] = None,
+    courier_id: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    status: Optional[str] = None
+):
+    """Search orders with filters"""
+    query = {"company_id": current_user.company_id}
+    
+    if customer_name:
+        query["customer_name"] = {"$regex": customer_name, "$options": "i"}
+    
+    if courier_id:
+        query["courier_id"] = courier_id
+    
+    if status:
+        query["status"] = status
+    
+    if date_from or date_to:
+        date_query = {}
+        if date_from:
+            date_query["$gte"] = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+        if date_to:
+            date_query["$lte"] = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+        query["created_at"] = date_query
+    
+    orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
+    return [Order(**order) for order in orders]
+
+@api_router.get("/orders/export")
+async def export_orders(
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN])),
+    customer_name: Optional[str] = None,
+    courier_id: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    status: Optional[str] = None,
+    format: str = "excel"
+):
+    """Export orders to Excel or CSV"""
+    # Use same query logic as search
+    query = {"company_id": current_user.company_id}
+    
+    if customer_name:
+        query["customer_name"] = {"$regex": customer_name, "$options": "i"}
+    
+    if courier_id:
+        query["courier_id"] = courier_id
+    
+    if status:
+        query["status"] = status
+    
+    if date_from or date_to:
+        date_query = {}
+        if date_from:
+            date_query["$gte"] = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+        if date_to:
+            date_query["$lte"] = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+        query["created_at"] = date_query
+    
+    orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
+    
+    # Get courier names
+    courier_ids = [order.get("courier_id") for order in orders if order.get("courier_id")]
+    couriers = await db.users.find({"id": {"$in": courier_ids}}).to_list(1000)
+    courier_map = {c["id"]: c["username"] for c in couriers}
+    
+    # Prepare data for export
+    export_data = []
+    for order in orders:
+        export_data.append({
+            "Cliente": order["customer_name"],
+            "Indirizzo": order["delivery_address"],
+            "Telefono": order["phone_number"],
+            "Numero Riferimento": order.get("reference_number", ""),
+            "Corriere": courier_map.get(order.get("courier_id"), "Non assegnato"),
+            "Stato": order["status"].title(),
+            "Data Creazione": order["created_at"].strftime("%d/%m/%Y %H:%M"),
+            "Data Consegna": order.get("delivered_at").strftime("%d/%m/%Y %H:%M") if order.get("delivered_at") else ""
+        })
+    
+    if format == "excel":
+        import pandas as pd
+        import io
+        from fastapi.responses import StreamingResponse
+        
+        df = pd.DataFrame(export_data)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Ordini', index=False)
+        output.seek(0)
+        
+        return StreamingResponse(
+            io.BytesIO(output.read()),
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={"Content-Disposition": "attachment; filename=ordini.xlsx"}
+        )
+    else:
+        # CSV format
+        import csv
+        import io
+        from fastapi.responses import StreamingResponse
+        
+        output = io.StringIO()
+        if export_data:
+            writer = csv.DictWriter(output, fieldnames=export_data[0].keys())
+            writer.writeheader()
+            writer.writerows(export_data)
+        
+        return StreamingResponse(
+            io.StringIO(output.getvalue()),
+            media_type='text/csv',
+            headers={"Content-Disposition": "attachment; filename=ordini.csv"}
+        )
+
 @api_router.get("/orders", response_model=List[Order])
 async def get_orders(
     current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
