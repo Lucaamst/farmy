@@ -722,6 +722,8 @@ function CompanyAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showCreateCourier, setShowCreateCourier] = useState(false);
+  const [showEditCourier, setShowEditCourier] = useState(false);
+  const [editingCourier, setEditingCourier] = useState(null);
   const [showCreateOrder, setShowCreateOrder] = useState(false);
   const [showEditOrder, setShowEditOrder] = useState(false);
   const [showAssignOrder, setShowAssignOrder] = useState(false);
