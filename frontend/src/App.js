@@ -95,7 +95,7 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, language, changeLanguage, t } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async (e) => {
@@ -112,13 +112,13 @@ function Login() {
       login(access_token, user, company);
       
       toast({
-        title: "Login Successful",
-        description: `Welcome back, ${user.username}!`,
+        title: t.loginSuccessful,
+        description: `${t.welcomeBackMessage}, ${user.username}!`,
       });
     } catch (error) {
       toast({
-        title: "Login Failed",
-        description: error.response?.data?.detail || "Invalid credentials",
+        title: t.loginFailed,
+        description: error.response?.data?.detail || t.invalidCredentials,
         variant: "destructive",
       });
     } finally {
@@ -130,20 +130,34 @@ function Login() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iNCIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
       
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4">
+        <Select value={language} onValueChange={changeLanguage}>
+          <SelectTrigger className="w-20 bg-white/10 border-white/20 text-white">
+            <Globe className="w-4 h-4 mr-1" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">EN</SelectItem>
+            <SelectItem value="it">IT</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card className="w-full max-w-md backdrop-blur-sm bg-white/10 border-white/20">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
             <Truck className="w-8 h-8 text-white" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-white">DeliveryHub</CardTitle>
-            <CardDescription className="text-blue-100">Sign in to your account</CardDescription>
+            <CardTitle className="text-2xl font-bold text-white">{t.appTitle}</CardTitle>
+            <CardDescription className="text-blue-100">{t.signInToAccount}</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">Username</Label>
+              <Label htmlFor="username" className="text-white">{t.username}</Label>
               <Input
                 id="username"
                 type="text"
@@ -151,11 +165,11 @@ function Login() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                placeholder="Enter your username"
+                placeholder={t.enterUsername}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className="text-white">{t.password}</Label>
               <Input
                 id="password"
                 type="password"
@@ -163,7 +177,7 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                placeholder="Enter your password"
+                placeholder={t.enterPassword}
               />
             </div>
             <Button 
@@ -171,13 +185,13 @@ function Login() {
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t.signingIn : t.signIn}
             </Button>
           </form>
           
           <div className="mt-6 p-4 bg-blue-950/30 rounded-lg border border-blue-800/30">
-            <p className="text-xs text-blue-200 mb-2 font-medium">Demo Credentials:</p>
-            <p className="text-xs text-blue-300">Super Admin: superadmin / admin123</p>
+            <p className="text-xs text-blue-200 mb-2 font-medium">{t.demoCredentials}</p>
+            <p className="text-xs text-blue-300">{t.superAdmin}: superadmin / admin123</p>
           </div>
         </CardContent>
       </Card>
