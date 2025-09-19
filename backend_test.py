@@ -963,8 +963,21 @@ class DeliveryManagementAPITester:
         self.test_update_courier()
         self.test_toggle_courier_status()
         
-        # Phase 5: Order Management Tests
-        print("\n📋 Phase 5: Order Management Tests")
+        # Phase 5: Customer Management Tests
+        print("\n📋 Phase 5: Customer Management Tests")
+        self.test_create_customer()
+        self.test_create_duplicate_customer_phone()
+        self.test_get_customers()
+        self.test_get_specific_customer()
+        self.test_update_customer()
+        self.test_search_customers()
+        self.test_customer_order_history()
+        
+        # Phase 6: Order Management Tests (with Customer Integration)
+        print("\n📋 Phase 6: Order Management Tests (with Customer Integration)")
+        self.test_create_order_with_existing_customer()
+        self.test_create_order_auto_customer_creation()
+        self.test_create_order_existing_phone_link()
         self.test_create_order()
         self.test_get_orders()
         self.test_update_order()
@@ -972,7 +985,7 @@ class DeliveryManagementAPITester:
         self.test_order_search_filters()
         self.test_order_export()
         
-        # Phase 6: Courier API Tests
+        # Phase 7: Courier API Tests
         print("\n📋 Phase 6: Courier API Tests")
         self.test_courier_login()
         self.test_get_courier_deliveries()
