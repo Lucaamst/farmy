@@ -1151,6 +1151,123 @@ async def get_sms_logs(
     
     return sms_logs
 
+# Security Routes
+@api_router.get("/security/status")
+async def get_security_status(current_user: User = Depends(get_current_user)):
+    """Get user's security status"""
+    security = await get_user_security(current_user.id)
+    return {
+        "face_id_enabled": security.face_id_enabled,
+        "pin_enabled": security.pin_enabled,
+        "sms_enabled": security.sms_enabled,
+        "webauthn_credentials": len(security.webauthn_credentials)
+    }
+
+@api_router.post("/security/setup-pin")
+async def setup_pin(
+    request: SetupPinRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Setup or update PIN for user"""
+    if len(request.pin) != 6 or not request.pin.isdigit():
+        raise HTTPException(status_code=400, detail="PIN must be exactly 6 digits")
+    
+    security = await get_user_security(current_user.id)
+    
+    # Update PIN
+    await db.user_security.update_one(
+        {"user_id": current_user.id},
+        {"$set": {
+            "pin_hash": hash_pin(request.pin),
+            "pin_enabled": True,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    return {"message": "PIN setup successfully"}
+
+@api_router.post("/security/verify-pin")
+async def verify_pin_endpoint(
+    request: VerifyPinRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Verify user's PIN"""
+    security = await get_user_security(current_user.id)
+    
+    if not security.pin_enabled or not security.pin_hash:
+        raise HTTPException(status_code=400, detail="PIN not set up")
+    
+    if not verify_pin(request.pin, security.pin_hash):
+        raise HTTPException(status_code=401, detail="Invalid PIN")
+    
+    return {"message": "PIN verified successfully"}
+
+@api_router.post("/security/send-sms-code")
+async def send_sms_code(
+    request: SendSMSCodeRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Send SMS verification code"""
+    # Generate 6-digit code
+    code = generate_sms_code()
+    
+    # Store code with expiration (5 minutes)
+    import time
+    sms_codes[request.phone_number] = {
+        "code": code,
+        "expires_at": time.time() + 300,  # 5 minutes
+        "user_id": current_user.id
+    }
+    
+    # Send SMS
+    message = f"Il tuo codice di verifica FarmyGo è: {code}. Valido per 5 minuti."
+    success = await send_sms_notification(request.phone_number, message)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send SMS")
+    
+    return {"message": "SMS code sent successfully"}
+
+@api_router.post("/security/verify-sms-code")
+async def verify_sms_code(
+    request: VerifySMSCodeRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Verify SMS code"""
+    import time
+    
+    if request.phone_number not in sms_codes:
+        raise HTTPException(status_code=400, detail="No SMS code sent to this number")
+    
+    stored_code = sms_codes[request.phone_number]
+    
+    # Check expiration
+    if time.time() > stored_code["expires_at"]:
+        del sms_codes[request.phone_number]
+        raise HTTPException(status_code=400, detail="SMS code expired")
+    
+    # Check code
+    if stored_code["code"] != request.code:
+        raise HTTPException(status_code=401, detail="Invalid SMS code")
+    
+    # Check user
+    if stored_code["user_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="SMS code not for this user")
+    
+    # Clean up
+    del sms_codes[request.phone_number]
+    
+    # Enable SMS security for user
+    await db.user_security.update_one(
+        {"user_id": current_user.id},
+        {"$set": {
+            "sms_enabled": True,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    return {"message": "SMS code verified successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
