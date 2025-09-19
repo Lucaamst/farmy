@@ -241,6 +241,7 @@ export const english = {
   notes: "Notes",
   enterEmail: "Enter email (optional)",
   enterNotes: "Enter notes (optional)",
+  phoneOptionalNote: "Leave empty if customer doesn't want delivery confirmation SMS",
   
   // Order Creation with Customers
   selectExistingCustomer: "Select Existing Customer",
