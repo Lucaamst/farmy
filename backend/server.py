@@ -1295,7 +1295,6 @@ async def generate_webauthn_registration_options(
         user_id=current_user.id.encode(),
         user_name=current_user.username,
         user_display_name=current_user.username,
-        require_resident_key=False,
         user_verification=UserVerificationRequirement.PREFERRED,
         authenticator_selection=AuthenticatorSelectionCriteria(
             authenticator_attachment=AuthenticatorAttachment.PLATFORM,
