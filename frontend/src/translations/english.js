@@ -229,6 +229,7 @@ export const english = {
   failedToDeleteCustomer: "Failed to delete customer",
   customerPhoneExists: "Customer with this phone number already exists",
   cannotDeleteCustomerWithOrders: "Cannot delete customer with existing orders",
+  totalCustomers: "Total Customers",
   
   // Customer Details
   customerHistory: "Customer History",
