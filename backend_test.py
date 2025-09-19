@@ -732,6 +732,343 @@ class DeliveryManagementAPITester:
         else:
             return self.log_test("Mark Delivery Completed", False, f"- Status: {status}, Response: {response}")
 
+    # ========== SECURITY API TESTS ==========
+    
+    def test_security_status_api(self):
+        """Test security status API for all user roles"""
+        print("\n🔐 Testing Security Status API")
+        
+        # Test with super admin
+        success1, status1, response1 = self.make_request(
+            'GET', 'security/status',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test with company admin
+        success2, status2, response2 = self.make_request(
+            'GET', 'security/status',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test with courier
+        success3, status3, response3 = self.make_request(
+            'GET', 'security/status',
+            token=self.tokens.get('courier'),
+            expected_status=200
+        )
+        
+        # Test without authentication (should fail)
+        success4, status4, response4 = self.make_request(
+            'GET', 'security/status',
+            expected_status=401
+        )
+        
+        # Verify response format
+        format_correct = True
+        if success1 and response1:
+            required_fields = ['face_id_enabled', 'pin_enabled', 'sms_enabled', 'webauthn_credentials']
+            format_correct = all(field in response1 for field in required_fields)
+            # Check default values (should all be false/0 for new users)
+            defaults_correct = (
+                response1.get('face_id_enabled') == False and
+                response1.get('pin_enabled') == False and
+                response1.get('sms_enabled') == False and
+                response1.get('webauthn_credentials') == 0
+            )
+        else:
+            format_correct = False
+            defaults_correct = False
+        
+        overall_success = success1 and success2 and success3 and success4 and format_correct and defaults_correct
+        
+        if overall_success:
+            return self.log_test("Security Status API", True, f"- All roles can access, proper format, correct defaults")
+        else:
+            details = f"- Super admin: {success1}, Company admin: {success2}, Courier: {success3}, No auth: {success4}, Format: {format_correct}, Defaults: {defaults_correct}"
+            return self.log_test("Security Status API", False, details)
+
+    def test_pin_security_system(self):
+        """Test PIN security system setup and verification"""
+        print("\n📱 Testing PIN Security System")
+        
+        # Test 1: Setup PIN with valid 6-digit PIN
+        pin_data = {"pin": "123456"}
+        success1, status1, response1 = self.make_request(
+            'POST', 'security/setup-pin',
+            data=pin_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Setup PIN with invalid data (non-digits)
+        invalid_pin_data = {"pin": "12345a"}
+        success2, status2, response2 = self.make_request(
+            'POST', 'security/setup-pin',
+            data=invalid_pin_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=400
+        )
+        
+        # Test 3: Setup PIN with wrong length
+        wrong_length_data = {"pin": "12345"}
+        success3, status3, response3 = self.make_request(
+            'POST', 'security/setup-pin',
+            data=wrong_length_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=400
+        )
+        
+        # Test 4: Verify PIN with correct PIN
+        verify_correct_data = {"pin": "123456"}
+        success4, status4, response4 = self.make_request(
+            'POST', 'security/verify-pin',
+            data=verify_correct_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 5: Verify PIN with wrong PIN
+        verify_wrong_data = {"pin": "654321"}
+        success5, status5, response5 = self.make_request(
+            'POST', 'security/verify-pin',
+            data=verify_wrong_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=401
+        )
+        
+        # Test 6: Verify PIN without setup (using courier who hasn't set up PIN)
+        success6, status6, response6 = self.make_request(
+            'POST', 'security/verify-pin',
+            data={"pin": "123456"},
+            token=self.tokens.get('courier'),
+            expected_status=400
+        )
+        
+        # Test 7: Check security status after PIN setup
+        success7, status7, response7 = self.make_request(
+            'GET', 'security/status',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        pin_enabled = False
+        if success7 and response7:
+            pin_enabled = response7.get('pin_enabled') == True
+        
+        overall_success = success1 and success2 and success3 and success4 and success5 and success6 and success7 and pin_enabled
+        
+        if overall_success:
+            return self.log_test("PIN Security System", True, f"- Setup, validation, verification all working correctly")
+        else:
+            details = f"- Setup: {success1}, Invalid chars: {success2}, Wrong length: {success3}, Verify correct: {success4}, Verify wrong: {success5}, No setup: {success6}, Status check: {success7}, PIN enabled: {pin_enabled}"
+            return self.log_test("PIN Security System", False, details)
+
+    def test_sms_security_system(self):
+        """Test SMS security system"""
+        print("\n📲 Testing SMS Security System")
+        
+        # Test 1: Send SMS code with valid Italian phone number
+        sms_data = {"phone_number": "+39 333 1234567"}
+        success1, status1, response1 = self.make_request(
+            'POST', 'security/send-sms-code',
+            data=sms_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Verify SMS code with wrong code
+        wrong_code_data = {
+            "phone_number": "+39 333 1234567",
+            "code": "000000"
+        }
+        success2, status2, response2 = self.make_request(
+            'POST', 'security/verify-sms-code',
+            data=wrong_code_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=401
+        )
+        
+        # Test 3: Verify SMS code with no code sent
+        no_code_data = {
+            "phone_number": "+39 333 9999999",
+            "code": "123456"
+        }
+        success3, status3, response3 = self.make_request(
+            'POST', 'security/verify-sms-code',
+            data=no_code_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=400
+        )
+        
+        # Test 4: Check SMS logs were created
+        success4, status4, response4 = self.make_request(
+            'GET', 'sms-logs',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        sms_log_found = False
+        if success4 and isinstance(response4, list):
+            for log in response4:
+                if log.get('phone_number') == '+39 333 1234567' and 'codice di verifica' in log.get('message', ''):
+                    sms_log_found = True
+                    break
+        
+        # Test 5: Test expired code scenario (we can't easily test this without waiting, so we'll simulate)
+        # For now, we'll just test that the endpoint exists and responds correctly to basic scenarios
+        
+        overall_success = success1 and success2 and success3 and success4 and sms_log_found
+        
+        if overall_success:
+            return self.log_test("SMS Security System", True, f"- SMS sending, verification, and logging working correctly")
+        else:
+            details = f"- Send SMS: {success1}, Wrong code: {success2}, No code sent: {success3}, SMS logs: {success4}, Log found: {sms_log_found}"
+            return self.log_test("SMS Security System", False, details)
+
+    def test_webauthn_biometric_system(self):
+        """Test WebAuthn/Biometric system"""
+        print("\n👆 Testing WebAuthn/Biometric System")
+        
+        # Test 1: Generate registration options
+        success1, status1, response1 = self.make_request(
+            'POST', 'security/webauthn/generate-registration-options',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Generate authentication options (should fail - no credentials registered)
+        success2, status2, response2 = self.make_request(
+            'POST', 'security/webauthn/generate-authentication-options',
+            token=self.tokens.get('company_admin'),
+            expected_status=400
+        )
+        
+        # Test 3: Test error handling when WebAuthn is not available (if applicable)
+        # This depends on whether webauthn library is installed
+        webauthn_available = True
+        if success1 and status1 == 501:  # Not implemented
+            webauthn_available = False
+        
+        # For the purposes of this test, we'll consider it successful if:
+        # - Registration options can be generated OR WebAuthn returns 501 (not available)
+        # - Authentication options correctly fail when no credentials exist
+        # - Error handling works properly
+        
+        if webauthn_available:
+            # WebAuthn is available
+            registration_works = success1
+            auth_fails_correctly = success2  # Should fail with 400 when no credentials
+            overall_success = registration_works and auth_fails_correctly
+            
+            if overall_success:
+                return self.log_test("WebAuthn/Biometric System", True, f"- Registration options generated, authentication correctly requires credentials")
+            else:
+                details = f"- Registration: {success1} ({status1}), Auth without creds: {success2} ({status2})"
+                return self.log_test("WebAuthn/Biometric System", False, details)
+        else:
+            # WebAuthn is not available (501 error)
+            if status1 == 501:
+                return self.log_test("WebAuthn/Biometric System", True, f"- WebAuthn not available (expected in some environments)")
+            else:
+                return self.log_test("WebAuthn/Biometric System", False, f"- Unexpected response when WebAuthn unavailable: {status1}")
+
+    def test_security_authentication_requirements(self):
+        """Test that all security endpoints require authentication"""
+        print("\n🔒 Testing Security Authentication Requirements")
+        
+        # Test all security endpoints without authentication
+        endpoints_to_test = [
+            'security/status',
+            'security/setup-pin',
+            'security/verify-pin',
+            'security/send-sms-code',
+            'security/verify-sms-code',
+            'security/webauthn/generate-registration-options',
+            'security/webauthn/generate-authentication-options'
+        ]
+        
+        all_protected = True
+        failed_endpoints = []
+        
+        for endpoint in endpoints_to_test:
+            if 'setup-pin' in endpoint or 'verify-pin' in endpoint or 'send-sms' in endpoint or 'verify-sms' in endpoint or 'webauthn' in endpoint:
+                # POST endpoints
+                success, status, response = self.make_request(
+                    'POST', endpoint,
+                    data={"test": "data"},
+                    expected_status=401
+                )
+            else:
+                # GET endpoints
+                success, status, response = self.make_request(
+                    'GET', endpoint,
+                    expected_status=401
+                )
+            
+            if not success:
+                all_protected = False
+                failed_endpoints.append(f"{endpoint}({status})")
+        
+        if all_protected:
+            return self.log_test("Security Authentication Requirements", True, f"- All {len(endpoints_to_test)} security endpoints properly protected")
+        else:
+            return self.log_test("Security Authentication Requirements", False, f"- Failed endpoints: {', '.join(failed_endpoints)}")
+
+    def test_security_different_user_roles(self):
+        """Test security system with different user roles"""
+        print("\n👥 Testing Security System with Different User Roles")
+        
+        # Test PIN setup for different roles
+        roles_to_test = [
+            ('super_admin', 'Super Admin'),
+            ('company_admin', 'Company Admin'),
+            ('courier', 'Courier')
+        ]
+        
+        all_roles_work = True
+        role_results = []
+        
+        for role_key, role_name in roles_to_test:
+            if role_key not in self.tokens:
+                continue
+                
+            # Setup PIN for this role
+            pin_data = {"pin": f"{role_key[:6].ljust(6, '0')[:6]}"}  # Create 6-digit PIN from role
+            success1, status1, response1 = self.make_request(
+                'POST', 'security/setup-pin',
+                data=pin_data,
+                token=self.tokens.get(role_key),
+                expected_status=200
+            )
+            
+            # Verify PIN for this role
+            success2, status2, response2 = self.make_request(
+                'POST', 'security/verify-pin',
+                data=pin_data,
+                token=self.tokens.get(role_key),
+                expected_status=200
+            )
+            
+            # Check security status
+            success3, status3, response3 = self.make_request(
+                'GET', 'security/status',
+                token=self.tokens.get(role_key),
+                expected_status=200
+            )
+            
+            role_success = success1 and success2 and success3
+            role_results.append(f"{role_name}: {role_success}")
+            
+            if not role_success:
+                all_roles_work = False
+        
+        if all_roles_work:
+            return self.log_test("Security Different User Roles", True, f"- All user roles can use security features")
+        else:
+            return self.log_test("Security Different User Roles", False, f"- Role results: {', '.join(role_results)}")
+
     # ========== SMS NOTIFICATION TESTS ==========
     
     def test_twilio_sms_integration(self):
