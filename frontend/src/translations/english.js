@@ -205,5 +205,48 @@ export const english = {
   // Date filters
   dateFrom: "Date From",
   dateTo: "Date To",
-  clearFilters: "Clear Filters"
+  clearFilters: "Clear Filters",
+  
+  // Customer Management
+  customers: "Customers",
+  customerManagement: "Customer Management", 
+  manageAllCustomers: "Manage all customers",
+  addCustomer: "Add Customer",
+  createNewCustomer: "Create New Customer",
+  addNewCustomerDescription: "Add a new customer to the database",
+  createCustomer: "Create Customer",
+  editCustomer: "Edit Customer",
+  editCustomerDescription: "Edit customer details",
+  updateCustomer: "Update Customer",
+  deleteCustomer: "Delete Customer",
+  deleteCustomerDescription: "This action cannot be undone",
+  confirmDeleteCustomer: "Are you sure you want to delete this customer",
+  customerCreatedSuccessfully: "Customer created successfully",
+  customerUpdatedSuccessfully: "Customer updated successfully",
+  customerDeletedSuccessfully: "Customer deleted successfully",
+  failedToCreateCustomer: "Failed to create customer",
+  failedToUpdateCustomer: "Failed to update customer",
+  failedToDeleteCustomer: "Failed to delete customer",
+  customerPhoneExists: "Customer with this phone number already exists",
+  cannotDeleteCustomerWithOrders: "Cannot delete customer with existing orders",
+  
+  // Customer Details
+  customerHistory: "Customer History",
+  customerOrders: "Customer Orders",
+  totalOrders: "Total Orders", 
+  lastOrder: "Last Order",
+  never: "Never",
+  email: "Email",
+  notes: "Notes",
+  enterEmail: "Enter email (optional)",
+  enterNotes: "Enter notes (optional)",
+  
+  // Order Creation with Customers
+  selectExistingCustomer: "Select Existing Customer",
+  newCustomer: "New Customer",
+  existingCustomer: "Existing Customer",
+  searchCustomers: "Search customers...",
+  noCustomersFound: "No customers found",
+  customerDetails: "Customer Details",
+  viewCustomerHistory: "View Customer History"
 };
