@@ -1042,8 +1042,9 @@ class DeliveryManagementAPITester:
             if role_key not in self.tokens:
                 continue
                 
-            # Setup PIN for this role
-            pin_data = {"pin": f"{role_key[:6].ljust(6, '0')[:6]}"}  # Create 6-digit PIN from role
+            # Setup PIN for this role (ensure exactly 6 digits)
+            role_pin = f"{hash(role_key) % 1000000:06d}"  # Generate 6-digit PIN from role
+            pin_data = {"pin": role_pin}
             success1, status1, response1 = self.make_request(
                 'POST', 'security/setup-pin',
                 data=pin_data,
