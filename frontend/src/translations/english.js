@@ -249,5 +249,54 @@ export const english = {
   searchCustomers: "Search customers...",
   noCustomersFound: "No customers found",
   customerDetails: "Customer Details",
-  viewCustomerHistory: "View Customer History"
+  viewCustomerHistory: "View Customer History",
+  
+  // Multi-Level Security
+  security: "Security",
+  securitySettings: "Security Settings",
+  multiLevelSecurity: "Multi-Level Security",
+  securityRequired: "Additional Security Required",
+  setupSecurity: "Setup Security",
+  
+  // Face ID / Touch ID
+  faceId: "Face ID",
+  touchId: "Touch ID",
+  biometricAuth: "Biometric Authentication",
+  setupBiometric: "Setup Face ID/Touch ID",
+  biometricEnabled: "Biometric Enabled",
+  biometricDisabled: "Biometric Disabled",
+  
+  // PIN Security
+  pin: "PIN",
+  setupPin: "Setup PIN",
+  enterPin: "Enter PIN",
+  confirmPin: "Confirm PIN",
+  pinRequired: "PIN Required",
+  pin6Digits: "PIN must be 6 digits",
+  pinMismatch: "PINs do not match",
+  pinEnabled: "PIN Enabled",
+  
+  // SMS Security
+  smsVerification: "SMS Verification",
+  sendSmsCode: "Send SMS Code",
+  enterSmsCode: "Enter SMS Code",
+  smsCodeSent: "SMS code sent",
+  smsCodeExpired: "SMS code expired",
+  verifyPhone: "Verify Phone",
+  
+  // Security Actions
+  authenticate: "Authenticate",
+  verify: "Verify",
+  skip: "Skip",
+  useAlternative: "Use Alternative",
+  securityComplete: "Security Complete",
+  accessGranted: "Access Granted",
+  authenticationFailed: "Authentication Failed",
+  
+  // Security Messages
+  securitySetupRequired: "Security setup is required",
+  chooseSecurity: "Choose security method",
+  multipleMethods: "Configure multiple methods for better security",
+  biometricNotSupported: "Biometric not supported on this device",
+  securityUpgradeComplete: "Security upgrade completed successfully"
 };
