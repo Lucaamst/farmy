@@ -788,9 +788,9 @@ class DeliveryManagementAPITester:
         overall_success = success1 and success2 and success3 and success4 and format_correct and defaults_correct
         
         if overall_success:
-            return self.log_test("Security Status API", True, f"- All roles can access, proper format, correct defaults")
+            return self.log_test("Security Status API", True, f"- All roles can access, proper format, correct types")
         else:
-            details = f"- Super admin: {success1}, Company admin: {success2}, Courier: {success3}, No auth: {success4}, Format: {format_correct}, Defaults: {defaults_correct}"
+            details = f"- Super admin: {success1}, Company admin: {success2}, Courier: {success3}, No auth: {success4}, Format: {format_correct}, Types: {defaults_correct}"
             return self.log_test("Security Status API", False, details)
 
     def test_pin_security_system(self):
