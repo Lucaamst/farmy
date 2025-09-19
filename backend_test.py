@@ -762,7 +762,7 @@ class DeliveryManagementAPITester:
         # Test without authentication (should fail)
         success4, status4, response4 = self.make_request(
             'GET', 'security/status',
-            expected_status=401
+            expected_status=403  # HTTPBearer returns 403 when no auth header
         )
         
         # Verify response format
