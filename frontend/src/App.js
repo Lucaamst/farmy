@@ -868,6 +868,91 @@ function SuperAdminDashboard() {
   );
 }
 
+// PWA Install Prompt Component
+function PWAInstallPrompt() {
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const { t } = useAuth();
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    const handleAppInstalled = () => {
+      setShowInstallPrompt(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`PWA install ${outcome}`);
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    }
+  };
+
+  const handleDismiss = () => {
+    setShowInstallPrompt(false);
+    // Remember user dismissed for 7 days
+    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+  };
+
+  // Don't show if user dismissed recently
+  const dismissed = localStorage.getItem('pwa-install-dismissed');
+  if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) {
+    return null;
+  }
+
+  if (!showInstallPrompt) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:max-w-sm bg-white border border-orange-200 rounded-lg shadow-lg p-4 z-50">
+      <div className="flex items-start space-x-3">
+        <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <Smartphone className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900">Installa FarmyGo</h3>
+          <p className="text-xs text-gray-600 mt-1">
+            Installa l'app per un accesso più rapido e notifiche push
+          </p>
+          <div className="flex space-x-2 mt-3">
+            <Button 
+              onClick={handleInstallClick}
+              size="sm"
+              className="bg-orange-600 hover:bg-orange-700 text-xs"
+            >
+              Installa
+            </Button>
+            <Button 
+              onClick={handleDismiss}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              Non ora
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Security Components
 function SecuritySetup({ user, onSecurityComplete }) {
   const [currentStep, setCurrentStep] = useState('choose');
