@@ -273,5 +273,54 @@ export const italian = {
   searchCustomers: "Cerca clienti...",
   noCustomersFound: "Nessun cliente trovato",
   customerDetails: "Dettagli Cliente",
-  viewCustomerHistory: "Vedi Storico Cliente"
+  viewCustomerHistory: "Vedi Storico Cliente",
+  
+  // Multi-Level Security
+  security: "Sicurezza",
+  securitySettings: "Impostazioni Sicurezza",
+  multiLevelSecurity: "Sicurezza Multi-Livello",
+  securityRequired: "Sicurezza Aggiuntiva Richiesta",
+  setupSecurity: "Configura Sicurezza",
+  
+  // Face ID / Touch ID
+  faceId: "Face ID",
+  touchId: "Touch ID",
+  biometricAuth: "Autenticazione Biometrica",
+  setupBiometric: "Configura Face ID/Touch ID",
+  biometricEnabled: "Biometrico Attivato",
+  biometricDisabled: "Biometrico Disattivato",
+  
+  // PIN Security
+  pin: "PIN",
+  setupPin: "Configura PIN",
+  enterPin: "Inserisci PIN",
+  confirmPin: "Conferma PIN",
+  pinRequired: "PIN Richiesto",
+  pin6Digits: "Il PIN deve essere di 6 cifre",
+  pinMismatch: "I PIN non coincidono",
+  pinEnabled: "PIN Attivato",
+  
+  // SMS Security
+  smsVerification: "Verifica SMS",
+  sendSmsCode: "Invia Codice SMS",
+  enterSmsCode: "Inserisci Codice SMS",
+  smsCodeSent: "Codice SMS inviato",
+  smsCodeExpired: "Codice SMS scaduto",
+  verifyPhone: "Verifica Telefono",
+  
+  // Security Actions
+  authenticate: "Autentica",
+  verify: "Verifica",
+  skip: "Salta",
+  useAlternative: "Usa Alternativa",
+  securityComplete: "Sicurezza Completata",
+  accessGranted: "Accesso Consentito",
+  authenticationFailed: "Autenticazione Fallita",
+  
+  // Security Messages
+  securitySetupRequired: "È richiesta la configurazione della sicurezza",
+  chooseSecurity: "Scegli metodo di sicurezza",
+  multipleMethods: "Configura più metodi per maggiore sicurezza",
+  biometricNotSupported: "Biometrico non supportato su questo dispositivo",
+  securityUpgradeComplete: "Upgrade sicurezza completato con successo"
 };
