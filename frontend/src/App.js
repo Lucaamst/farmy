@@ -1099,7 +1099,10 @@ function CompanyAdminDashboard() {
         title: t.success,
         description: t.orderCreatedSuccessfully,
       });
-      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '' });
+      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '', customer_id: '' });
+      setCustomerSearch('');
+      setUseExistingCustomer(false);
+      setShowCustomerDropdown(false);
       setShowCreateOrderDialog(false);
       fetchOrders();
     } catch (error) {
