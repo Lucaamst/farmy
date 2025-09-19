@@ -14,6 +14,13 @@ import jwt
 from passlib.context import CryptContext
 import json
 
+# WebAuthn imports (will be imported dynamically in functions to avoid dependency issues)
+try:
+    import webauthn
+    WEBAUTHN_AVAILABLE = True
+except ImportError:
+    WEBAUTHN_AVAILABLE = False
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
