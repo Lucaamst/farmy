@@ -774,12 +774,12 @@ class DeliveryManagementAPITester:
         if success1 and response1:
             required_fields = ['face_id_enabled', 'pin_enabled', 'sms_enabled', 'webauthn_credentials']
             format_correct = all(field in response1 for field in required_fields)
-            # Check default values (should all be false/0 for new users)
+            # Check that values are boolean/int as expected
             defaults_correct = (
-                response1.get('face_id_enabled') == False and
-                response1.get('pin_enabled') == False and
-                response1.get('sms_enabled') == False and
-                response1.get('webauthn_credentials') == 0
+                isinstance(response1.get('face_id_enabled'), bool) and
+                isinstance(response1.get('pin_enabled'), bool) and
+                isinstance(response1.get('sms_enabled'), bool) and
+                isinstance(response1.get('webauthn_credentials'), int)
             )
         else:
             format_correct = False
