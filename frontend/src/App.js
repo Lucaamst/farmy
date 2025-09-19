@@ -1006,6 +1006,87 @@ function CompanyAdminDashboard() {
     }
   };
 
+  // Customer management functions
+  const createCustomer = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/customers`, newCustomer);
+      toast({
+        title: t.success,
+        description: t.customerCreatedSuccessfully,
+      });
+      setNewCustomer({ name: '', phone_number: '', address: '', email: '', notes: '' });
+      setShowCreateCustomerDialog(false);
+      fetchCustomers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToCreateCustomer,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateCustomer = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API}/customers/${editingCustomer.id}`, {
+        name: editingCustomer.name,
+        phone_number: editingCustomer.phone_number,
+        address: editingCustomer.address,
+        email: editingCustomer.email,
+        notes: editingCustomer.notes
+      });
+      toast({
+        title: t.success,
+        description: t.customerUpdatedSuccessfully,
+      });
+      setEditingCustomer(null);
+      setShowEditCustomerDialog(false);
+      fetchCustomers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToUpdateCustomer,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteCustomer = async () => {
+    try {
+      await axios.delete(`${API}/customers/${deletingCustomer.id}`);
+      toast({
+        title: t.success,
+        description: t.customerDeletedSuccessfully,
+      });
+      setDeletingCustomer(null);
+      setShowDeleteCustomerDialog(false);
+      fetchCustomers();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.failedToDeleteCustomer,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const viewCustomerHistory = async (customer) => {
+    try {
+      const response = await axios.get(`${API}/customers/${customer.id}/orders`);
+      setCustomerOrders(response.data);
+      setViewingCustomer(customer);
+      setShowCustomerHistoryDialog(true);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: t.failedToFetchData,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Order management functions
   const createOrder = async (e) => {
     e.preventDefault();
