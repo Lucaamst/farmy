@@ -221,6 +221,33 @@ def require_role(required_roles: List[str]):
         return current_user
     return role_checker
 
+# Security helper functions
+def hash_pin(pin: str) -> str:
+    """Hash PIN for secure storage"""
+    return pwd_context.hash(pin)
+
+def verify_pin(plain_pin: str, hashed_pin: str) -> bool:
+    """Verify PIN against hash"""
+    return pwd_context.verify(plain_pin, hashed_pin)
+
+def generate_sms_code() -> str:
+    """Generate 6-digit SMS verification code"""
+    import random
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+# SMS codes storage (in production, use Redis or database with TTL)
+sms_codes = {}
+
+async def get_user_security(user_id: str):
+    """Get or create user security settings"""
+    security = await db.user_security.find_one({"user_id": user_id})
+    if not security:
+        # Create default security settings
+        new_security = UserSecurity(user_id=user_id)
+        await db.user_security.insert_one(new_security.dict())
+        return new_security
+    return UserSecurity(**security)
+
 async def send_sms_notification(phone_number: str, message: str):
     """Send SMS notification using Twilio"""
     try:
