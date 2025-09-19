@@ -1310,6 +1310,64 @@ async def generate_webauthn_registration_options(
     
     return options
 
+@api_router.post("/security/webauthn/verify-registration")
+async def verify_webauthn_registration(
+    request: WebAuthnRegistrationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Verify WebAuthn registration and store credential"""
+    if not WEBAUTHN_AVAILABLE:
+        raise HTTPException(status_code=501, detail="WebAuthn not available")
+    
+    from webauthn import verify_registration_response
+    from webauthn.helpers.structs import RegistrationCredential
+    
+    challenge_key = f"webauthn_challenge_{current_user.id}"
+    if challenge_key not in sms_codes:
+        raise HTTPException(status_code=400, detail="No registration challenge found")
+    
+    stored_challenge = sms_codes[challenge_key]
+    
+    try:
+        # Convert request to proper format
+        credential = RegistrationCredential.parse_raw(json.dumps(request.credential))
+        
+        verification = verify_registration_response(
+            credential=credential,
+            expected_challenge=stored_challenge["challenge"].encode('latin-1'),
+            expected_origin="http://localhost:3000",  # In production, use your domain
+            expected_rp_id="localhost",
+        )
+        
+        if verification.verified:
+            # Store credential
+            security = await get_user_security(current_user.id)
+            new_credential = {
+                "id": credential.id,
+                "public_key": verification.credential_public_key.hex(),
+                "sign_count": verification.sign_count,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.user_security.update_one(
+                {"user_id": current_user.id},
+                {"$push": {"webauthn_credentials": new_credential},
+                 "$set": {
+                     "face_id_enabled": True,
+                     "updated_at": datetime.now(timezone.utc)
+                 }}
+            )
+            
+            # Clean up challenge
+            del sms_codes[challenge_key]
+            
+            return {"message": "Face ID/Touch ID registered successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Registration verification failed")
+            
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
