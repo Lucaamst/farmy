@@ -48,8 +48,7 @@ function AuthProvider({ children }) {
         }
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        // Check security requirements after setting user
-        checkSecurityRequirement();
+        // User data loaded successfully
       } catch (e) {
         console.error('Error parsing stored data:', e);
         localStorage.clear();
