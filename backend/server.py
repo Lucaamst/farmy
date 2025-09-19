@@ -129,7 +129,7 @@ class UpdateCourierRequest(BaseModel):
 class CreateOrderRequest(BaseModel):
     customer_name: str
     delivery_address: str
-    phone_number: str
+    phone_number: Optional[str] = None  # Made optional for SMS notifications
     reference_number: Optional[str] = None
     customer_id: Optional[str] = None  # If selecting existing customer
 
