@@ -190,18 +190,55 @@ def require_role(required_roles: List[str]):
     return role_checker
 
 async def send_sms_notification(phone_number: str, message: str):
-    """Mock SMS service - in production, integrate with Twilio"""
-    print(f"SMS SENT to {phone_number}: {message}")
-    # Store SMS log
-    sms_log = {
-        "id": str(uuid.uuid4()),
-        "phone_number": phone_number,
-        "message": message,
-        "sent_at": datetime.now(timezone.utc),
-        "status": "sent"
-    }
-    await db.sms_logs.insert_one(sms_log)
-    return True
+    """Send SMS notification using Twilio"""
+    try:
+        # Initialize Twilio client
+        from twilio.rest import Client
+        
+        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+        auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+        
+        if not account_sid or not auth_token:
+            print(f"⚠️ Twilio credentials not found, using mock SMS")
+            print(f"MOCK SMS to {phone_number}: {message}")
+        else:
+            client = Client(account_sid, auth_token)
+            
+            # Send SMS via Twilio
+            message_obj = client.messages.create(
+                body=message,
+                from_='+15005550006',  # Twilio test number - you can replace with your Twilio number
+                to=phone_number
+            )
+            
+            print(f"✅ SMS sent via Twilio to {phone_number}, SID: {message_obj.sid}")
+        
+        # Store SMS log
+        sms_log = {
+            "id": str(uuid.uuid4()),
+            "phone_number": phone_number,
+            "message": message,
+            "sent_at": datetime.now(timezone.utc),
+            "status": "sent",
+            "method": "twilio" if account_sid and auth_token else "mock"
+        }
+        await db.sms_logs.insert_one(sms_log)
+        return True
+        
+    except Exception as e:
+        print(f"❌ SMS sending failed: {str(e)}")
+        # Store failed SMS log
+        sms_log = {
+            "id": str(uuid.uuid4()),
+            "phone_number": phone_number,
+            "message": message,
+            "sent_at": datetime.now(timezone.utc),
+            "status": "failed",
+            "error": str(e),
+            "method": "twilio"
+        }
+        await db.sms_logs.insert_one(sms_log)
+        return False
 
 # Initialize super admin
 async def init_super_admin():
