@@ -986,22 +986,27 @@ class DeliveryManagementAPITester:
         self.test_order_export()
         
         # Phase 7: Courier API Tests
-        print("\n📋 Phase 6: Courier API Tests")
+        print("\n📋 Phase 7: Courier API Tests")
         self.test_courier_login()
         self.test_get_courier_deliveries()
         self.test_mark_delivery_completed()
         
-        # Phase 7: SMS Notification Tests
-        print("\n📋 Phase 7: SMS Notification Tests")
+        # Phase 8: SMS Notification Tests
+        print("\n📋 Phase 8: SMS Notification Tests")
         self.test_sms_logs()
         
-        # Phase 8: Security & Access Control Tests
-        print("\n📋 Phase 8: Security & Access Control Tests")
+        # Phase 9: Security & Access Control Tests
+        print("\n📋 Phase 9: Security & Access Control Tests")
         self.test_role_based_access_control()
         self.test_error_handling()
         
-        # Phase 9: Cleanup Tests
-        print("\n📋 Phase 9: Cleanup Tests")
+        # Phase 10: Customer Deletion Tests
+        print("\n📋 Phase 10: Customer Deletion Tests")
+        self.test_delete_customer_with_orders()
+        self.test_delete_customer_without_orders()
+        
+        # Phase 11: Cleanup Tests
+        print("\n📋 Phase 11: Cleanup Tests")
         self.test_delete_order()
         self.test_delete_courier()
         self.test_delete_company()
