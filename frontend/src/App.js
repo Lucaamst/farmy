@@ -1438,6 +1438,148 @@ function CompanyAdminDashboard() {
           </div>
         )}
 
+        {/* Customers Tab */}
+        {activeTab === 'customers' && (
+          <Card className="bg-white shadow-sm border-0">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                <div>
+                  <CardTitle className="text-lg sm:text-xl">{t.customerManagement}</CardTitle>
+                  <CardDescription className="text-sm">{t.manageAllCustomers}</CardDescription>
+                </div>
+                <Dialog open={showCreateCustomerDialog} onOpenChange={setShowCreateCustomerDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      {t.addCustomer}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-lg">{t.createNewCustomer}</DialogTitle>
+                      <DialogDescription className="text-sm">{t.addNewCustomerDescription}</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={createCustomer} className="space-y-4">
+                      <div>
+                        <Label htmlFor="customerName" className="text-sm">{t.customerName}</Label>
+                        <Input
+                          id="customerName"
+                          value={newCustomer.name}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                          placeholder={t.enterCustomerName}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="customerPhone" className="text-sm">{t.phoneNumber}</Label>
+                        <Input
+                          id="customerPhone"
+                          value={newCustomer.phone_number}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, phone_number: e.target.value })}
+                          placeholder={t.enterPhoneNumber}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="customerAddress" className="text-sm">{t.address}</Label>
+                        <Input
+                          id="customerAddress"
+                          value={newCustomer.address}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                          placeholder={t.enterDeliveryAddress}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="customerEmail" className="text-sm">{t.email} ({t.optional})</Label>
+                        <Input
+                          id="customerEmail"
+                          type="email"
+                          value={newCustomer.email}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                          placeholder={t.enterEmail}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="customerNotes" className="text-sm">{t.notes} ({t.optional})</Label>
+                        <Input
+                          id="customerNotes"
+                          value={newCustomer.notes}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, notes: e.target.value })}
+                          placeholder={t.enterNotes}
+                          className="text-sm"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full text-sm">{t.createCustomer}</Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">{t.customerName}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.phoneNumber}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.address}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.totalOrders}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.lastOrder}</TableHead>
+                      <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customers.map((customer) => (
+                      <TableRow key={customer.id}>
+                        <TableCell className="font-medium text-xs sm:text-sm">{customer.name}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{customer.phone_number}</TableCell>
+                        <TableCell className="text-xs sm:text-sm max-w-32 truncate">{customer.address}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{customer.total_orders || 0}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          {customer.last_order_date ? new Date(customer.last_order_date).toLocaleDateString() : t.never}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                            <Button
+                              onClick={() => viewCustomerHistory(customer)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.customerHistory}
+                            </Button>
+                            <Button
+                              onClick={() => handleEditCustomerClick(customer)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.edit}
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteCustomerClick(customer)}
+                              variant="destructive"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {t.delete}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Add all dialogs and additional content here - continuing in next part due to length */}
 
         {/* Couriers Tab */}
