@@ -3179,62 +3179,6 @@ function ProtectedRoute({ children }) {
 }
 
 // Main App Component
-// PWA Registration and Setup
-useEffect(() => {
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('✅ Service Worker registered:', registration.scope);
-        
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New service worker available
-                console.log('🔄 New version available');
-                // Could show update notification here
-              }
-            });
-          }
-        });
-      } catch (error) {
-        console.error('❌ Service Worker registration failed:', error);
-      }
-    });
-  }
-
-  // PWA Install prompt
-  let deferredPrompt;
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    console.log('📱 PWA install prompt available');
-    
-    // Could show custom install button here
-    // showInstallButton();
-  });
-
-  window.addEventListener('appinstalled', () => {
-    console.log('🎉 PWA installed successfully');
-    deferredPrompt = null;
-  });
-
-  // Push notification setup
-  if ('Notification' in window && 'serviceWorker' in navigator) {
-    // Request notification permission on first login
-    if (Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        console.log('🔔 Notification permission:', permission);
-      });
-    }
-  }
-}, []);
-
 function App() {
   return (
     <AuthProvider>
