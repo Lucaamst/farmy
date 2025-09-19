@@ -1510,8 +1510,17 @@ class DeliveryManagementAPITester:
         self.test_twilio_sms_integration()
         self.test_sms_logs()
         
-        # Phase 9: Security & Access Control Tests
-        print("\n📋 Phase 9: Security & Access Control Tests")
+        # Phase 9: Multi-Level Security System Tests
+        print("\n📋 Phase 9: Multi-Level Security System Tests")
+        self.test_security_status_api()
+        self.test_pin_security_system()
+        self.test_sms_security_system()
+        self.test_webauthn_biometric_system()
+        self.test_security_authentication_requirements()
+        self.test_security_different_user_roles()
+        
+        # Phase 10: Security & Access Control Tests
+        print("\n📋 Phase 10: Security & Access Control Tests")
         self.test_role_based_access_control()
         self.test_error_handling()
         
