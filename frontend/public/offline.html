@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmyGo - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fed7aa 0%, #ffedd5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            background: #ea580c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .offline-icon svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .retry-btn {
+            background: #ea580c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        
+        .retry-btn:hover {
+            background: #dc2626;
+        }
+        
+        .features {
+            margin-top: 2rem;
+            text-align: left;
+        }
+        
+        .features h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+        
+        .feature-list {
+            list-style: none;
+            space-y: 0.5rem;
+        }
+        
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-list li::before {
+            content: '✓';
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .app-info {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        @media (max-width: 480px) {
+            .offline-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.25rem;
+            }
+            
+            .offline-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .offline-icon svg {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+            </svg>
+        </div>
+        
+        <h1>Sei Offline</h1>
+        <p>Non riesco a connettermi ai server FarmyGo. Controlla la tua connessione internet e riprova.</p>
+        
+        <button class="retry-btn" onclick="window.location.reload()">
+            Riprova Connessione
+        </button>
+        
+        <div class="features">
+            <h3>Funzionalità Offline Disponibili:</h3>
+            <ul class="feature-list">
+                <li>Visualizza dati memorizzati nella cache</li>
+                <li>Naviga tra le pagine già visitate</li>
+                <li>Accedi alle impostazioni dell'app</li>
+                <li>Utilizza la modalità offline per visualizzare ordini</li>
+            </ul>
+        </div>
+        
+        <div class="app-info">
+            <strong>FarmyGo</strong> - Sistema di Gestione Consegne<br>
+            Versione PWA 1.0.0 | farmygo.ch
+        </div>
+    </div>
+    
+    <script>
+        // Auto-retry connection every 30 seconds
+        let retryCount = 0;
+        const maxRetries = 10;
+        
+        function checkConnection() {
+            if (navigator.onLine && retryCount < maxRetries) {
+                console.log('🌐 Connection restored, reloading...');
+                window.location.reload();
+            } else if (retryCount < maxRetries) {
+                retryCount++;
+                setTimeout(checkConnection, 30000); // Retry every 30 seconds
+            }
+        }
+        
+        // Start checking connection
+        setTimeout(checkConnection, 5000); // First check after 5 seconds
+        
+        // Listen for online event
+        window.addEventListener('online', () => {
+            console.log('🟢 Network connection restored');
+            window.location.reload();
+        });
+        
+        // Listen for offline event
+        window.addEventListener('offline', () => {
+            console.log('🔴 Network connection lost');
+        });
+        
+        // Service worker update handler
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                console.log('🔄 Service worker updated, reloading...');
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
