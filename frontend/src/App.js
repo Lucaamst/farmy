@@ -35,26 +35,6 @@ function AuthProvider({ children }) {
   const [securitySetupRequired, setSecuritySetupRequired] = useState(false);
   const [t, setT] = useState(getTranslation(language));
 
-  const checkSecurityRequirement = async () => {
-    try {
-      const response = await axios.get(`${API}/security/status`);
-      const status = response.data;
-      
-      // If user has no security methods enabled, require setup
-      if (!status.pin_enabled && !status.face_id_enabled && !status.sms_enabled) {
-        setSecuritySetupRequired(true);
-      } else {
-        // If user has security methods, require verification on login
-        setSecurityRequired(true);
-      }
-    } catch (error) {
-      console.error('Security status check failed:', error);
-      // If security API fails, continue without security for now
-      setSecurityRequired(false);
-      setSecuritySetupRequired(false);
-    }
-  };
-
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
