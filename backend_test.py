@@ -1170,6 +1170,7 @@ class DeliveryManagementAPITester:
         
         # Phase 8: SMS Notification Tests
         print("\n📋 Phase 8: SMS Notification Tests")
+        self.test_twilio_sms_integration()
         self.test_sms_logs()
         
         # Phase 9: Security & Access Control Tests
