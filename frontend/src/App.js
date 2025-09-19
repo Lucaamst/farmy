@@ -3154,10 +3154,21 @@ function CompanyAdminDashboard() {
 
 // Dashboard Router
 function DashboardRouter() {
-  const { user } = useAuth();
+  const { user, securityRequired, securitySetupRequired, onSecuritySetupComplete, onSecurityVerificationComplete } = useAuth();
 
   if (!user) return <Navigate to="/login" replace />;
 
+  // Show security setup if required
+  if (securitySetupRequired) {
+    return <SecuritySetup user={user} onSecurityComplete={onSecuritySetupComplete} />;
+  }
+
+  // Show security verification if required
+  if (securityRequired) {
+    return <SecurityVerification user={user} onVerificationComplete={onSecurityVerificationComplete} />;
+  }
+
+  // Main app content based on user role
   switch (user.role) {
     case 'super_admin':
       return <SuperAdminDashboard />;
