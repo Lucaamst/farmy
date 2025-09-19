@@ -1863,16 +1863,18 @@ function CompanyAdminDashboard() {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="phoneNumber" className="text-sm">{t.phoneNumber}</Label>
+                            <Label htmlFor="phoneNumber" className="text-sm">{t.phoneNumber} ({t.optional})</Label>
                             <Input
                               id="phoneNumber"
                               value={newOrder.phone_number}
                               onChange={(e) => setNewOrder({ ...newOrder, phone_number: e.target.value })}
                               placeholder={t.enterPhoneNumber}
-                              required
                               className="text-sm"
                               disabled={useExistingCustomer && newOrder.customer_id}
                             />
+                            <p className="text-xs text-gray-500 mt-1">
+                              {t.phoneOptionalNote}
+                            </p>
                           </div>
                           <div>
                             <Label htmlFor="referenceNumber" className="text-sm">{t.referenceNumber}</Label>
