@@ -255,6 +255,7 @@ export const italian = {
   failedToDeleteCustomer: "Impossibile cancellare il cliente",
   customerPhoneExists: "Cliente con questo numero di telefono già esistente",
   cannotDeleteCustomerWithOrders: "Impossibile cancellare cliente con ordini esistenti",
+  totalCustomers: "Clienti Totali",
   
   // Customer Details
   customerHistory: "Storico Cliente",
