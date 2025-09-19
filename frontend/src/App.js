@@ -1263,6 +1263,48 @@ function CompanyAdminDashboard() {
     setShowAssignOrderDialog(true);
   };
 
+  // Customer search functions
+  const searchCustomers = (query) => {
+    setCustomerSearch(query);
+    if (query.length > 0) {
+      const filtered = customers.filter(customer =>
+        customer.name.toLowerCase().includes(query.toLowerCase()) ||
+        customer.phone_number.includes(query)
+      );
+      setFilteredCustomers(filtered);
+      setShowCustomerDropdown(true);
+    } else {
+      setFilteredCustomers([]);
+      setShowCustomerDropdown(false);
+    }
+  };
+
+  const selectCustomer = (customer) => {
+    setNewOrder({
+      ...newOrder,
+      customer_id: customer.id,
+      customer_name: customer.name,
+      delivery_address: customer.address,
+      phone_number: customer.phone_number
+    });
+    setCustomerSearch(customer.name);
+    setShowCustomerDropdown(false);
+    setUseExistingCustomer(true);
+  };
+
+  const clearCustomerSelection = () => {
+    setNewOrder({
+      ...newOrder,
+      customer_id: '',
+      customer_name: '',
+      delivery_address: '',
+      phone_number: ''
+    });
+    setCustomerSearch('');
+    setUseExistingCustomer(false);
+    setShowCustomerDropdown(false);
+  };
+
   const getOrderStatusBadge = (status) => {
     const statusConfig = {
       pending: { variant: 'secondary', color: 'bg-gray-100 text-gray-800', text: t.pending },
