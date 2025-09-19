@@ -1480,7 +1480,7 @@ async def verify_webauthn_authentication(
         
         verification = verify_authentication_response(
             credential=credential,
-            expected_challenge=stored_challenge["challenge"].encode('latin-1'),
+            expected_challenge=base64.b64decode(stored_challenge["challenge"]),
             expected_origin="http://localhost:3000",
             expected_rp_id="localhost",
             credential_public_key=bytes.fromhex(stored_credential["public_key"]),
