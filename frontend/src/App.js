@@ -819,6 +819,7 @@ function SuperAdminDashboard() {
 function CompanyAdminDashboard() {
   const [couriers, setCouriers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   
@@ -830,8 +831,19 @@ function CompanyAdminDashboard() {
   const [showEditCourierDialog, setShowEditCourierDialog] = useState(false);
   const [showDeleteCourierDialog, setShowDeleteCourierDialog] = useState(false);
   
+  // Customer management states
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone_number: '', address: '', email: '', notes: '' });
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [deletingCustomer, setDeletingCustomer] = useState(null);
+  const [viewingCustomer, setViewingCustomer] = useState(null);
+  const [customerOrders, setCustomerOrders] = useState([]);
+  const [showCreateCustomerDialog, setShowCreateCustomerDialog] = useState(false);
+  const [showEditCustomerDialog, setShowEditCustomerDialog] = useState(false);
+  const [showDeleteCustomerDialog, setShowDeleteCustomerDialog] = useState(false);
+  const [showCustomerHistoryDialog, setShowCustomerHistoryDialog] = useState(false);
+  
   // Order management states
-  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '' });
+  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '', customer_id: '' });
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [assigningOrder, setAssigningOrder] = useState(null);
@@ -839,6 +851,7 @@ function CompanyAdminDashboard() {
   const [showEditOrderDialog, setShowEditOrderDialog] = useState(false);
   const [showDeleteOrderDialog, setShowDeleteOrderDialog] = useState(false);
   const [showAssignOrderDialog, setShowAssignOrderDialog] = useState(false);
+  const [useExistingCustomer, setUseExistingCustomer] = useState(false);
   
   // Search and filter states
   const [searchFilters, setSearchFilters] = useState({
