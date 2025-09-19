@@ -998,7 +998,7 @@ class DeliveryManagementAPITester:
                 success, status, response = self.make_request(
                     'POST', endpoint,
                     data={"test": "data"},
-                    expected_status=401
+                    expected_status=403  # HTTPBearer returns 403 when no auth header
                 )
             else:
                 # GET endpoints
