@@ -259,6 +259,30 @@ frontend:
           agent: "main"
           comment: "Language switching between Italian and English working correctly"
 
+  - task: "Customer Management System"
+    implemented: false
+    working: false
+    file: "App.js, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Need to implement customer database per company, autocompletion in order creation, customer history view, CRUD operations for customers"
+
+  - task: "Multi-level Security (Face ID + PIN + SMS)"
+    implemented: false
+    working: false
+    file: "App.js, server.py"
+    stuck_count: 0
+    priority: "high" 
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Need to implement Face ID/Touch ID authentication, PIN backup system, SMS verification with Twilio integration using provided credentials"
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
