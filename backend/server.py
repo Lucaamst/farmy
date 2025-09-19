@@ -1066,7 +1066,7 @@ async def mark_delivery_completed(
     )
     
     # Send SMS notification
-    message = f"Hello {order['customer_name']}, your package has been delivered to {order['delivery_address']}. Thank you!"
+    message = f"Ciao {order['customer_name']}! 📦 La tua consegna è stata completata con successo all'indirizzo: {order['delivery_address']}. Grazie per aver scelto FarmyGo! 🚚"
     await send_sms_notification(order["phone_number"], message)
     
     return {"message": "Delivery marked as completed and customer notified"}
