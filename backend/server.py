@@ -13,6 +13,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from passlib.context import CryptContext
 import json
+import base64
 
 # WebAuthn imports (will be imported dynamically in functions to avoid dependency issues)
 try:
