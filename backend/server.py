@@ -778,6 +778,182 @@ async def update_order(
     
     return {"message": "Order updated successfully"}
 
+# Customer Routes
+@api_router.post("/customers")
+async def create_customer(
+    request: CreateCustomerRequest,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Check if customer with same phone exists for this company
+    existing_customer = await db.customers.find_one({
+        "phone_number": request.phone_number,
+        "company_id": current_user.company_id
+    })
+    if existing_customer:
+        raise HTTPException(status_code=400, detail="Customer with this phone number already exists")
+    
+    customer = Customer(
+        name=request.name,
+        phone_number=request.phone_number,
+        address=request.address,
+        email=request.email,
+        notes=request.notes,
+        company_id=current_user.company_id
+    )
+    await db.customers.insert_one(customer.dict())
+    
+    return {"message": "Customer created successfully", "customer": customer}
+
+@api_router.get("/customers", response_model=List[Customer])
+async def get_customers(
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    customers = await db.customers.find({
+        "company_id": current_user.company_id
+    }).sort("name", 1).to_list(1000)
+    
+    # Update customer statistics
+    for customer in customers:
+        # Count total orders
+        total_orders = await db.orders.count_documents({
+            "customer_id": customer["id"]
+        })
+        
+        # Get last order date
+        last_order = await db.orders.find_one(
+            {"customer_id": customer["id"]},
+            sort=[("created_at", -1)]
+        )
+        last_order_date = last_order["created_at"] if last_order else None
+        
+        # Update customer record
+        await db.customers.update_one(
+            {"id": customer["id"]},
+            {"$set": {
+                "total_orders": total_orders,
+                "last_order_date": last_order_date,
+                "updated_at": datetime.now(timezone.utc)
+            }}
+        )
+        
+        customer["total_orders"] = total_orders
+        customer["last_order_date"] = last_order_date
+    
+    return [Customer(**customer) for customer in customers]
+
+@api_router.get("/customers/{customer_id}", response_model=Customer)
+async def get_customer(
+    customer_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    customer = await db.customers.find_one({
+        "id": customer_id,
+        "company_id": current_user.company_id
+    })
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    return Customer(**customer)
+
+@api_router.patch("/customers/{customer_id}")
+async def update_customer(
+    customer_id: str,
+    request: UpdateCustomerRequest,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Find customer and verify it belongs to same company
+    customer = await db.customers.find_one({
+        "id": customer_id,
+        "company_id": current_user.company_id
+    })
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Check if new phone number already exists (excluding current customer)
+    if request.phone_number != customer["phone_number"]:
+        existing_customer = await db.customers.find_one({
+            "phone_number": request.phone_number,
+            "company_id": current_user.company_id,
+            "id": {"$ne": customer_id}
+        })
+        if existing_customer:
+            raise HTTPException(status_code=400, detail="Customer with this phone number already exists")
+    
+    # Update customer
+    await db.customers.update_one(
+        {"id": customer_id},
+        {"$set": {
+            "name": request.name,
+            "phone_number": request.phone_number,
+            "address": request.address,
+            "email": request.email,
+            "notes": request.notes,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    return {"message": "Customer updated successfully"}
+
+@api_router.delete("/customers/{customer_id}")
+async def delete_customer(
+    customer_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Find customer and verify it belongs to same company
+    customer = await db.customers.find_one({
+        "id": customer_id,
+        "company_id": current_user.company_id
+    })
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Check if customer has orders
+    order_count = await db.orders.count_documents({"customer_id": customer_id})
+    if order_count > 0:
+        raise HTTPException(status_code=400, detail=f"Cannot delete customer with {order_count} orders. Consider archiving instead.")
+    
+    # Delete customer
+    await db.customers.delete_one({"id": customer_id})
+    
+    return {"message": "Customer deleted successfully"}
+
+@api_router.get("/customers/{customer_id}/orders", response_model=List[Order])
+async def get_customer_orders(
+    customer_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    # Verify customer belongs to same company
+    customer = await db.customers.find_one({
+        "id": customer_id,
+        "company_id": current_user.company_id
+    })
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Get customer orders
+    orders = await db.orders.find({
+        "customer_id": customer_id
+    }).sort("created_at", -1).to_list(1000)
+    
+    return [Order(**order) for order in orders]
+
+@api_router.get("/customers/search")
+async def search_customers(
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN])),
+    query: Optional[str] = None
+):
+    """Search customers by name or phone"""
+    search_query = {"company_id": current_user.company_id}
+    
+    if query:
+        search_query["$or"] = [
+            {"name": {"$regex": query, "$options": "i"}},
+            {"phone_number": {"$regex": query, "$options": "i"}}
+        ]
+    
+    customers = await db.customers.find(search_query).sort("name", 1).to_list(100)
+    return [Customer(**customer) for customer in customers]
+
 # Courier Routes
 @api_router.get("/courier/deliveries", response_model=List[Order])
 async def get_assigned_deliveries(
