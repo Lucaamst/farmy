@@ -138,6 +138,20 @@ class AssignOrderRequest(BaseModel):
 class MarkDeliveredRequest(BaseModel):
     order_id: str
 
+class CreateCustomerRequest(BaseModel):
+    name: str
+    phone_number: str
+    address: str
+    email: Optional[str] = None
+    notes: Optional[str] = None
+
+class UpdateCustomerRequest(BaseModel):
+    name: str
+    phone_number: str
+    address: str
+    email: Optional[str] = None
+    notes: Optional[str] = None
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
