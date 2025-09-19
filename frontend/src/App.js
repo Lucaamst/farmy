@@ -1765,6 +1765,77 @@ function CompanyAdminDashboard() {
                           <DialogDescription className="text-sm">{t.addNewOrderDescription}</DialogDescription>
                         </DialogHeader>
                         <form onSubmit={createOrder} className="space-y-4">
+                          {/* Customer Selection */}
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-4">
+                              <label className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  checked={!useExistingCustomer}
+                                  onChange={() => {
+                                    clearCustomerSelection();
+                                    setUseExistingCustomer(false);
+                                  }}
+                                  className="text-orange-600"
+                                />
+                                <span className="text-sm">{t.newCustomer}</span>
+                              </label>
+                              <label className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  checked={useExistingCustomer}
+                                  onChange={() => setUseExistingCustomer(true)}
+                                  className="text-orange-600"
+                                />
+                                <span className="text-sm">{t.existingCustomer}</span>
+                              </label>
+                            </div>
+
+                            {/* Customer Search */}
+                            {useExistingCustomer && (
+                              <div className="relative">
+                                <Label htmlFor="customerSearch" className="text-sm">{t.searchCustomers}</Label>
+                                <Input
+                                  id="customerSearch"
+                                  value={customerSearch}
+                                  onChange={(e) => searchCustomers(e.target.value)}
+                                  placeholder={t.searchCustomers}
+                                  className="text-sm"
+                                  onFocus={() => {
+                                    if (customerSearch.length > 0) setShowCustomerDropdown(true);
+                                  }}
+                                />
+                                
+                                {/* Customer Dropdown */}
+                                {showCustomerDropdown && filteredCustomers.length > 0 && (
+                                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                    {filteredCustomers.map((customer) => (
+                                      <div
+                                        key={customer.id}
+                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100"
+                                        onClick={() => selectCustomer(customer)}
+                                      >
+                                        <div className="flex justify-between items-center">
+                                          <div>
+                                            <p className="text-sm font-medium text-gray-900">{customer.name}</p>
+                                            <p className="text-xs text-gray-600">{customer.phone_number}</p>
+                                          </div>
+                                          <div className="text-right">
+                                            <p className="text-xs text-gray-500">{customer.total_orders || 0} ordini</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                
+                                {useExistingCustomer && customerSearch.length > 0 && filteredCustomers.length === 0 && (
+                                  <p className="text-xs text-gray-500 mt-1">{t.noCustomersFound}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
                           <div>
                             <Label htmlFor="customerName" className="text-sm">{t.customerName}</Label>
                             <Input
@@ -1774,6 +1845,7 @@ function CompanyAdminDashboard() {
                               placeholder={t.enterCustomerName}
                               required
                               className="text-sm"
+                              disabled={useExistingCustomer && newOrder.customer_id}
                             />
                           </div>
                           <div>
@@ -1796,6 +1868,7 @@ function CompanyAdminDashboard() {
                               placeholder={t.enterPhoneNumber}
                               required
                               className="text-sm"
+                              disabled={useExistingCustomer && newOrder.customer_id}
                             />
                           </div>
                           <div>
