@@ -265,6 +265,7 @@ export const italian = {
   notes: "Note",
   enterEmail: "Inserisci email (opzionale)",
   enterNotes: "Inserisci note (opzionale)",
+  phoneOptionalNote: "Lascia vuoto se il cliente non vuole ricevere SMS di conferma consegna",
   
   // Order Creation with Customers
   selectExistingCustomer: "Seleziona Cliente Esistente",
