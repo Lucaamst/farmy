@@ -1304,14 +1304,33 @@ async def generate_webauthn_registration_options(
     
     # Store challenge for verification
     import time
+    import base64
     challenge_key = f"webauthn_challenge_{current_user.id}"
     sms_codes[challenge_key] = {
-        "challenge": options.challenge.decode('latin-1'),
+        "challenge": base64.b64encode(options.challenge).decode('utf-8'),
         "expires_at": time.time() + 300,  # 5 minutes
         "user_id": current_user.id
     }
     
-    return options
+    # Convert options to JSON-serializable format
+    return {
+        "challenge": base64.b64encode(options.challenge).decode('utf-8'),
+        "rp": {"id": options.rp.id, "name": options.rp.name},
+        "user": {
+            "id": base64.b64encode(options.user.id).decode('utf-8'),
+            "name": options.user.name,
+            "displayName": options.user.display_name
+        },
+        "pubKeyCredParams": [{"alg": param.alg, "type": param.type} for param in options.pub_key_cred_params],
+        "timeout": options.timeout,
+        "excludeCredentials": [],
+        "authenticatorSelection": {
+            "authenticatorAttachment": options.authenticator_selection.authenticator_attachment if options.authenticator_selection else None,
+            "requireResidentKey": False,
+            "userVerification": options.authenticator_selection.user_verification if options.authenticator_selection else "preferred"
+        },
+        "attestation": options.attestation
+    }
 
 @api_router.post("/security/webauthn/verify-registration")
 async def verify_webauthn_registration(
