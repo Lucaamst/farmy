@@ -852,6 +852,9 @@ function CompanyAdminDashboard() {
   const [showDeleteOrderDialog, setShowDeleteOrderDialog] = useState(false);
   const [showAssignOrderDialog, setShowAssignOrderDialog] = useState(false);
   const [useExistingCustomer, setUseExistingCustomer] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   
   // Search and filter states
   const [searchFilters, setSearchFilters] = useState({
