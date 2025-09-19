@@ -124,6 +124,7 @@ class CreateOrderRequest(BaseModel):
     delivery_address: str
     phone_number: str
     reference_number: Optional[str] = None
+    customer_id: Optional[str] = None  # If selecting existing customer
 
 class UpdateOrderRequest(BaseModel):
     customer_name: str
