@@ -460,8 +460,88 @@ class DeliveryManagementAPITester:
 
     # ========== ORDER MANAGEMENT TESTS ==========
     
+    def test_create_order_with_existing_customer(self):
+        """Test creating order with existing customer ID"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Create Order with Existing Customer", False, "- No customer data available")
+        
+        order_data = {
+            "customer_name": "Giuseppe Verdi",
+            "delivery_address": "Via Roma 123, Milano, 20121 MI",
+            "phone_number": "+39 333 1234567",
+            "reference_number": "ORD-2024-001",
+            "customer_id": self.test_data['customer']['id']
+        }
+        
+        success, status, response = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and 'order' in response:
+            self.test_data['order'] = response['order']
+            return self.log_test("Create Order with Existing Customer", True, f"- Order ID: {response['order']['id']}")
+        else:
+            return self.log_test("Create Order with Existing Customer", False, f"- Status: {status}, Response: {response}")
+
+    def test_create_order_auto_customer_creation(self):
+        """Test creating order with new phone number (auto customer creation)"""
+        order_data = {
+            "customer_name": "Antonio Rossi",
+            "delivery_address": "Via Dante 789, Napoli, 80100 NA",
+            "phone_number": "+39 333 5555555",  # New phone number
+            "reference_number": "ORD-2024-002"
+        }
+        
+        success, status, response = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and 'order' in response:
+            self.test_data['auto_created_order'] = response['order']
+            # Verify customer was auto-created
+            if response['order'].get('customer_id'):
+                return self.log_test("Create Order Auto Customer Creation", True, f"- Order created with auto customer ID: {response['order']['customer_id']}")
+            else:
+                return self.log_test("Create Order Auto Customer Creation", False, f"- Order created but no customer_id found")
+        else:
+            return self.log_test("Create Order Auto Customer Creation", False, f"- Status: {status}, Response: {response}")
+
+    def test_create_order_existing_phone_link(self):
+        """Test creating order with existing phone number (should link to existing customer)"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Create Order Existing Phone Link", False, "- No customer data available")
+        
+        order_data = {
+            "customer_name": "Different Name",  # Different name but same phone
+            "delivery_address": "Different Address",
+            "phone_number": self.test_data['customer']['phone_number'],  # Existing phone
+            "reference_number": "ORD-2024-003"
+        }
+        
+        success, status, response = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and 'order' in response:
+            # Verify it linked to existing customer
+            if response['order'].get('customer_id') == self.test_data['customer']['id']:
+                return self.log_test("Create Order Existing Phone Link", True, f"- Order linked to existing customer")
+            else:
+                return self.log_test("Create Order Existing Phone Link", False, f"- Order not linked to existing customer")
+        else:
+            return self.log_test("Create Order Existing Phone Link", False, f"- Status: {status}, Response: {response}")
+
     def test_create_order(self):
-        """Test creating a delivery order"""
+        """Test creating a basic delivery order"""
         order_data = {
             "customer_name": "Giuseppe Verdi",
             "delivery_address": "Via Roma 123, Milano, 20121 MI",
@@ -477,7 +557,8 @@ class DeliveryManagementAPITester:
         )
         
         if success and 'order' in response:
-            self.test_data['order'] = response['order']
+            if 'order' not in self.test_data:  # Only set if not already set by other tests
+                self.test_data['order'] = response['order']
             return self.log_test("Create Order", True, f"- Order ID: {response['order']['id']}")
         else:
             return self.log_test("Create Order", False, f"- Status: {status}, Response: {response}")
