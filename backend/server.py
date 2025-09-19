@@ -1268,6 +1268,48 @@ async def verify_sms_code(
     
     return {"message": "SMS code verified successfully"}
 
+@api_router.post("/security/webauthn/generate-registration-options")
+async def generate_webauthn_registration_options(
+    current_user: User = Depends(get_current_user)
+):
+    """Generate WebAuthn registration options for Face ID/Touch ID"""
+    if not WEBAUTHN_AVAILABLE:
+        raise HTTPException(status_code=501, detail="WebAuthn not available")
+    
+    from webauthn import generate_registration_options
+    from webauthn.helpers.structs import (
+        AuthenticatorSelectionCriteria,
+        UserVerificationRequirement,
+        AuthenticatorAttachment,
+        ResidentKeyRequirement
+    )
+    
+    options = generate_registration_options(
+        rp_id="localhost",  # In production, use your domain
+        rp_name="FarmyGo",
+        user_id=current_user.id.encode(),
+        user_name=current_user.username,
+        user_display_name=current_user.username,
+        require_resident_key=False,
+        user_verification=UserVerificationRequirement.PREFERRED,
+        authenticator_selection=AuthenticatorSelectionCriteria(
+            authenticator_attachment=AuthenticatorAttachment.PLATFORM,
+            resident_key=ResidentKeyRequirement.DISCOURAGED,
+            user_verification=UserVerificationRequirement.PREFERRED,
+        ),
+    )
+    
+    # Store challenge for verification
+    import time
+    challenge_key = f"webauthn_challenge_{current_user.id}"
+    sms_codes[challenge_key] = {
+        "challenge": options.challenge.decode('latin-1'),
+        "expires_at": time.time() + 300,  # 5 minutes
+        "user_id": current_user.id
+    }
+    
+    return options
+
 # Include the router in the main app
 app.include_router(api_router)
 
