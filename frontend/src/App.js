@@ -2148,6 +2148,187 @@ function CompanyAdminDashboard() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Customer Management Dialogs */}
+        {/* Edit Customer Dialog */}
+        <Dialog open={showEditCustomerDialog} onOpenChange={setShowEditCustomerDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.editCustomer}</DialogTitle>
+              <DialogDescription className="text-sm">{t.editCustomerDescription}</DialogDescription>
+            </DialogHeader>
+            {editingCustomer && (
+              <form onSubmit={updateCustomer} className="space-y-4">
+                <div>
+                  <Label htmlFor="editCustomerName" className="text-sm">{t.customerName}</Label>
+                  <Input
+                    id="editCustomerName"
+                    value={editingCustomer.name}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCustomerPhone" className="text-sm">{t.phoneNumber}</Label>
+                  <Input
+                    id="editCustomerPhone"
+                    value={editingCustomer.phone_number}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, phone_number: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCustomerAddress" className="text-sm">{t.address}</Label>
+                  <Input
+                    id="editCustomerAddress"
+                    value={editingCustomer.address}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                    required
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCustomerEmail" className="text-sm">{t.email} ({t.optional})</Label>
+                  <Input
+                    id="editCustomerEmail"
+                    type="email"
+                    value={editingCustomer.email || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCustomerNotes" className="text-sm">{t.notes} ({t.optional})</Label>
+                  <Input
+                    id="editCustomerNotes"
+                    value={editingCustomer.notes || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, notes: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" className="flex-1 text-sm">{t.updateCustomer}</Button>
+                  <Button type="button" variant="outline" onClick={() => setShowEditCustomerDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Customer Dialog */}
+        <Dialog open={showDeleteCustomerDialog} onOpenChange={setShowDeleteCustomerDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.deleteCustomer}</DialogTitle>
+              <DialogDescription className="text-sm">{t.deleteCustomerDescription}</DialogDescription>
+            </DialogHeader>
+            {deletingCustomer && (
+              <div className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    {t.confirmDeleteCustomer}: <strong>{deletingCustomer.name}</strong>
+                  </p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {deletingCustomer.total_orders > 0 
+                      ? `Cliente ha ${deletingCustomer.total_orders} ordini.`
+                      : "Cliente non ha ordini."
+                    }
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button onClick={deleteCustomer} variant="destructive" className="flex-1 text-sm">
+                    {t.deleteConfirm}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowDeleteCustomerDialog(false)} className="flex-1 text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Customer History Dialog */}
+        <Dialog open={showCustomerHistoryDialog} onOpenChange={setShowCustomerHistoryDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-2xl sm:max-w-4xl">
+            <DialogHeader>
+              <DialogTitle className="text-lg">{t.customerHistory}</DialogTitle>
+              <DialogDescription className="text-sm">
+                {viewingCustomer && `${t.customerOrders} - ${viewingCustomer.name}`}
+              </DialogDescription>
+            </DialogHeader>
+            {viewingCustomer && (
+              <div className="space-y-4">
+                {/* Customer Summary */}
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">{t.customerName}</p>
+                      <p className="text-base">{viewingCustomer.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">{t.phoneNumber}</p>
+                      <p className="text-base">{viewingCustomer.phone_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">{t.totalOrders}</p>
+                      <p className="text-base">{customerOrders.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">{t.lastOrder}</p>
+                      <p className="text-base">
+                        {customerOrders.length > 0 
+                          ? new Date(customerOrders[0].created_at).toLocaleDateString()
+                          : t.never
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Orders History */}
+                <div className="max-h-96 overflow-y-auto">
+                  {customerOrders.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">{t.noOrdersFound}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {customerOrders.map((order) => (
+                        <div key={order.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex flex-col sm:flex-row justify-between items-start mb-2 space-y-2 sm:space-y-0">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-600 truncate">{order.delivery_address}</p>
+                              {order.reference_number && (
+                                <p className="text-xs text-gray-500">Rif: {order.reference_number}</p>
+                              )}
+                            </div>
+                            {getOrderStatusBadge(order.status)}
+                          </div>
+                          <div className="flex justify-between items-center text-xs text-gray-500">
+                            <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                            <span>{getCourierName(order.courier_id)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => setShowCustomerHistoryDialog(false)} className="text-sm">
+                    {t.cancel}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
