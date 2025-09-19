@@ -1326,6 +1326,14 @@ function CompanyAdminDashboard() {
             {t.overview}
           </Button>
           <Button
+            variant={activeTab === 'customers' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab('customers')}
+            className="text-xs sm:text-sm"
+          >
+            {t.customers}
+          </Button>
+          <Button
             variant={activeTab === 'couriers' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setActiveTab('couriers')}
