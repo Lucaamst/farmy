@@ -1524,13 +1524,13 @@ class DeliveryManagementAPITester:
         self.test_role_based_access_control()
         self.test_error_handling()
         
-        # Phase 10: Customer Deletion Tests
-        print("\n📋 Phase 10: Customer Deletion Tests")
+        # Phase 11: Customer Deletion Tests
+        print("\n📋 Phase 11: Customer Deletion Tests")
         self.test_delete_customer_with_orders()
         self.test_delete_customer_without_orders()
         
-        # Phase 11: Cleanup Tests
-        print("\n📋 Phase 11: Cleanup Tests")
+        # Phase 12: Cleanup Tests
+        print("\n📋 Phase 12: Cleanup Tests")
         self.test_delete_order()
         self.test_delete_courier()
         self.test_delete_company()
