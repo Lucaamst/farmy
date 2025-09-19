@@ -734,6 +734,183 @@ class DeliveryManagementAPITester:
 
     # ========== SMS NOTIFICATION TESTS ==========
     
+    def test_twilio_sms_integration(self):
+        """Test Twilio SMS integration specifically with Italian phone number"""
+        print("\n🔔 Testing Twilio SMS Integration with Italian Phone Number")
+        
+        # Step 1: Create a test company and courier for SMS testing
+        timestamp = datetime.now().strftime('%H%M%S')
+        company_data = {
+            "name": f"SMS_Test_Company_{timestamp}",
+            "admin_username": f"sms_admin_{timestamp}",
+            "admin_password": "SMSTest123!"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'companies',
+            data=company_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        if not success1:
+            return self.log_test("Twilio SMS Integration - Create Company", False, f"- Status: {status1}, Response: {response1}")
+        
+        sms_company = response1['company']
+        sms_admin_creds = {
+            'username': company_data['admin_username'],
+            'password': company_data['admin_password']
+        }
+        
+        # Login as company admin
+        success2, status2, response2 = self.make_request(
+            'POST', 'auth/login',
+            data={"username": sms_admin_creds['username'], "password": sms_admin_creds['password']},
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("Twilio SMS Integration - Admin Login", False, f"- Status: {status2}, Response: {response2}")
+        
+        sms_admin_token = response2['access_token']
+        
+        # Step 2: Create a courier for SMS testing
+        courier_data = {
+            "username": f"sms_courier_{timestamp}",
+            "password": "SMSCourier123!"
+        }
+        
+        success3, status3, response3 = self.make_request(
+            'POST', 'couriers',
+            data=courier_data,
+            token=sms_admin_token,
+            expected_status=200
+        )
+        
+        if not success3:
+            return self.log_test("Twilio SMS Integration - Create Courier", False, f"- Status: {status3}, Response: {response3}")
+        
+        # Get courier ID
+        success4, status4, response4 = self.make_request(
+            'GET', 'couriers',
+            token=sms_admin_token,
+            expected_status=200
+        )
+        
+        if not success4 or not response4:
+            return self.log_test("Twilio SMS Integration - Get Courier", False, f"- Status: {status4}")
+        
+        sms_courier_id = response4[0]['id']
+        
+        # Login as courier
+        success5, status5, response5 = self.make_request(
+            'POST', 'auth/login',
+            data={"username": courier_data['username'], "password": courier_data['password']},
+            expected_status=200
+        )
+        
+        if not success5:
+            return self.log_test("Twilio SMS Integration - Courier Login", False, f"- Status: {status5}, Response: {response5}")
+        
+        sms_courier_token = response5['access_token']
+        
+        # Step 3: Create a test order with Italian phone number
+        order_data = {
+            "customer_name": "Marco Bianchi",
+            "delivery_address": "Via Nazionale 100, Roma, 00184 RM",
+            "phone_number": "+39 333 1234567",  # Italian phone number format
+            "reference_number": f"SMS-TEST-{timestamp}"
+        }
+        
+        success6, status6, response6 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=sms_admin_token,
+            expected_status=200
+        )
+        
+        if not success6:
+            return self.log_test("Twilio SMS Integration - Create Order", False, f"- Status: {status6}, Response: {response6}")
+        
+        sms_order = response6['order']
+        
+        # Step 4: Assign order to courier
+        assign_data = {
+            "order_id": sms_order['id'],
+            "courier_id": sms_courier_id
+        }
+        
+        success7, status7, response7 = self.make_request(
+            'PATCH', 'orders/assign',
+            data=assign_data,
+            token=sms_admin_token,
+            expected_status=200
+        )
+        
+        if not success7:
+            return self.log_test("Twilio SMS Integration - Assign Order", False, f"- Status: {status7}, Response: {response7}")
+        
+        # Step 5: Mark order as delivered (this should trigger SMS)
+        complete_data = {
+            "order_id": sms_order['id']
+        }
+        
+        success8, status8, response8 = self.make_request(
+            'PATCH', 'courier/deliveries/mark-delivered',
+            data=complete_data,
+            token=sms_courier_token,
+            expected_status=200
+        )
+        
+        if not success8:
+            return self.log_test("Twilio SMS Integration - Mark Delivered", False, f"- Status: {status8}, Response: {response8}")
+        
+        # Step 6: Check SMS logs to verify SMS was sent
+        import time
+        time.sleep(2)  # Wait for SMS to be processed
+        
+        success9, status9, response9 = self.make_request(
+            'GET', 'sms-logs',
+            token=sms_admin_token,
+            expected_status=200
+        )
+        
+        if not success9:
+            return self.log_test("Twilio SMS Integration - Get SMS Logs", False, f"- Status: {status9}, Response: {response9}")
+        
+        # Verify SMS log contains our test
+        sms_found = False
+        twilio_used = False
+        italian_message = False
+        
+        for sms_log in response9:
+            if sms_log.get('phone_number') == "+39 333 1234567":
+                sms_found = True
+                if sms_log.get('method') == 'twilio':
+                    twilio_used = True
+                if 'Ciao Marco Bianchi!' in sms_log.get('message', '') and 'FarmyGo' in sms_log.get('message', ''):
+                    italian_message = True
+                break
+        
+        # Step 7: Cleanup - Delete test company
+        delete_data = {"password": "admin123"}
+        self.make_request(
+            'DELETE', f'companies/{sms_company["id"]}',
+            data=delete_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Evaluate results
+        if sms_found and twilio_used and italian_message:
+            return self.log_test("Twilio SMS Integration", True, f"- SMS sent via Twilio with Italian message to +39 333 1234567")
+        elif sms_found and not twilio_used:
+            return self.log_test("Twilio SMS Integration", False, f"- SMS found but used mock instead of Twilio")
+        elif sms_found and not italian_message:
+            return self.log_test("Twilio SMS Integration", False, f"- SMS sent but message format incorrect")
+        else:
+            return self.log_test("Twilio SMS Integration", False, f"- No SMS log found for test phone number")
+    
     def test_sms_logs(self):
         """Test SMS logs retrieval"""
         success, status, response = self.make_request(
