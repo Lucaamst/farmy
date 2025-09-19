@@ -306,6 +306,158 @@ class DeliveryManagementAPITester:
         overall_success = success1 and success2
         return self.log_test("Toggle Courier Status", overall_success, f"- Courier status toggled twice (disable/enable)")
 
+    # ========== CUSTOMER MANAGEMENT TESTS ==========
+    
+    def test_create_customer(self):
+        """Test creating a customer"""
+        customer_data = {
+            "name": "Maria Bianchi",
+            "phone_number": "+39 333 9876543",
+            "address": "Via Garibaldi 45, Roma, 00185 RM",
+            "email": "maria.bianchi@email.com",
+            "notes": "Cliente VIP - consegne urgenti"
+        }
+        
+        success, status, response = self.make_request(
+            'POST', 'customers',
+            data=customer_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and 'customer' in response:
+            self.test_data['customer'] = response['customer']
+            return self.log_test("Create Customer", True, f"- Customer: {response['customer']['name']}")
+        else:
+            return self.log_test("Create Customer", False, f"- Status: {status}, Response: {response}")
+
+    def test_create_duplicate_customer_phone(self):
+        """Test creating customer with duplicate phone number (should fail)"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Create Duplicate Customer Phone", False, "- No customer data available")
+        
+        duplicate_data = {
+            "name": "Different Name",
+            "phone_number": self.test_data['customer']['phone_number'],
+            "address": "Different Address",
+            "email": "different@email.com"
+        }
+        
+        success, status, response = self.make_request(
+            'POST', 'customers',
+            data=duplicate_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=400
+        )
+        
+        return self.log_test("Create Duplicate Customer Phone", success, f"- Duplicate phone correctly rejected")
+
+    def test_get_customers(self):
+        """Test getting customers list"""
+        success, status, response = self.make_request(
+            'GET', 'customers',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and isinstance(response, list):
+            return self.log_test("Get Customers", True, f"- Found {len(response)} customers")
+        else:
+            return self.log_test("Get Customers", False, f"- Status: {status}, Response: {response}")
+
+    def test_get_specific_customer(self):
+        """Test getting specific customer by ID"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Get Specific Customer", False, "- No customer data available")
+        
+        customer_id = self.test_data['customer']['id']
+        success, status, response = self.make_request(
+            'GET', f'customers/{customer_id}',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and 'name' in response:
+            return self.log_test("Get Specific Customer", True, f"- Customer: {response['name']}")
+        else:
+            return self.log_test("Get Specific Customer", False, f"- Status: {status}, Response: {response}")
+
+    def test_update_customer(self):
+        """Test updating customer information"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Update Customer", False, "- No customer data available")
+        
+        customer_id = self.test_data['customer']['id']
+        update_data = {
+            "name": "Maria Bianchi Updated",
+            "phone_number": "+39 333 9876544",  # Different phone
+            "address": "Via Garibaldi 46, Roma, 00185 RM",
+            "email": "maria.updated@email.com",
+            "notes": "Cliente VIP - aggiornato"
+        }
+        
+        success, status, response = self.make_request(
+            'PATCH', f'customers/{customer_id}',
+            data=update_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success:
+            # Update stored customer data
+            self.test_data['customer']['phone_number'] = update_data['phone_number']
+            self.test_data['customer']['name'] = update_data['name']
+        
+        return self.log_test("Update Customer", success, f"- Customer updated successfully")
+
+    def test_search_customers(self):
+        """Test customer search functionality"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Search Customers", False, "- No customer data available")
+        
+        # Search by name
+        success1, status1, response1 = self.make_request(
+            'GET', 'customers/search',
+            params={"query": "Maria"},
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Search by phone
+        success2, status2, response2 = self.make_request(
+            'GET', 'customers/search',
+            params={"query": "333"},
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Search all customers (no query)
+        success3, status3, response3 = self.make_request(
+            'GET', 'customers/search',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        overall_success = success1 and success2 and success3
+        return self.log_test("Search Customers", overall_success, f"- Customer search working correctly")
+
+    def test_customer_order_history(self):
+        """Test getting customer order history"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Customer Order History", False, "- No customer data available")
+        
+        customer_id = self.test_data['customer']['id']
+        success, status, response = self.make_request(
+            'GET', f'customers/{customer_id}/orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success and isinstance(response, list):
+            return self.log_test("Customer Order History", True, f"- Found {len(response)} orders for customer")
+        else:
+            return self.log_test("Customer Order History", False, f"- Status: {status}, Response: {response}")
+
     # ========== ORDER MANAGEMENT TESTS ==========
     
     def test_create_order(self):
