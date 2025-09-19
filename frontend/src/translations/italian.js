@@ -209,8 +209,6 @@ export const italian = {
   applyFilters: "Applica Filtri",
   searchByCustomer: "Cerca per cliente",
   selectStatus: "Seleziona stato",
-  allStatuses: "Tutti gli stati",
-  allCouriers: "Tutti i corrieri",
   unassigned: "Non assegnato",
   
   // Actions
