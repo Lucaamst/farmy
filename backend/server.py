@@ -153,6 +153,38 @@ class UpdateCustomerRequest(BaseModel):
     email: Optional[str] = None
     notes: Optional[str] = None
 
+# Security Models
+class UserSecurity(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    face_id_enabled: bool = False
+    pin_enabled: bool = False
+    sms_enabled: bool = False
+    pin_hash: Optional[str] = None
+    webauthn_credentials: List = Field(default_factory=list)
+    backup_codes: List = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SetupPinRequest(BaseModel):
+    pin: str
+
+class VerifyPinRequest(BaseModel):
+    pin: str
+
+class SendSMSCodeRequest(BaseModel):
+    phone_number: str
+
+class VerifySMSCodeRequest(BaseModel):
+    phone_number: str
+    code: str
+
+class WebAuthnRegistrationRequest(BaseModel):
+    credential: dict
+
+class WebAuthnAuthenticationRequest(BaseModel):
+    credential: dict
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
