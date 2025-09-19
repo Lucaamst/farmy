@@ -31,7 +31,29 @@ function AuthProvider({ children }) {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'it');
+  const [securityRequired, setSecurityRequired] = useState(false);
+  const [securitySetupRequired, setSecuritySetupRequired] = useState(false);
   const [t, setT] = useState(getTranslation(language));
+
+  const checkSecurityRequirement = async () => {
+    try {
+      const response = await axios.get(`${API}/security/status`);
+      const status = response.data;
+      
+      // If user has no security methods enabled, require setup
+      if (!status.pin_enabled && !status.face_id_enabled && !status.sms_enabled) {
+        setSecuritySetupRequired(true);
+      } else {
+        // If user has security methods, require verification on login
+        setSecurityRequired(true);
+      }
+    } catch (error) {
+      console.error('Security status check failed:', error);
+      // If security API fails, continue without security for now
+      setSecurityRequired(false);
+      setSecuritySetupRequired(false);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -45,6 +67,9 @@ function AuthProvider({ children }) {
           setCompany(JSON.parse(companyData));
         }
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Check security requirements after setting user
+        checkSecurityRequirement();
       } catch (e) {
         console.error('Error parsing stored data:', e);
         localStorage.clear();
@@ -58,7 +83,7 @@ function AuthProvider({ children }) {
     localStorage.setItem('language', language);
   }, [language]);
 
-  const login = (token, userData, companyData = null) => {
+  const login = async (token, userData, companyData = null) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     if (companyData) {
@@ -67,6 +92,10 @@ function AuthProvider({ children }) {
     }
     setUser(userData);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    
+    // Check security requirements after login
+    await checkSecurityRequirement();
+    
     // Force navigation after login
     window.location.href = '/';
   };
@@ -77,6 +106,8 @@ function AuthProvider({ children }) {
     localStorage.removeItem('company');
     setUser(null);
     setCompany(null);
+    setSecurityRequired(false);
+    setSecuritySetupRequired(false);
     delete axios.defaults.headers.common['Authorization'];
   };
 
@@ -84,8 +115,30 @@ function AuthProvider({ children }) {
     setLanguage(newLanguage);
   };
 
+  const onSecuritySetupComplete = () => {
+    setSecuritySetupRequired(false);
+    setSecurityRequired(false);
+  };
+
+  const onSecurityVerificationComplete = () => {
+    setSecurityRequired(false);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, company, login, logout, loading, language, changeLanguage, t }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      company, 
+      login, 
+      logout, 
+      loading, 
+      language, 
+      changeLanguage, 
+      t,
+      securityRequired,
+      securitySetupRequired,
+      onSecuritySetupComplete,
+      onSecurityVerificationComplete
+    }}>
       {children}
     </AuthContext.Provider>
   );
