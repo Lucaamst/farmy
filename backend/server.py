@@ -65,10 +65,24 @@ class Order(BaseModel):
     reference_number: Optional[str] = None
     company_id: str
     courier_id: Optional[str] = None
+    customer_id: Optional[str] = None  # Link to customer record
     status: str = "pending"  # pending, assigned, in_progress, delivered
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     delivered_at: Optional[datetime] = None
     sms_sent: bool = False
+
+class Customer(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    phone_number: str
+    address: str
+    email: Optional[str] = None
+    notes: Optional[str] = None
+    company_id: str
+    total_orders: int = 0
+    last_order_date: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Request/Response Models
 class LoginRequest(BaseModel):
