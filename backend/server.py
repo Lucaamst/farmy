@@ -1368,6 +1368,45 @@ async def verify_webauthn_registration(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
 
+@api_router.post("/security/webauthn/generate-authentication-options")
+async def generate_webauthn_authentication_options(
+    current_user: User = Depends(get_current_user)
+):
+    """Generate WebAuthn authentication options"""
+    if not WEBAUTHN_AVAILABLE:
+        raise HTTPException(status_code=501, detail="WebAuthn not available")
+    
+    from webauthn import generate_authentication_options
+    from webauthn.helpers.structs import PublicKeyCredentialDescriptor, UserVerificationRequirement
+    
+    security = await get_user_security(current_user.id)
+    
+    if not security.webauthn_credentials:
+        raise HTTPException(status_code=400, detail="No Face ID/Touch ID credentials registered")
+    
+    # Prepare allowed credentials
+    allow_credentials = [
+        PublicKeyCredentialDescriptor(id=cred["id"])
+        for cred in security.webauthn_credentials
+    ]
+    
+    options = generate_authentication_options(
+        rp_id="localhost",
+        allow_credentials=allow_credentials,
+        user_verification=UserVerificationRequirement.PREFERRED,
+    )
+    
+    # Store challenge
+    import time
+    challenge_key = f"webauthn_auth_challenge_{current_user.id}"
+    sms_codes[challenge_key] = {
+        "challenge": options.challenge.decode('latin-1'),
+        "expires_at": time.time() + 300,
+        "user_id": current_user.id
+    }
+    
+    return options
+
 # Include the router in the main app
 app.include_router(api_router)
 
