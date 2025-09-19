@@ -1360,6 +1360,18 @@ function CompanyAdminDashboard() {
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.totalCustomers}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-gray-900">{customers.length}</p>
+                    </div>
+                    <User className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white shadow-sm border-0">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.totalCouriers}</p>
                       <p className="text-2xl sm:text-3xl font-bold text-gray-900">{couriers.length}</p>
                     </div>
@@ -1390,20 +1402,6 @@ function CompanyAdminDashboard() {
                       <p className="text-2xl sm:text-3xl font-bold text-gray-900">{orders.length}</p>
                     </div>
                     <Package className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white shadow-sm border-0">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{t.delivered}</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-                        {orders.filter(o => o.status === 'delivered').length}
-                      </p>
-                    </div>
-                    <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 flex-shrink-0" />
                   </div>
                 </CardContent>
               </Card>
