@@ -920,7 +920,7 @@ function CompanyAdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchCouriers(), fetchOrders()]);
+      await Promise.all([fetchCouriers(), fetchCustomers(), fetchOrders()]);
     } finally {
       setLoading(false);
     }
