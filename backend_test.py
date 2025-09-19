@@ -802,6 +802,47 @@ class DeliveryManagementAPITester:
             details = f"- Error scenarios handled correctly"
         return self.log_test("Error Handling", overall_success, details)
 
+    def test_delete_customer_with_orders(self):
+        """Test deleting customer with orders (should fail)"""
+        if 'customer' not in self.test_data:
+            return self.log_test("Delete Customer with Orders", False, "- No customer data available")
+        
+        customer_id = self.test_data['customer']['id']
+        success, status, response = self.make_request(
+            'DELETE', f'customers/{customer_id}',
+            token=self.tokens.get('company_admin'),
+            expected_status=400
+        )
+        
+        return self.log_test("Delete Customer with Orders", success, f"- Customer deletion correctly blocked due to existing orders")
+
+    def test_delete_customer_without_orders(self):
+        """Test deleting customer without orders"""
+        # Create a new customer for deletion test
+        customer_data = {
+            "name": "Test Delete Customer",
+            "phone_number": "+39 333 0000001",
+            "address": "Test Address for Deletion"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'customers',
+            data=customer_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success1 and 'customer' in response1:
+            customer_id = response1['customer']['id']
+            success2, status2, response2 = self.make_request(
+                'DELETE', f'customers/{customer_id}',
+                token=self.tokens.get('company_admin'),
+                expected_status=200
+            )
+            return self.log_test("Delete Customer without Orders", success2, f"- Customer deleted successfully")
+        else:
+            return self.log_test("Delete Customer without Orders", False, f"- Could not create customer for deletion test")
+
     # ========== CLEANUP TESTS ==========
     
     def test_delete_order(self):
