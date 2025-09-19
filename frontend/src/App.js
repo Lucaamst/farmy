@@ -2428,11 +2428,21 @@ function CompanyAdminDashboard() {
                               {order.reference_number && (
                                 <p className="text-xs text-gray-500">Rif: {order.reference_number}</p>
                               )}
+                              {order.phone_number && (
+                                <p className="text-xs text-gray-500">📱 {order.phone_number}</p>
+                              )}
                             </div>
                             {getOrderStatusBadge(order.status)}
                           </div>
-                          <div className="flex justify-between items-center text-xs text-gray-500">
-                            <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-gray-500 space-y-1 sm:space-y-0">
+                            <div className="flex flex-col space-y-1">
+                              <span>📅 Ordinato: {new Date(order.created_at).toLocaleDateString()} alle {new Date(order.created_at).toLocaleTimeString()}</span>
+                              {order.delivered_at && (
+                                <span className="text-green-600">
+                                  ✅ Consegnato: {new Date(order.delivered_at).toLocaleDateString()} alle {new Date(order.delivered_at).toLocaleTimeString()}
+                                </span>
+                              )}
+                            </div>
                             <span>{getCourierName(order.courier_id)}</span>
                           </div>
                         </div>
