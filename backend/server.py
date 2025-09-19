@@ -538,12 +538,44 @@ async def create_order(
     request: CreateOrderRequest,
     current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
 ):
+    # If customer_id is provided, verify it exists and belongs to same company
+    customer_id = None
+    if request.customer_id:
+        customer = await db.customers.find_one({
+            "id": request.customer_id,
+            "company_id": current_user.company_id
+        })
+        if not customer:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        customer_id = request.customer_id
+    else:
+        # Check if customer with this phone already exists
+        existing_customer = await db.customers.find_one({
+            "phone_number": request.phone_number,
+            "company_id": current_user.company_id
+        })
+        
+        if existing_customer:
+            # Use existing customer
+            customer_id = existing_customer["id"]
+        else:
+            # Create new customer automatically
+            new_customer = Customer(
+                name=request.customer_name,
+                phone_number=request.phone_number,
+                address=request.delivery_address,
+                company_id=current_user.company_id
+            )
+            await db.customers.insert_one(new_customer.dict())
+            customer_id = new_customer.id
+    
     order = Order(
         customer_name=request.customer_name,
         delivery_address=request.delivery_address,
         phone_number=request.phone_number,
         reference_number=request.reference_number,
-        company_id=current_user.company_id
+        company_id=current_user.company_id,
+        customer_id=customer_id
     )
     await db.orders.insert_one(order.dict())
     
