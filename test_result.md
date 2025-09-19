@@ -260,16 +260,19 @@ frontend:
           comment: "Language switching between Italian and English working correctly"
 
   - task: "Customer Management System"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "App.js, server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Need to implement customer database per company, autocompletion in order creation, customer history view, CRUD operations for customers"
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE CUSTOMER MANAGEMENT TESTING COMPLETED - All 40 backend tests passed (100% success rate). Customer Management System APIs fully implemented and working: 1) Create customer (✅), 2) Duplicate phone validation (✅), 3) Get customers list with statistics (✅), 4) Get specific customer (✅), 5) Update customer (✅), 6) Search customers by name/phone (✅ - Fixed route ordering issue), 7) Customer order history (✅), 8) Order creation with customer integration (✅), 9) Auto customer creation from new phone numbers (✅), 10) Customer linking for existing phone numbers (✅), 11) Customer deletion protection when orders exist (✅), 12) Customer deletion when no orders (✅). All customer operations properly filtered by company_id. Phone number uniqueness enforced within company scope. Customer statistics (total_orders, last_order_date) updated correctly. Fixed critical route ordering issue where /customers/search was being matched by /customers/{customer_id} - moved search route before specific customer route."
 
   - task: "Multi-level Security (Face ID + PIN + SMS)"
     implemented: false
