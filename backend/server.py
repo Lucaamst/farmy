@@ -1407,6 +1407,65 @@ async def generate_webauthn_authentication_options(
     
     return options
 
+@api_router.post("/security/webauthn/verify-authentication")
+async def verify_webauthn_authentication(
+    request: WebAuthnAuthenticationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Verify WebAuthn authentication"""
+    if not WEBAUTHN_AVAILABLE:
+        raise HTTPException(status_code=501, detail="WebAuthn not available")
+    
+    from webauthn import verify_authentication_response
+    from webauthn.helpers.structs import AuthenticationCredential
+    
+    challenge_key = f"webauthn_auth_challenge_{current_user.id}"
+    if challenge_key not in sms_codes:
+        raise HTTPException(status_code=400, detail="No authentication challenge found")
+    
+    stored_challenge = sms_codes[challenge_key]
+    security = await get_user_security(current_user.id)
+    
+    # Find credential
+    credential_id = request.credential.get("id")
+    stored_credential = None
+    for cred in security.webauthn_credentials:
+        if cred["id"] == credential_id:
+            stored_credential = cred
+            break
+    
+    if not stored_credential:
+        raise HTTPException(status_code=400, detail="Credential not found")
+    
+    try:
+        credential = AuthenticationCredential.parse_raw(json.dumps(request.credential))
+        
+        verification = verify_authentication_response(
+            credential=credential,
+            expected_challenge=stored_challenge["challenge"].encode('latin-1'),
+            expected_origin="http://localhost:3000",
+            expected_rp_id="localhost",
+            credential_public_key=bytes.fromhex(stored_credential["public_key"]),
+            credential_current_sign_count=stored_credential["sign_count"],
+        )
+        
+        if verification.verified:
+            # Update sign count
+            await db.user_security.update_one(
+                {"user_id": current_user.id, "webauthn_credentials.id": credential_id},
+                {"$set": {"webauthn_credentials.$.sign_count": verification.new_sign_count}}
+            )
+            
+            # Clean up challenge
+            del sms_codes[challenge_key]
+            
+            return {"message": "Face ID/Touch ID verified successfully"}
+        else:
+            raise HTTPException(status_code=401, detail="Authentication verification failed")
+            
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
