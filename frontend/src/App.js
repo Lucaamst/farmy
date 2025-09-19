@@ -72,8 +72,7 @@ function AuthProvider({ children }) {
     setUser(userData);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     
-    // Check security requirements after login
-    await checkSecurityRequirement();
+    // Login successful
     
     // Force navigation after login
     window.location.href = '/';
