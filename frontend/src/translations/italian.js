@@ -231,5 +231,48 @@ export const italian = {
   customer: "Cliente",
   address: "Indirizzo",
   phone: "Telefono",
-  courier: "Corriere"
+  courier: "Corriere",
+  
+  // Customer Management
+  customers: "Clienti",
+  customerManagement: "Gestione Clienti",
+  manageAllCustomers: "Gestisci tutti i clienti",
+  addCustomer: "Aggiungi Cliente",
+  createNewCustomer: "Crea Nuovo Cliente",
+  addNewCustomerDescription: "Aggiungi un nuovo cliente al database",
+  createCustomer: "Crea Cliente",
+  editCustomer: "Modifica Cliente",
+  editCustomerDescription: "Modifica i dettagli del cliente",
+  updateCustomer: "Aggiorna Cliente",
+  deleteCustomer: "Cancella Cliente",
+  deleteCustomerDescription: "Questa azione non può essere annullata",
+  confirmDeleteCustomer: "Sei sicuro di voler cancellare questo cliente",
+  customerCreatedSuccessfully: "Cliente creato con successo",
+  customerUpdatedSuccessfully: "Cliente aggiornato con successo",
+  customerDeletedSuccessfully: "Cliente cancellato con successo",
+  failedToCreateCustomer: "Impossibile creare il cliente",
+  failedToUpdateCustomer: "Impossibile aggiornare il cliente",
+  failedToDeleteCustomer: "Impossibile cancellare il cliente",
+  customerPhoneExists: "Cliente con questo numero di telefono già esistente",
+  cannotDeleteCustomerWithOrders: "Impossibile cancellare cliente con ordini esistenti",
+  
+  // Customer Details
+  customerHistory: "Storico Cliente",
+  customerOrders: "Ordini Cliente",
+  totalOrders: "Ordini Totali",
+  lastOrder: "Ultimo Ordine",
+  never: "Mai",
+  email: "Email",
+  notes: "Note",
+  enterEmail: "Inserisci email (opzionale)",
+  enterNotes: "Inserisci note (opzionale)",
+  
+  // Order Creation with Customers
+  selectExistingCustomer: "Seleziona Cliente Esistente",
+  newCustomer: "Nuovo Cliente",
+  existingCustomer: "Cliente Esistente",
+  searchCustomers: "Cerca clienti...",
+  noCustomersFound: "Nessun cliente trovato",
+  customerDetails: "Dettagli Cliente",
+  viewCustomerHistory: "Vedi Storico Cliente"
 };
