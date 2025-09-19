@@ -301,7 +301,6 @@ metadata:
 test_plan:
   current_focus:
     - "Customer Management System"
-    - "Multi-level Security (Face ID + PIN + SMS)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
