@@ -1235,6 +1235,16 @@ function CompanyAdminDashboard() {
     setShowDeleteCourierDialog(true);
   };
 
+  const handleEditCustomerClick = (customer) => {
+    setEditingCustomer({...customer});
+    setShowEditCustomerDialog(true);
+  };
+
+  const handleDeleteCustomerClick = (customer) => {
+    setDeletingCustomer(customer);
+    setShowDeleteCustomerDialog(true);
+  };
+
   const handleEditOrderClick = (order) => {
     setEditingOrder({...order});
     setShowEditOrderDialog(true);
