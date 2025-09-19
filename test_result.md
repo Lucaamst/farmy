@@ -291,10 +291,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Company Admin Dashboard restoration"
-    - "Safari/iOS compatibility verification"
-  stuck_tasks:
-    - "Company Admin Dashboard"
+    - "Customer Management System"
+    - "Multi-level Security (Face ID + PIN + SMS)"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
