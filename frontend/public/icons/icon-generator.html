@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FarmyGo Icon Generator</title>
+</head>
+<body>
+    <h1>FarmyGo PWA Icons</h1>
+    <p>Per generare le icone FarmyGo:</p>
+    <ol>
+        <li>Crea un'icona base 512x512px con il logo FarmyGo</li>
+        <li>Usa uno strumento online come RealFaviconGenerator.net</li>
+        <li>Genera tutte le dimensioni: 72x72, 96x96, 128x128, 144x144, 152x152, 192x192, 384x384, 512x512</li>
+        <li>Sostituisci questo file con le icone generate</li>
+    </ol>
+    
+    <canvas id="iconCanvas" width="512" height="512" style="border: 1px solid #ccc; max-width: 200px;"></canvas>
+    
+    <script>
+    // Generate temporary FarmyGo icon
+    const canvas = document.getElementById('iconCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+    gradient.addColorStop(0, '#ea580c');
+    gradient.addColorStop(1, '#dc2626');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+    
+    // White circle background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.beginPath();
+    ctx.arc(256, 256, 200, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // FarmyGo text
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('FarmyGo', 256, 220);
+    
+    // Truck icon (simplified)
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    // Truck body
+    ctx.rect(150, 280, 120, 60);
+    ctx.stroke();
+    // Truck cab
+    ctx.rect(270, 260, 60, 80);
+    ctx.stroke();
+    // Wheels
+    ctx.beginPath();
+    ctx.arc(180, 360, 20, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(300, 360, 20, 0, 2 * Math.PI);
+    ctx.stroke();
+    
+    // Download function
+    function downloadIcon(size) {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0, 512, 512, 0, 0, size, size);
+        
+        const link = document.createElement('a');
+        link.download = `icon-${size}x${size}.png`;
+        link.href = tempCanvas.toDataURL();
+        link.click();
+    }
+    
+    // Add download buttons
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+    sizes.forEach(size => {
+        const btn = document.createElement('button');
+        btn.textContent = `Download ${size}x${size}`;
+        btn.onclick = () => downloadIcon(size);
+        btn.style.margin = '5px';
+        document.body.appendChild(btn);
+    });
+    </script>
+</body>
+</html>
