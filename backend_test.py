@@ -41,7 +41,11 @@ class DeliveryManagementAPITester:
             elif method == 'DELETE':
                 response = requests.delete(url, json=data, headers=headers)
             
-            success = response.status_code == expected_status
+            # Handle multiple expected status codes
+            if isinstance(expected_status, list):
+                success = response.status_code in expected_status
+            else:
+                success = response.status_code == expected_status
             
             # Try to parse JSON, but handle non-JSON responses
             try:
