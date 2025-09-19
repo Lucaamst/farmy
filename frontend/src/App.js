@@ -815,7 +815,641 @@ function SuperAdminDashboard() {
   );
 }
 
-// Company Admin Dashboard with full functionality
+// Security Components
+function SecuritySetup({ user, onSecurityComplete }) {
+  const [currentStep, setCurrentStep] = useState('choose');
+  const [securityStatus, setSecurityStatus] = useState({
+    face_id_enabled: false,
+    pin_enabled: false,
+    sms_enabled: false,
+    webauthn_credentials: 0
+  });
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [smsCode, setSmsCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState(user.phone_number || '');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { t } = useAuth();
+
+  useEffect(() => {
+    fetchSecurityStatus();
+  }, []);
+
+  const fetchSecurityStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/security/status`);
+      setSecurityStatus(response.data);
+    } catch (error) {
+      console.error('Failed to fetch security status', error);
+    }
+  };
+
+  const setupPin = async () => {
+    if (pin.length !== 6 || !pin.match(/^\d+$/)) {
+      toast({
+        title: t.error,
+        description: t.pin6Digits,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (pin !== confirmPin) {
+      toast({
+        title: t.error,
+        description: t.pinMismatch,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/security/setup-pin`, { pin });
+      toast({
+        title: t.success,
+        description: t.pinEnabled,
+      });
+      setSecurityStatus(prev => ({ ...prev, pin_enabled: true }));
+      setCurrentStep('choose');
+      setPin('');
+      setConfirmPin('');
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || "Failed to setup PIN",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupBiometric = async () => {
+    if (!window.PublicKeyCredential) {
+      toast({
+        title: t.error,
+        description: t.biometricNotSupported,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Import WebAuthn library
+      const { startRegistration } = await import('@simplewebauthn/browser');
+      
+      // Get registration options from backend
+      const optionsResponse = await axios.post(`${API}/security/webauthn/generate-registration-options`);
+      
+      // Start WebAuthn registration
+      const credential = await startRegistration(optionsResponse.data);
+      
+      // Verify registration with backend
+      await axios.post(`${API}/security/webauthn/verify-registration`, { credential });
+      
+      toast({
+        title: t.success,
+        description: t.biometricEnabled,
+      });
+      setSecurityStatus(prev => ({ ...prev, face_id_enabled: true, webauthn_credentials: prev.webauthn_credentials + 1 }));
+      setCurrentStep('choose');
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || "Failed to setup biometric authentication",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendSmsCode = async () => {
+    if (!phoneNumber) {
+      toast({
+        title: t.error,
+        description: "Phone number is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/security/send-sms-code`, { phone_number: phoneNumber });
+      toast({
+        title: t.success,
+        description: t.smsCodeSent,
+      });
+      setCurrentStep('verify-sms');
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || "Failed to send SMS code",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifySmsCode = async () => {
+    if (smsCode.length !== 6) {
+      toast({
+        title: t.error,
+        description: "SMS code must be 6 digits",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/security/verify-sms-code`, { 
+        phone_number: phoneNumber, 
+        code: smsCode 
+      });
+      toast({
+        title: t.success,
+        description: "SMS verification enabled",
+      });
+      setSecurityStatus(prev => ({ ...prev, sms_enabled: true }));
+      setCurrentStep('choose');
+      setSmsCode('');
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || "Failed to verify SMS code",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeSetup = () => {
+    if (securityStatus.pin_enabled || securityStatus.face_id_enabled || securityStatus.sms_enabled) {
+      toast({
+        title: t.success,
+        description: t.securityUpgradeComplete,
+      });
+      onSecurityComplete();
+    } else {
+      toast({
+        title: t.error,
+        description: t.securitySetupRequired,
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white shadow-lg border-0">
+        <CardHeader className="text-center pb-4">
+          <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-xl text-gray-900">{t.multiLevelSecurity}</CardTitle>
+          <CardDescription className="text-sm text-gray-600">
+            {currentStep === 'choose' ? t.chooseSecurity : t.setupSecurity}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {currentStep === 'choose' && (
+            <div className="space-y-4">
+              {/* Security Status */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Key className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm">{t.pin}</span>
+                  </div>
+                  <Badge variant={securityStatus.pin_enabled ? 'default' : 'secondary'}>
+                    {securityStatus.pin_enabled ? t.pinEnabled : 'Disabilitato'}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Smartphone className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm">{t.biometricAuth}</span>
+                  </div>
+                  <Badge variant={securityStatus.face_id_enabled ? 'default' : 'secondary'}>
+                    {securityStatus.face_id_enabled ? t.biometricEnabled : t.biometricDisabled}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm">{t.smsVerification}</span>
+                  </div>
+                  <Badge variant={securityStatus.sms_enabled ? 'default' : 'secondary'}>
+                    {securityStatus.sms_enabled ? 'Attivo' : 'Disattivo'}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                {!securityStatus.pin_enabled && (
+                  <Button 
+                    onClick={() => setCurrentStep('setup-pin')} 
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    size="sm"
+                  >
+                    <Key className="w-4 h-4 mr-2" />
+                    {t.setupPin}
+                  </Button>
+                )}
+                
+                {!securityStatus.face_id_enabled && (
+                  <Button 
+                    onClick={setupBiometric} 
+                    variant="outline" 
+                    className="w-full"
+                    size="sm"
+                    disabled={loading}
+                  >
+                    <Smartphone className="w-4 h-4 mr-2" />
+                    {t.setupBiometric}
+                  </Button>
+                )}
+                
+                {!securityStatus.sms_enabled && (
+                  <Button 
+                    onClick={() => setCurrentStep('setup-sms')} 
+                    variant="outline" 
+                    className="w-full"
+                    size="sm"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    {t.smsVerification}
+                  </Button>
+                )}
+              </div>
+
+              {/* Complete Setup */}
+              <Button 
+                onClick={completeSetup} 
+                className="w-full mt-6"
+                variant={securityStatus.pin_enabled || securityStatus.face_id_enabled || securityStatus.sms_enabled ? 'default' : 'outline'}
+              >
+                {t.securityComplete}
+              </Button>
+            </div>
+          )}
+
+          {currentStep === 'setup-pin' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="pin" className="text-sm">{t.enterPin}</Label>
+                <Input
+                  id="pin"
+                  type="password"
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="text-center text-lg tracking-widest"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirmPin" className="text-sm">{t.confirmPin}</Label>
+                <Input
+                  id="confirmPin"
+                  type="password"
+                  maxLength={6}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="text-center text-lg tracking-widest"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={setupPin} disabled={loading} className="flex-1">
+                  {loading ? 'Configurazione...' : t.setupPin}
+                </Button>
+                <Button onClick={() => setCurrentStep('choose')} variant="outline" className="flex-1">
+                  {t.cancel}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'setup-sms' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="phoneNumber" className="text-sm">{t.phoneNumber}</Label>
+                <Input
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+39 333 1234567"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={sendSmsCode} disabled={loading} className="flex-1">
+                  {loading ? 'Invio...' : t.sendSmsCode}
+                </Button>
+                <Button onClick={() => setCurrentStep('choose')} variant="outline" className="flex-1">
+                  {t.cancel}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'verify-sms' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="smsCode" className="text-sm">{t.enterSmsCode}</Label>
+                <Input
+                  id="smsCode"
+                  maxLength={6}
+                  value={smsCode}
+                  onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="text-center text-lg tracking-widest"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Codice inviato a {phoneNumber}
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={verifySmsCode} disabled={loading} className="flex-1">
+                  {loading ? 'Verifica...' : t.verify}
+                </Button>
+                <Button onClick={() => setCurrentStep('setup-sms')} variant="outline" className="flex-1">
+                  Indietro
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function SecurityVerification({ user, onVerificationComplete }) {
+  const [currentMethod, setCurrentMethod] = useState('choose');
+  const [pin, setPin] = useState('');
+  const [smsCode, setSmsCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [securityStatus, setSecurityStatus] = useState({});
+  const { toast } = useToast();
+  const { t } = useAuth();
+
+  useEffect(() => {
+    fetchSecurityStatus();
+  }, []);
+
+  const fetchSecurityStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/security/status`);
+      setSecurityStatus(response.data);
+      
+      // Auto-select primary method
+      if (response.data.face_id_enabled) {
+        setCurrentMethod('biometric');
+      } else if (response.data.pin_enabled) {
+        setCurrentMethod('pin');
+      } else if (response.data.sms_enabled) {
+        setCurrentMethod('sms');
+      }
+    } catch (error) {
+      console.error('Failed to fetch security status', error);
+    }
+  };
+
+  const verifyBiometric = async () => {
+    setLoading(true);
+    try {
+      const { startAuthentication } = await import('@simplewebauthn/browser');
+      
+      // Get authentication options
+      const optionsResponse = await axios.post(`${API}/security/webauthn/generate-authentication-options`);
+      
+      // Start WebAuthn authentication
+      const credential = await startAuthentication(optionsResponse.data);
+      
+      // Verify with backend
+      await axios.post(`${API}/security/webauthn/verify-authentication`, { credential });
+      
+      toast({
+        title: t.success,
+        description: t.accessGranted,
+      });
+      onVerificationComplete();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.authenticationFailed,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyPin = async () => {
+    if (pin.length !== 6) {
+      toast({
+        title: t.error,
+        description: t.pin6Digits,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/security/verify-pin`, { pin });
+      toast({
+        title: t.success,
+        description: t.accessGranted,
+      });
+      onVerificationComplete();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.authenticationFailed,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendSmsCode = async () => {
+    setLoading(true);
+    try {
+      await axios.post(`${API}/security/send-sms-code`, { phone_number: user.phone_number });
+      toast({
+        title: t.success,
+        description: t.smsCodeSent,
+      });
+      setCurrentMethod('verify-sms');
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || "Failed to send SMS",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifySmsCode = async () => {
+    if (smsCode.length !== 6) {
+      toast({
+        title: t.error,
+        description: "SMS code must be 6 digits",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/security/verify-sms-code`, { 
+        phone_number: user.phone_number, 
+        code: smsCode 
+      });
+      toast({
+        title: t.success,
+        description: t.accessGranted,
+      });
+      onVerificationComplete();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || t.authenticationFailed,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white shadow-lg border-0">
+        <CardHeader className="text-center pb-4">
+          <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-xl text-gray-900">{t.securityRequired}</CardTitle>
+          <CardDescription className="text-sm text-gray-600">
+            Verifica la tua identità per accedere
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {currentMethod === 'choose' && (
+            <div className="space-y-2">
+              {securityStatus.face_id_enabled && (
+                <Button onClick={() => setCurrentMethod('biometric')} className="w-full bg-orange-600 hover:bg-orange-700">
+                  <Smartphone className="w-4 h-4 mr-2" />
+                  {t.biometricAuth}
+                </Button>
+              )}
+              
+              {securityStatus.pin_enabled && (
+                <Button onClick={() => setCurrentMethod('pin')} variant="outline" className="w-full">
+                  <Key className="w-4 h-4 mr-2" />
+                  {t.pin}
+                </Button>
+              )}
+              
+              {securityStatus.sms_enabled && (
+                <Button onClick={sendSmsCode} variant="outline" className="w-full" disabled={loading}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {t.smsVerification}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {currentMethod === 'biometric' && (
+            <div className="space-y-4 text-center">
+              <div className="py-8">
+                <Smartphone className="w-16 h-16 text-orange-600 mx-auto mb-4" />
+                <p className="text-sm text-gray-600">Usa Face ID o Touch ID per autenticarti</p>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={verifyBiometric} disabled={loading} className="flex-1">
+                  {loading ? 'Verifica...' : t.authenticate}
+                </Button>
+                <Button onClick={() => setCurrentMethod('choose')} variant="outline" className="flex-1">
+                  {t.useAlternative}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentMethod === 'pin' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="verifyPin" className="text-sm">{t.enterPin}</Label>
+                <Input
+                  id="verifyPin"
+                  type="password"
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="text-center text-lg tracking-widest"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={verifyPin} disabled={loading} className="flex-1">
+                  {loading ? 'Verifica...' : t.verify}
+                </Button>
+                <Button onClick={() => setCurrentMethod('choose')} variant="outline" className="flex-1">
+                  Indietro
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentMethod === 'verify-sms' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="verifySmsCode" className="text-sm">{t.enterSmsCode}</Label>
+                <Input
+                  id="verifySmsCode"
+                  maxLength={6}
+                  value={smsCode}
+                  onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="text-center text-lg tracking-widest"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Codice inviato a {user.phone_number}
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={verifySmsCode} disabled={loading} className="flex-1">
+                  {loading ? 'Verifica...' : t.verify}
+                </Button>
+                <Button onClick={() => setCurrentMethod('choose')} variant="outline" className="flex-1">
+                  Indietro
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 function CompanyAdminDashboard() {
   const [couriers, setCouriers] = useState([]);
   const [orders, setOrders] = useState([]);
