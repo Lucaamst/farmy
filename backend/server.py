@@ -1420,14 +1420,29 @@ async def generate_webauthn_authentication_options(
     
     # Store challenge
     import time
+    import base64
     challenge_key = f"webauthn_auth_challenge_{current_user.id}"
     sms_codes[challenge_key] = {
-        "challenge": options.challenge.decode('latin-1'),
+        "challenge": base64.b64encode(options.challenge).decode('utf-8'),
         "expires_at": time.time() + 300,
         "user_id": current_user.id
     }
     
-    return options
+    # Convert options to JSON-serializable format
+    return {
+        "challenge": base64.b64encode(options.challenge).decode('utf-8'),
+        "timeout": options.timeout,
+        "rpId": options.rp_id,
+        "allowCredentials": [
+            {
+                "id": base64.b64encode(cred.id).decode('utf-8') if isinstance(cred.id, bytes) else cred.id,
+                "type": cred.type,
+                "transports": cred.transports if hasattr(cred, 'transports') else []
+            }
+            for cred in options.allow_credentials
+        ],
+        "userVerification": options.user_verification
+    }
 
 @api_router.post("/security/webauthn/verify-authentication")
 async def verify_webauthn_authentication(
