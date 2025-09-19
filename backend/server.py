@@ -874,6 +874,23 @@ async def get_customers(
     
     return [Customer(**customer) for customer in customers]
 
+@api_router.get("/customers/search")
+async def search_customers(
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN])),
+    query: Optional[str] = None
+):
+    """Search customers by name or phone"""
+    search_query = {"company_id": current_user.company_id}
+    
+    if query:
+        search_query["$or"] = [
+            {"name": {"$regex": query, "$options": "i"}},
+            {"phone_number": {"$regex": query, "$options": "i"}}
+        ]
+    
+    customers = await db.customers.find(search_query).sort("name", 1).to_list(100)
+    return [Customer(**customer) for customer in customers]
+
 @api_router.get("/customers/{customer_id}", response_model=Customer)
 async def get_customer(
     customer_id: str,
