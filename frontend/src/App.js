@@ -880,6 +880,19 @@ function CompanyAdminDashboard() {
     }
   };
 
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(`${API}/customers`);
+      setCustomers(response.data);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: t.failedToFetchData,
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchOrders = async () => {
     try {
       let url = `${API}/orders`;
