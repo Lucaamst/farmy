@@ -123,6 +123,7 @@ class ResetCompanyPasswordRequest(BaseModel):
 class CreateCourierRequest(BaseModel):
     username: str
     password: str
+    full_name: Optional[str] = None
 
 class UpdateCourierRequest(BaseModel):
     username: str
