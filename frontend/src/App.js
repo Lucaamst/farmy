@@ -1489,7 +1489,7 @@ function CompanyAdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   
   // Courier management states
-  const [newCourier, setNewCourier] = useState({ username: '', password: '' });
+  const [newCourier, setNewCourier] = useState({ username: '', password: '', full_name: '' });
   const [editingCourier, setEditingCourier] = useState(null);
   const [deletingCourier, setDeletingCourier] = useState(null);
   const [showCreateCourierDialog, setShowCreateCourierDialog] = useState(false);
