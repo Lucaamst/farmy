@@ -99,47 +99,7 @@ npx expo start --android
 
 **app.json**
 ```json
-{
-  "expo": {
-    "name": "FarmyGo Courier",
-    "slug": "farmygo-courier",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ea580c"
-    },
-    "assetBundlePatterns": ["**/*"],
-    "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "ch.farmygo.courier"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ea580c"
-      },
-      "package": "ch.farmygo.courier"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-location",
-      "expo-notifications",
-      "expo-camera"
-    ],
-    "extra": {
-      "apiUrl": "https://farmygo.ch/api",
-      "eas": {
-        "projectId": "2f53e315-043e-4bce-b8a3-0bffba91dad3"
-      }
-    }
-  }
-}
+*(Copia da courier-app/app.json)*
 ```
 
 ### STEP 4: Installa Dipendenze
