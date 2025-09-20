@@ -535,6 +535,7 @@ async def create_courier(
         "id": str(uuid.uuid4()),
         "username": request.username,
         "password": hash_password(request.password),
+        "full_name": request.full_name,
         "role": UserRole.COURIER,
         "company_id": current_user.company_id,
         "is_active": True,
