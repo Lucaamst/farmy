@@ -1563,23 +1563,17 @@ function CompanyAdminDashboard() {
   const fetchOrders = async () => {
     try {
       let url = `${API}/orders`;
-      const hasFilters = Object.values(searchFilters).some(filter => filter && filter.trim() !== '');
+      const hasCustomFilters = Object.values(searchFilters).some(filter => filter && filter.trim() !== '');
       
-      // Always filter by today's date by default
-      const today = new Date().toISOString().split('T')[0];
-      const params = new URLSearchParams();
-      params.append('date_from', today);
-      params.append('date_to', today);
-      
-      if (hasFilters) {
+      if (hasCustomFilters) {
+        const params = new URLSearchParams();
         Object.entries(searchFilters).forEach(([key, value]) => {
           if (value && value.trim() !== '') {
-            params.set(key, value); // Use set to override today's filter if user sets custom dates
+            params.append(key, value);
           }
         });
+        url = `${API}/orders/search?${params.toString()}`;
       }
-      
-      url = `${API}/orders/search?${params.toString()}`;
       
       const response = await axios.get(url);
       setOrders(response.data);
