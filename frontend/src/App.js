@@ -2371,7 +2371,8 @@ function CompanyAdminDashboard() {
                   <TableBody>
                     {couriers.map((courier) => (
                       <TableRow key={courier.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">{courier.username}</TableCell>
+                        <TableCell className="font-medium text-xs sm:text-sm">{courier.full_name || courier.username}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{courier.username}</TableCell>
                         <TableCell>
                           <Badge variant={courier.is_active ? 'default' : 'destructive'} className="text-xs">
                             {courier.is_active ? t.active : t.blocked}
