@@ -1568,6 +1568,11 @@ function CompanyAdminDashboard() {
           }
         });
         url = `${API}/orders/search?${params.toString()}`;
+      } else {
+        // Show only pending orders by default (orders that need to be assigned)
+        const params = new URLSearchParams();
+        params.append('status', 'pending');
+        url = `${API}/orders/search?${params.toString()}`;
       }
       
       const response = await axios.get(url);
