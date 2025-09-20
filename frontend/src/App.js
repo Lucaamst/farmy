@@ -1991,12 +1991,6 @@ function CompanyAdminDashboard() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (searchFilters.customer_name || searchFilters.courier_id || searchFilters.status || searchFilters.date_from || searchFilters.date_to) {
-      fetchOrders();
-    }
-  }, [searchFilters]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
