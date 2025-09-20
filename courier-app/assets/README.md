@@ -1,80 +1,119 @@
-# 🎨 FarmyGo Courier App - Assets
+# 📁 FarmyGo Courier App - Assets
 
-## Richiesti per Store Submission
+Questa cartella contiene tutti gli asset necessari per l'app FarmyGo Courier.
 
-### Icone App
-- **icon.png** - 1024x1024px (icona principale)
-- **adaptive-icon.png** - 1024x1024px (Android adaptive icon)
-- **favicon.png** - 48x48px (web favicon)
+## 🎨 Asset Richiesti
+
+### Icone Principali
+- **icon.png** (1024x1024 px)
+  - Icona principale dell'app
+  - Formato: PNG con trasparenza
+  - Uso: App Store, Google Play, launcher
+
+- **adaptive-icon.png** (1024x1024 px)  
+  - Icona adattiva per Android
+  - Formato: PNG con trasparenza
+  - Deve funzionare in cerchi, quadrati, squircle
 
 ### Splash Screen
-- **splash.png** - 1284x2778px (iPhone 14 Pro Max)
-- Background: #ea580c (arancione FarmyGo)
+- **splash.png** (1284x2778 px)
+  - Schermata di caricamento
+  - Formato: PNG
+  - Proporzioni: iPhone 12 Pro Max
+  - Background color: #ea580c (FarmyGo Orange)
 
 ### Notifiche
-- **notification-icon.png** - 96x96px (Android notification)
-- **notification.wav** - Suono notifica personalizzato
+- **notification-icon.png** (96x96 px)
+  - Icona per notifiche push
+  - Formato: PNG con trasparenza
+  - Colore: Bianco/Trasparente su background colorato
 
-### Screenshots Store
-- **android-screenshot-1.png** - 1080x1920px (Login screen)
-- **android-screenshot-2.png** - 1080x1920px (Deliveries list)
-- **android-screenshot-3.png** - 1080x1920px (Delivery detail)
-- **ios-screenshot-1.png** - 1284x2778px (iPhone 14 Pro Max)
-- **ios-screenshot-2.png** - 1284x2778px
-- **ios-screenshot-3.png** - 1284x2778px
+### Favicon Web
+- **favicon.png** (32x32 px)
+  - Icona per versione web
+  - Formato: PNG
+  - Semplice e riconoscibile
 
-## 🎨 Design Guidelines
+### Audio
+- **notification.wav**
+  - Suono per notifiche personalizzate
+  - Formato: WAV, MP3, M4A
+  - Durata: 1-3 secondi
 
-### Colori Brandize FarmyGo
-- **Primary**: #ea580c (Arancione)
-- **Secondary**: #dc2626 (Rosso)
-- **Success**: #059669 (Verde)
+## 🎨 Linee Guida Design
+
+### Colori FarmyGo
+- **Primario**: #ea580c (Arancione)
+- **Secondario**: #dc2626 (Rosso)
+- **Accent**: #059669 (Verde)
 - **Background**: #fff7ed (Crema)
-- **White**: #ffffff
 
-### Logo Requirements
-- Logo FarmyGo con icon camion
-- High resolution (vector preferred)
-- Transparent background per adaptive icon
-- Contrasto elevato per leggibilità
+### Stile Icone
+- Design moderno e pulito
+- Bordi arrotondati
+- Buon contrasto
+- Leggibili a tutte le dimensioni
 
-### Icona App
-- Icon camion stilizzato
-- Sfondo arancione FarmyGo (#ea580c)
-- Testo "FarmyGo" leggibile
-- Stile minimale e professionale
+### Brand Identity
+- Logo FarmyGo prominente
+- Elementi delivery/trasporto
+- Colori aziendali consistenti
+- Font leggibile e professionale
 
-## 🔧 Tools Consigliati
+## 📱 Specifiche Tecniche
 
-### Generazione Icone
-- **RealFaviconGenerator.net** - Genera tutte le dimensioni
-- **AppIcon.co** - App icon generator
-- **Figma** - Design professionale
+### Formati Supportati
+- **Immagini**: PNG (preferito), JPG
+- **Audio**: WAV, MP3, M4A
+- **Vettoriali**: SVG (convertiti in PNG per Expo)
 
-### Screenshot Store
-- **Screenshot Framer** - Frame screenshots per store
-- **App Store Screenshot Generator** - Dimensioni corrette
-- **Figma Store Templates** - Template professionali
+### Risoluzione
+- Tutte le immagini ad alta risoluzione
+- Supporto display Retina/high-DPI
+- Ottimizzazione dimensioni file
 
-## 📋 Checklist Asset
+### Compatibilità
+- iOS 13.0+
+- Android API 21+
+- Supporto dark/light mode
 
-### Sviluppo
-- [ ] icon.png placeholder creata
-- [ ] splash.png placeholder creata
-- [ ] App funzionante con icone temporanee
+## 🔧 Come Aggiornare
 
-### Pre-Store
-- [ ] Logo FarmyGo finale implementato
-- [ ] Tutti gli asset finali creati
-- [ ] Screenshot dell'app reale
-- [ ] Test su dispositivi fisici
+1. **Sostituisci i file** in questa cartella
+2. **Mantieni i nomi** esatti dei file
+3. **Rispetta le dimensioni** specificate
+4. **Testa su dispositivi** diversi
+5. **Rebuilda l'app** per vedere i cambiamenti
 
-### Store Ready
-- [ ] Icone validate da Expo
-- [ ] Screenshots in tutte le dimensioni
-- [ ] Asset conformi alle guidelines Apple/Google
-- [ ] Metadata store completati
+```bash
+# Dopo aver aggiornato gli asset
+eas build --clear-cache --platform all
+```
+
+## ✅ Checklist Assets
+
+- [ ] icon.png (1024x1024)
+- [ ] adaptive-icon.png (1024x1024)  
+- [ ] splash.png (1284x2778)
+- [ ] notification-icon.png (96x96)
+- [ ] favicon.png (32x32)
+- [ ] notification.wav (opzionale)
+
+## 🎯 Asset di Produzione
+
+Per la pubblicazione negli store è essenziale avere:
+- Icone in alta qualità
+- Splash screen professionale
+- Branding coerente
+- Ottimizzazione dimensioni
+
+## 📞 Supporto
+
+Per assistenza con gli asset:
+- **Email**: design@farmygo.ch
+- **Formato richieste**: Specifica device e use case
+- **Timeline**: Aggiornamenti entro 1-2 giorni lavorativi
 
 ---
 
-**Nota**: Attualmente usa asset placeholder. Prima della submission store, sostituire con asset professionali FarmyGo.
+**Nota**: Attualmente questa cartella contiene solo placeholder. Sostituisci con gli asset FarmyGo ufficiali prima del rilascio in produzione.

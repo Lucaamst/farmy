@@ -1,207 +1,226 @@
-# FarmyGo Courier App
+# 📱 FarmyGo Courier Mobile App
 
-App mobile nativa per i corrieri FarmyGo costruita con React Native e Expo.
+L'app mobile dedicata ai corrieri FarmyGo per gestire le consegne in modo efficiente e professionale.
 
-## 📱 Caratteristiche
+## ✨ Caratteristiche
 
-### ✅ Implementate
-- **Login sicuro** per corrieri
-- **Dashboard consegne** con statistiche in tempo reale
-- **Gestione stato consegne** (Assegnato → In Corso → Completato)
-- **Notifiche push** per nuove consegne
-- **Design nativo** ottimizzato per iOS e Android
-- **Offline support** per funzionalità base
-- **Sicurezza** con SecureStore per token
+### 🔐 Autenticazione Sicura
+- Login con credenziali corriere
+- Token JWT per sessioni sicure
+- Archiviazione sicura con Expo SecureStore
 
-### 🚧 Da Completare
-- **Mappa integrata** con navigazione GPS
-- **Fotocamera** per prove di consegna
-- **Geolocalizzazione** per tracking in tempo reale
-- **Profilo corriere** con impostazioni
+### 📦 Gestione Consegne
+- Lista consegne assegnate in tempo reale
+- Stati: Assegnato → In Corso → Consegnato
+- Dettagli completi per ogni consegna
+- Aggiornamenti in tempo reale
 
-## 🛠 Setup e Deploy
+### 🗺️ Navigazione Integrata
+- Mappa interattiva con posizioni consegne
+- Navigazione diretta a Google Maps
+- Tracking GPS del corriere
+- Visualizzazione ottimizzata per mobile
+
+### 👤 Profilo Corriere
+- Informazioni personali
+- Statistiche consegne
+- Impostazioni app
+- Centro assistenza
+
+### 🔔 Notifiche Push
+- Notifiche per nuove consegne
+- Aggiornamenti stato ordini
+- Comunicazioni urgenti
+
+## 🛠️ Stack Tecnologico
+
+- **Framework**: React Native con Expo
+- **UI Components**: React Native Paper
+- **Navigazione**: React Navigation v6
+- **Mappe**: React Native Maps (Google Maps)
+- **Notifiche**: Expo Notifications
+- **Storage**: Expo SecureStore
+- **HTTP Client**: Axios
+- **Icone**: React Native Vector Icons
+
+## 📱 Compatibilità
+
+- **iOS**: 13.0+
+- **Android**: API Level 21+ (Android 5.0+)
+- **Supporto**: Smartphone e tablet
+
+## 🚀 Setup Locale
 
 ### Prerequisiti
-- Node.js 18+
-- Expo CLI (`npm install -g @expo/cli`)
-- EAS CLI (`npm install -g eas-cli`)
-- Account Google Play Console ($25)
-- Account Apple Developer ($99/anno)
-
-### Setup Iniziale (GIÀ FATTO)
 ```bash
-# ✅ Già configurato con il tuo project ID
-npm install --global eas-cli
-npx create-expo-app farmygo
-cd farmygo
-eas init --id 2f53e315-043e-4bce-b8a3-0bffba91dad3
+node >= 16.0.0
+npm >= 8.0.0
+expo-cli >= 6.0.0
 ```
 
-### Installazione Dipendenze
+### Installazione Rapida
 ```bash
-cd /app/courier-app
+# Clone e installa dipendenze
+git clone [repository]
+cd courier-app
 npm install
-```
 
-### Sviluppo
-```bash
-# Avvia Expo in modalità development
+# Installa Expo CLI e EAS CLI
+npm install -g @expo/cli eas-cli
+
+# Avvia sviluppo
 npx expo start
-
-# Test su dispositivo Android
-npx expo start --android
-
-# Test su dispositivo iOS  
-npx expo start --ios
-
-# Tunnel per test remoto
-npx expo start --tunnel
 ```
 
-### Build per Produzione
+### Setup Automatico
 ```bash
-# 🔧 CONFIGURAZIONE INIZIALE
-eas login  # Login con il tuo account Expo
-
-# 📱 BUILD ANDROID
-eas build --platform android --profile production
-
-# 🍎 BUILD iOS
-eas build --platform ios --profile production
-
-# 🚀 BUILD ENTRAMBI
-eas build --platform all --profile production
-
-# 👀 BUILD PREVIEW (per test)
-eas build --platform all --profile preview
+# Esegui script di setup
+chmod +x setup.sh
+./setup.sh
 ```
 
-### Pubblicazione Store
-```bash
-# 📲 GOOGLE PLAY STORE
-eas submit --platform android --profile production
+## 📋 Configurazione
 
-# 🍎 APPLE APP STORE  
-eas submit --platform ios --profile production
-```
-
-## 📋 API Integration
-
-L'app si connette alle stesse API backend di FarmyGo:
-
-- **Base URL**: `https://farmygo.ch/api`
-- **Authentication**: JWT Bearer Token
-- **Endpoints usati**:
-  - `POST /auth/login` - Login corriere
-  - `GET /auth/me` - Validazione token
-  - `GET /courier/deliveries` - Lista consegne
-  - `PATCH /courier/deliveries/start` - Avvia consegna
-  - `PATCH /courier/deliveries/mark-delivered` - Completa consegna
-
-## 🎨 Design System
-
-### Colori Tema
-- **Primary**: `#ea580c` (Arancione FarmyGo)
-- **Secondary**: `#dc2626` (Rosso)
-- **Success**: `#059669` (Verde)
-- **Background**: `#fff7ed` (Crema)
-
-### Componenti
-- **React Native Paper** per UI components
-- **React Navigation** per navigazione
-- **Vector Icons** per icone
-- **Toast Messages** per notifiche
-
-## 📱 Funzionalità Future
-
-### Fase 4 - Miglioramenti
-1. **Mappa Interattiva**
-   - Visualizzazione consegne su mappa
-   - Navigazione turn-by-turn
-   - Ottimizzazione percorsi
-
-2. **Fotocamera e Media**
-   - Foto prova consegna
-   - Upload automatico al server
-   - Galleria consegne completate
-
-3. **Tracking GPS**
-   - Posizione corriere in tempo reale
-   - Cronologia percorsi
-   - ETA dinamico per clienti
-
-4. **Notifiche Avanzate**
-   - Push personalizzate
-   - Suoni custom per urgenze
-   - Badge con contatori
-
-## 🔧 Configurazione
-
-### Environment Variables
-```javascript
-// app.json - extra config
+### 1. API Endpoint
+Aggiorna l'URL del backend in `app.json`:
+```json
 {
-  "extra": {
-    "apiUrl": "https://farmygo.ch/api",
-    "eas": {
-      "projectId": "farmygo-courier-ch"
+  "expo": {
+    "extra": {
+      "apiUrl": "https://farmygo.ch/api"
     }
   }
 }
 ```
 
-### Permissions
-- **Location**: Per tracking e navigazione
-- **Camera**: Per foto prove consegna
-- **Notifications**: Per alert nuove consegne
-- **Network**: Per sincronizzazione dati
+### 2. Assets Branding
+Sostituisci i placeholder con gli asset FarmyGo:
+- `assets/icon.png` - Icona app (1024x1024)
+- `assets/splash.png` - Splash screen (1284x2778)
+- `assets/adaptive-icon.png` - Icona adattiva Android (1024x1024)
 
-## 📊 Store Listing
+### 3. Notifiche Push
+Configurazione automatica con Expo Push Service tramite il Project ID.
 
-### App Store / Google Play
-- **Nome**: "FarmyGo Courier"
-- **Categoria**: Business / Productivity
-- **Rating**: 4+ (Suitable for all ages)
-- **Keywords**: delivery, courier, logistics, farmygo
+## 🔨 Build e Deploy
 
-### Screenshot Richiesti
-- Login screen (5.5" e 6.5")
-- Dashboard consegne
-- Dettaglio consegna
-- Mappa (quando implementata)
+### Build di Sviluppo
+```bash
+# Build per testing interno
+eas build --profile development --platform all
+```
 
-## 🚀 Deploy Checklist
+### Build di Produzione
+```bash
+# Build per stores
+eas build --profile production --platform all
+```
 
-### Pre-Deploy
-- [ ] Test completo su dispositivi fisici
-- [ ] Validazione API endpoints
-- [ ] Test notifiche push
-- [ ] Ottimizzazione icone e splash screen
-- [ ] Test login/logout flow
+### Pubblicazione Store
+```bash
+# Submit to App Store e Google Play
+eas submit --profile production --platform all
+```
 
-### Store Submission
-- [ ] Build produzione firmato
-- [ ] Screenshot app store
-- [ ] Descrizione app in italiano/inglese
-- [ ] Privacy policy e termini
-- [ ] Test review guidelines
+## 📱 Testing
 
-### Post-Deploy
-- [ ] Monitoring crash reports
-- [ ] Analytics implementate
-- [ ] Feedback utenti
-- [ ] Updates incrementali
+### Device Testing
+1. Installa **Expo Go** dal tuo app store
+2. Avvia `npx expo start`
+3. Scansiona il QR code con Expo Go (Android) o Camera (iOS)
 
-## 📞 Support
+### Simulatori
+```bash
+# iOS Simulator
+npx expo start --ios
 
-Per supporto tecnico durante deploy:
-- Documentazione Expo: https://docs.expo.dev/
-- React Native Paper: https://callstack.github.io/react-native-paper/
-- Google Play Console: https://play.google.com/console
-- Apple Developer: https://developer.apple.com/
+# Android Emulator  
+npx expo start --android
+```
+
+## 🔧 Sviluppo
+
+### Struttura Progetto
+```
+courier-app/
+├── App.js                 # App principale
+├── app.json              # Configurazione Expo
+├── package.json          # Dipendenze
+├── eas.json             # Configurazione build
+├── src/
+│   ├── screens/         # Schermate app
+│   │   ├── LoginScreen.js
+│   │   ├── DeliveriesScreen.js
+│   │   ├── MapScreen.js
+│   │   └── ProfileScreen.js
+│   ├── services/        # Servizi API
+│   │   ├── AuthService.js
+│   │   └── NotificationService.js
+│   └── theme/          # Tema e stili
+│       └── theme.js
+└── assets/             # Assets e risorse
+    └── [icons, splash, etc.]
+```
+
+### Hot Reload
+L'app supporta hot reload automatico durante lo sviluppo. Salva un file e vedi i cambiamenti istantaneamente.
+
+### Debug
+```bash
+# Debug con Flipper
+npx expo start --dev-client
+
+# Logs in tempo reale
+npx expo logs
+```
+
+## 🌐 API Integration
+
+### Endpoints Principali
+- `POST /auth/login` - Autenticazione corriere
+- `GET /courier/deliveries` - Lista consegne
+- `PATCH /courier/deliveries/start` - Avvia consegna
+- `PATCH /courier/deliveries/mark-delivered` - Completa consegna
+
+### Error Handling
+L'app gestisce automaticamente:
+- Errori di rete
+- Token scaduti
+- Errori API
+- Stati offline
+
+## 🔐 Sicurezza
+
+- Archiviazione sicura token con encrypting
+- Validazione input lato client
+- Timeout richieste API
+- Gestione permessi device
+
+## 📞 Supporto
+
+Per assistenza tecnica:
+- **Email**: support@farmygo.ch
+- **Documentazione**: Vedi EXPO_SETUP_GUIDE.md
+- **Issues**: Contatta il team di sviluppo
+
+## 📝 Note di Rilascio
+
+### v1.0.0 (Attuale)
+- ✅ Autenticazione corrieri
+- ✅ Gestione consegne completa  
+- ✅ Navigazione con mappe
+- ✅ Notifiche push
+- ✅ Interfaccia in italiano
+- ✅ Design responsive
+
+### Prossime Funzionalità
+- 📸 Foto di conferma consegna
+- 📊 Statistiche avanzate
+- 🌙 Modalità scura
+- 🔄 Sync offline
+- 📱 Widget iOS/Android
 
 ---
 
-**FarmyGo Courier App v1.0.0**  
-Sviluppata per iOS e Android  
-farmygo.ch
+**Sviluppato per FarmyGo** 🚚  
+*Sistema di Gestione Consegne Professionale*
