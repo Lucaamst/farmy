@@ -327,7 +327,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Recent Modifications: Courier Full Name & Orders Daily Filter"
+    - "FarmyGo Order Visibility and Filtering Fixes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
