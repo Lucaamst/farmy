@@ -202,6 +202,7 @@ export const italian = {
   manageAllCouriers: "Gestisci tutti i corrieri",
   ordersManagement: "Gestione Ordini",
   manageAllOrders: "Gestisci tutti gli ordini",
+  pendingOrdersOnly: "Solo ordini da assegnare",
   todaysOrders: "Ordini di Oggi",
   latestOrderActivity: "Ultima attività degli ordini",
   
