@@ -2440,7 +2440,7 @@ function CompanyAdminDashboard() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                   <div>
                     <CardTitle className="text-lg sm:text-xl">{t.ordersManagement}</CardTitle>
-                    <CardDescription className="text-sm">{t.manageAllOrders}</CardDescription>
+                    <CardDescription className="text-sm">{t.manageAllOrders} - {t.todaysOrders}</CardDescription>
                   </div>
                   <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                     <Dialog open={showCreateOrderDialog} onOpenChange={setShowCreateOrderDialog}>
