@@ -2763,6 +2763,15 @@ function CompanyAdminDashboard() {
             {editingCourier && (
               <form onSubmit={updateCourier} className="space-y-4">
                 <div>
+                  <Label htmlFor="editCourierFullName" className="text-sm">{t.fullName}</Label>
+                  <Input
+                    id="editCourierFullName"
+                    value={editingCourier.full_name || ''}
+                    onChange={(e) => setEditingCourier({ ...editingCourier, full_name: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="editCourierUsername" className="text-sm">{t.username}</Label>
                   <Input
                     id="editCourierUsername"
