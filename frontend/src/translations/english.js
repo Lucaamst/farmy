@@ -159,6 +159,7 @@ export const english = {
   manageAllCouriers: "Manage all couriers",
   ordersManagement: "Orders Management",
   manageAllOrders: "Manage all orders",
+  pendingOrdersOnly: "Only pending orders",
   todaysOrders: "Today's Orders",
   latestOrderActivity: "Latest order activity",
   
