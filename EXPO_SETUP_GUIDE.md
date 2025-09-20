@@ -33,9 +33,59 @@ eas init --id 2f53e315-043e-4bce-b8a3-0bffba91dad3
 2. **Copia** tutti i file dalla cartella `/app/courier-app/` del container
 3. **Mantieni** solo il file `.expo/` se esiste
 
-### STEP 5: File Principali da Copiare
+**Struttura da copiare:**
+```
+FarmyGoCourier/
+├── App.js              ← Copia da courier-app/App.js
+├── package.json        ← Copia da courier-app/package.json  
+├── app.json           ← Copia da courier-app/app.json
+├── eas.json           ← Copia da courier-app/eas.json
+├── src/               ← Copia tutta la cartella src/
+│   ├── screens/
+│   ├── services/
+│   └── theme/  
+├── assets/            ← Crea cartella e copia README.md
+└── README.md          ← Copia da courier-app/README.md
+```
 
-**App.js**
+### STEP 6: Installa Dipendenze
+```bash
+npm install
+```
+
+### STEP 7: Configura Assets
+1. **Copia** il file `assets/README.md` 
+2. **Sostituisci** gli asset placeholder con il branding FarmyGo
+3. **Assets richiesti:**
+   - `icon.png` (1024x1024)
+   - `splash.png` (1284x2778) 
+   - `adaptive-icon.png` (1024x1024)
+   - `favicon.png` (32x32)
+
+### STEP 8: Test Locale
+```bash
+# Avvia development server
+npx expo start
+
+# Su dispositivo iOS  
+npx expo start --ios
+
+# Su dispositivo Android
+npx expo start --android
+```
+
+### STEP 9: Test su Dispositivo Reale
+1. **Installa Expo Go** dal tuo app store
+2. **Scansiona QR code** dal terminale
+3. **Testa funzionalità:**
+   - Login corriere
+   - Lista consegne
+   - Navigazione
+   - Notifiche
+
+## 📋 CODICE COMPLETO DA COPIARE
+
+### App.js
 ```javascript
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
