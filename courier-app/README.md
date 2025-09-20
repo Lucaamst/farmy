@@ -24,10 +24,20 @@ App mobile nativa per i corrieri FarmyGo costruita con React Native e Expo.
 ### Prerequisiti
 - Node.js 18+
 - Expo CLI (`npm install -g @expo/cli`)
+- EAS CLI (`npm install -g eas-cli`)
 - Account Google Play Console ($25)
 - Account Apple Developer ($99/anno)
 
-### Installazione
+### Setup Iniziale (GIÀ FATTO)
+```bash
+# ✅ Già configurato con il tuo project ID
+npm install --global eas-cli
+npx create-expo-app farmygo
+cd farmygo
+eas init --id 2f53e315-043e-4bce-b8a3-0bffba91dad3
+```
+
+### Installazione Dipendenze
 ```bash
 cd /app/courier-app
 npm install
@@ -35,35 +45,44 @@ npm install
 
 ### Sviluppo
 ```bash
-# Avvia in modalità development
-expo start
+# Avvia Expo in modalità development
+npx expo start
 
 # Test su dispositivo Android
-expo start --android
+npx expo start --android
 
-# Test su dispositivo iOS
-expo start --ios
+# Test su dispositivo iOS  
+npx expo start --ios
+
+# Tunnel per test remoto
+npx expo start --tunnel
 ```
 
 ### Build per Produzione
 ```bash
-# Build Android (APK/AAB)
-eas build --platform android
+# 🔧 CONFIGURAZIONE INIZIALE
+eas login  # Login con il tuo account Expo
 
-# Build iOS (IPA)
-eas build --platform ios
+# 📱 BUILD ANDROID
+eas build --platform android --profile production
 
-# Build entrambe le piattaforme
-eas build --platform all
+# 🍎 BUILD iOS
+eas build --platform ios --profile production
+
+# 🚀 BUILD ENTRAMBI
+eas build --platform all --profile production
+
+# 👀 BUILD PREVIEW (per test)
+eas build --platform all --profile preview
 ```
 
 ### Pubblicazione Store
 ```bash
-# Pubblica su Google Play Store
-eas submit --platform android
+# 📲 GOOGLE PLAY STORE
+eas submit --platform android --profile production
 
-# Pubblica su Apple App Store
-eas submit --platform ios
+# 🍎 APPLE APP STORE  
+eas submit --platform ios --profile production
 ```
 
 ## 📋 API Integration
