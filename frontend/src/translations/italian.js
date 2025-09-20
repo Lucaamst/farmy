@@ -230,6 +230,8 @@ export const italian = {
   address: "Indirizzo",
   phone: "Telefono",
   courier: "Corriere",
+  fullName: "Nome Completo",
+  enterFullName: "Inserisci nome completo",
   
   // Customer Management
   customers: "Clienti",
