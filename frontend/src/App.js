@@ -1987,7 +1987,7 @@ function CompanyAdminDashboard() {
 
   const getCourierName = (courierId) => {
     const courier = couriers.find(c => c.id === courierId);
-    return courier ? courier.username : t.unassigned;
+    return courier ? (courier.full_name || courier.username) : t.unassigned;
   };
 
   useEffect(() => {
