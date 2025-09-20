@@ -370,7 +370,6 @@ function CourierDashboard() {
                       <div className="flex-1 min-w-0 pr-0 sm:pr-4">
                         <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{delivery.customer_name}</h3>
                         <p className="text-gray-600 text-xs sm:text-sm break-words">{delivery.delivery_address}</p>
-                        <p className="text-gray-500 text-xs sm:text-sm">📞 {delivery.phone_number}</p>
                         {delivery.reference_number && (
                           <p className="text-gray-500 text-xs sm:text-sm">📋 Rif: {delivery.reference_number}</p>
                         )}
