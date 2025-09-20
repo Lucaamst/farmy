@@ -128,6 +128,7 @@ class CreateCourierRequest(BaseModel):
 class UpdateCourierRequest(BaseModel):
     username: str
     password: Optional[str] = None
+    full_name: Optional[str] = None
 
 class CreateOrderRequest(BaseModel):
     customer_name: str
