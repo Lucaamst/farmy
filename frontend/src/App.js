@@ -2579,6 +2579,14 @@ function CompanyAdminDashboard() {
                     
                     <div className="flex space-x-1">
                       <Button
+                        onClick={() => setSearchFilters({...searchFilters, status: ''})}
+                        variant="outline"
+                        size="sm"
+                        className="text-sm"
+                      >
+                        📋 Tutti gli Ordini
+                      </Button>
+                      <Button
                         onClick={() => exportOrders('excel')}
                         variant="outline"
                         size="sm"
