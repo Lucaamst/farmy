@@ -303,6 +303,21 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ RECENT MODIFICATIONS COMPREHENSIVE TESTING COMPLETED - All 15 specialized tests passed (100% success rate). Tested all recent FarmyGo modifications: 1) COURIER FULL NAME FIELD (5 tests): Create couriers with/without full_name, verify field in listings, update existing couriers with full_name, backward compatibility confirmed. 2) ORDERS DAILY FILTER (6 tests): Today's date filter, date_from only, date_to only, custom date ranges, invalid date handling - all working correctly. 3) UPDATED API RESPONSES (3 tests): Courier responses include full_name field, order search filter combinations, empty/null filters handled properly. 4) INTEGRATION TESTING (2 tests): Complete workflow (create courier with full name → create order → assign → filter), backward compatibility workflow for couriers without full names. All new features work correctly with existing functionality. The courier full_name field is properly implemented with backward compatibility, daily order filtering works with various date combinations, and all API responses include the new fields as expected."
+        - working: true
+          agent: "testing"
+          comment: "🎯 FARMYGO ORDER VISIBILITY & FILTERING COMPREHENSIVE TESTING COMPLETED - All 11 focused tests passed (100% success rate). Tested specific FarmyGo order visibility and filtering fixes: 1) ORDER CREATION & VISIBILITY: Orders appear immediately in orders list after creation (✅), both with/without phone numbers work correctly (✅). 2) ORDER FILTERING SYSTEM: Empty/null filters handled without errors (✅), individual filters (customer_name, status, date) work correctly (✅), multiple filter combinations work properly (✅), clearing filters returns all orders (✅). 3) ORDER ASSIGNMENT: Couriers with full names can be assigned to orders successfully (✅), assignment workflow updates order status and courier_id correctly (✅). 4) ORDERS DEFAULT BEHAVIOR: GET /api/orders returns all orders without date filtering (✅), new orders appear immediately without needing special filters (✅). All order visibility and filtering issues have been resolved and are working correctly."
+
+  - task: "FarmyGo Order Visibility and Filtering Fixes"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎯 FARMYGO ORDER VISIBILITY & FILTERING COMPREHENSIVE TESTING COMPLETED - All 11 focused tests passed (100% success rate). Comprehensive testing of FarmyGo order visibility and filtering fixes: ✅ ORDER CREATION IMMEDIATE VISIBILITY: New orders appear instantly in orders list without refresh needed, ✅ ORDER CREATION WITH/WITHOUT PHONE: Both order types (with phone +39 333 format and without phone) create successfully and appear in listings, ✅ ORDER FILTERING EMPTY/NULL FILTERS: Empty string filters and omitted parameters handled correctly without errors, ✅ INDIVIDUAL ORDER FILTERS: Customer name search, status filtering, and date filtering all work independently, ✅ MULTIPLE FILTER COMBINATIONS: Complex filter combinations (name+status, status+date, all filters) work correctly, ✅ FILTER CLEARING BEHAVIOR: Clearing filters properly returns to showing all orders, ✅ COURIER FULL NAME ASSIGNMENT: Orders can be assigned to couriers with full names, assignment updates order status to 'assigned' and sets courier_id, ✅ ORDERS DEFAULT BEHAVIOR: GET /api/orders returns all orders without date restrictions, search without filters returns same results as default endpoint. All order management workflows are functioning correctly with proper visibility and filtering capabilities."
 
 metadata:
   created_by: "main_agent"
