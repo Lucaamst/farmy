@@ -312,7 +312,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Customer Management System"
+    - "Recent Modifications: Courier Full Name & Orders Daily Filter"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
