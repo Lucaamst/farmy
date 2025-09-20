@@ -1555,7 +1555,7 @@ function CompanyAdminDashboard() {
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       let url = `${API}/orders`;
       const hasCustomFilters = Object.values(searchFilters).some(filter => filter && filter.trim() !== '');
@@ -1580,7 +1580,7 @@ function CompanyAdminDashboard() {
         variant: "destructive",
       });
     }
-  };
+  }, [searchFilters, API, t, toast]);
 
   const fetchData = async () => {
     setLoading(true);
