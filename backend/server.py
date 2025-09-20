@@ -584,6 +584,8 @@ async def update_courier(
     update_data = {"username": request.username}
     if request.password:
         update_data["password"] = hash_password(request.password)
+    if request.full_name is not None:
+        update_data["full_name"] = request.full_name
     
     # Update courier
     await db.users.update_one(
