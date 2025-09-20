@@ -60,6 +60,7 @@ class Company(BaseModel):
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     username: str
+    full_name: Optional[str] = None  # Added full name field
     role: str
     company_id: Optional[str] = None
     is_active: bool = True
