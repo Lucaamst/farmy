@@ -2075,8 +2075,14 @@ class DeliveryManagementAPITester:
             return False
 
 def main():
+    import sys
     tester = DeliveryManagementAPITester()
-    success = tester.run_all_tests()
+    
+    # Check if we should run focused tests or all tests
+    if len(sys.argv) > 1 and sys.argv[1] == "focused":
+        success = tester.run_farmygo_order_visibility_tests()
+    else:
+        success = tester.run_all_tests()
     return 0 if success else 1
 
 if __name__ == "__main__":
