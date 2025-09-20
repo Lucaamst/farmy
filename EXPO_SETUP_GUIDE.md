@@ -113,9 +113,25 @@ eas build --profile development --platform all
 eas build --profile preview --platform all
 ```
 
-### STEP 5: Avvia l'App
+### Build di Produzione
 ```bash
-npx expo start
+# Build finale per store
+eas build --profile production --platform all
+```
+
+### Submit agli Store
+```bash
+# App Store + Google Play
+eas submit --profile production --platform all
+```
+
+## 🔧 TROUBLESHOOTING
+
+### Errori Comuni
+
+**"Project not found"**
+```bash
+eas init --id 2f53e315-043e-4bce-b8a3-0bffba91dad3
 ```
 
 ### STEP 6: Test su Dispositivo
