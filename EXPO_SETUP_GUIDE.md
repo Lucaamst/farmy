@@ -336,21 +336,88 @@ Dopo questi passaggi:
 2. ✅ Potrai testarla sul tuo telefono
 3. ✅ Sarai pronto per build e deploy
 
-## ❓ PROBLEMI COMUNI
+## 📱 TESTING CHECKLIST
 
-**"Command not found: expo"**
-```bash
-npm install -g @expo/cli
+### Funzionalità da Testare
+- [ ] Login con credenziali corriere
+- [ ] Caricamento lista consegne  
+- [ ] Navigazione tra schermate
+- [ ] Mappa con marker consegne
+- [ ] Cambio stato consegne
+- [ ] Notifiche push
+- [ ] Logout e riaccesso
+- [ ] Funzionalità offline base
+
+### Test su Dispositivi
+- [ ] iPhone (iOS 13+)
+- [ ] Android (API 21+)
+- [ ] Tablet (opzionale)
+- [ ] Orientamento portrait/landscape
+
+## 🌐 CONFIGURAZIONE PRODUZIONE
+
+### Aggiorna API URL
+In `app.json`, cambia da:
+```json
+"extra": {
+  "apiUrl": "http://localhost:8001/api"
+}
 ```
 
-**"Project not found in dashboard"**
-- Assicurati di aver fatto `eas login`
-- Verifica che il projectId sia corretto
+A:
+```json  
+"extra": {
+  "apiUrl": "https://farmygo.ch/api"
+}
+```
 
-**App non si carica sul telefono**
-- Controlla che telefono e computer siano sulla stessa rete WiFi
-- Prova `npx expo start --tunnel`
+### Assets di Produzione
+- Sostituisci **tutti** i placeholder
+- Logo FarmyGo ad alta risoluzione
+- Splash screen professionale
+- Icone ottimizzate per store
+
+## 🎯 FASE 3: PUBBLICAZIONE
+
+### App Store (iOS)
+1. **Account Apple Developer** ($99/anno)
+2. **Build con EAS**: `eas build --platform ios`
+3. **Submit**: `eas submit --platform ios`
+4. **Review Apple**: 1-7 giorni
+
+### Google Play (Android)  
+1. **Account Google Play Console** ($25 one-time)
+2. **Build con EAS**: `eas build --platform android`
+3. **Submit**: `eas submit --platform android`
+4. **Review Google**: 1-3 giorni
+
+## ✅ RISULTATO FINALE
+
+Alla fine di questa procedura avrai:
+1. ✅ App funzionante in Expo Go
+2. ✅ Build per testing interno
+3. ✅ App pubblicata negli store (se desiderato)
+4. ✅ Sistema di notifiche attivo
+5. ✅ Branding FarmyGo completo
+
+## 📞 SUPPORTO
+
+**Problemi con setup?**
+- Verifica la connessione internet
+- Assicurati che il backend sia online
+- Controlla i permessi dispositivo
+
+**Expo non funziona?**
+```bash
+# Reset completo
+expo logout
+expo login
+eas build --clear-cache
+```
+
+**Vuoi supporto diretto?**
+Condividi il messaggio di errore e posso aiutarti a risolvere!
 
 ---
 
-💡 **Vuoi che ti guidi passo-passo in questa procedura?**
+💡 **Tip Importante**: Una volta completato il setup, l'app sarà completamente indipendente e funzionerà con il tuo backend FarmyGo in produzione!
