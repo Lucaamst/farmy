@@ -1564,12 +1564,14 @@ function CompanyAdminDashboard() {
   const fetchOrders = async () => {
     try {
       let url = `${API}/orders`;
-      const hasFilters = Object.values(searchFilters).some(filter => filter);
+      const hasFilters = Object.values(searchFilters).some(filter => filter && filter.trim() !== '');
       
       if (hasFilters) {
         const params = new URLSearchParams();
         Object.entries(searchFilters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
+          if (value && value.trim() !== '') {
+            params.append(key, value);
+          }
         });
         url = `${API}/orders/search?${params.toString()}`;
       }
@@ -1577,9 +1579,10 @@ function CompanyAdminDashboard() {
       const response = await axios.get(url);
       setOrders(response.data);
     } catch (error) {
+      console.error('Error fetching orders:', error);
       toast({
         title: t.error,
-        description: t.failedToFetchData,
+        description: error.response?.data?.detail || t.failedToFetchData,
         variant: "destructive",
       });
     }
