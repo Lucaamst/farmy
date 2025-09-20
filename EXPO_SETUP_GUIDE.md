@@ -102,9 +102,15 @@ npx expo start --android
 *(Copia da courier-app/app.json)*
 ```
 
-### STEP 4: Installa Dipendenze
+## 🚀 FASE 2: BUILD E DEPLOY
+
+### Build per Testing
 ```bash
-npm install
+# Build di sviluppo
+eas build --profile development --platform all
+
+# Build per testing interno
+eas build --profile preview --platform all
 ```
 
 ### STEP 5: Avvia l'App
