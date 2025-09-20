@@ -189,6 +189,8 @@ export const english = {
   address: "Address",
   phone: "Phone",
   courier: "Courier",
+  fullName: "Full Name",
+  enterFullName: "Enter full name",
   
   // Order management specific
   editOrder: "Edit Order",
