@@ -1603,7 +1603,7 @@ function CompanyAdminDashboard() {
         title: t.success,
         description: t.courierCreatedSuccessfully,
       });
-      setNewCourier({ username: '', password: '' });
+      setNewCourier({ username: '', password: '', full_name: '' });
       setShowCreateCourierDialog(false);
       fetchCouriers();
     } catch (error) {
