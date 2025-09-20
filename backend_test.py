@@ -1456,6 +1456,524 @@ class DeliveryManagementAPITester:
         
         return self.log_test("Delete Company", success, f"- Company deleted successfully")
 
+    # ========== FARMYGO ORDER VISIBILITY & FILTERING TESTS ==========
+    
+    def test_order_creation_immediate_visibility(self):
+        """Test that newly created orders appear immediately in orders list"""
+        print("\n📦 Testing Order Creation and Immediate Visibility")
+        
+        # Get initial order count
+        success1, status1, response1 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success1:
+            return self.log_test("Order Creation Immediate Visibility - Get Initial Orders", False, f"- Status: {status1}")
+        
+        initial_count = len(response1) if isinstance(response1, list) else 0
+        
+        # Create a new order
+        timestamp = datetime.now().strftime('%H%M%S')
+        order_data = {
+            "customer_name": f"Visibility Test Customer {timestamp}",
+            "delivery_address": "Via Test Visibility 123, Roma, 00100 RM",
+            "phone_number": f"+39 333 {timestamp}",
+            "reference_number": f"VIS-TEST-{timestamp}"
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("Order Creation Immediate Visibility - Create Order", False, f"- Status: {status2}, Response: {response2}")
+        
+        created_order = response2['order']
+        
+        # Immediately check if order appears in orders list
+        success3, status3, response3 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success3:
+            return self.log_test("Order Creation Immediate Visibility - Get Orders After Creation", False, f"- Status: {status3}")
+        
+        new_count = len(response3) if isinstance(response3, list) else 0
+        order_found = any(order['id'] == created_order['id'] for order in response3)
+        
+        # Store created order for later tests
+        self.test_data['visibility_test_order'] = created_order
+        
+        if new_count == initial_count + 1 and order_found:
+            return self.log_test("Order Creation Immediate Visibility", True, f"- Order appears immediately (count: {initial_count} → {new_count})")
+        else:
+            return self.log_test("Order Creation Immediate Visibility", False, f"- Order not visible immediately (count: {initial_count} → {new_count}, found: {order_found})")
+
+    def test_order_creation_with_without_phone(self):
+        """Test creating orders with and without phone numbers"""
+        print("\n📱 Testing Order Creation With/Without Phone Numbers")
+        
+        timestamp = datetime.now().strftime('%H%M%S')
+        
+        # Test 1: Create order WITH phone number
+        order_with_phone = {
+            "customer_name": f"Customer With Phone {timestamp}",
+            "delivery_address": "Via Phone Test 456, Milano, 20100 MI",
+            "phone_number": f"+39 333 {timestamp}1",
+            "reference_number": f"PHONE-{timestamp}"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'orders',
+            data=order_with_phone,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Create order WITHOUT phone number (optional field)
+        order_without_phone = {
+            "customer_name": f"Customer No Phone {timestamp}",
+            "delivery_address": "Via No Phone Test 789, Napoli, 80100 NA",
+            "reference_number": f"NOPHONE-{timestamp}"
+            # phone_number is intentionally omitted
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'POST', 'orders',
+            data=order_without_phone,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: Verify both orders appear in orders list
+        success3, status3, response3 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success3 and isinstance(response3, list):
+            phone_order_found = any(order.get('reference_number') == f"PHONE-{timestamp}" for order in response3)
+            no_phone_order_found = any(order.get('reference_number') == f"NOPHONE-{timestamp}" for order in response3)
+        else:
+            phone_order_found = False
+            no_phone_order_found = False
+        
+        overall_success = success1 and success2 and success3 and phone_order_found and no_phone_order_found
+        
+        if overall_success:
+            return self.log_test("Order Creation With/Without Phone", True, f"- Both order types created and visible")
+        else:
+            details = f"- With phone: {success1}, Without phone: {success2}, List: {success3}, Found with phone: {phone_order_found}, Found without phone: {no_phone_order_found}"
+            return self.log_test("Order Creation With/Without Phone", False, details)
+
+    def test_order_filtering_empty_null_filters(self):
+        """Test that empty/null filters don't cause errors"""
+        print("\n🔍 Testing Order Filtering with Empty/Null Filters")
+        
+        # Test 1: Empty string filters
+        success1, status1, response1 = self.make_request(
+            'GET', 'orders/search',
+            params={
+                "customer_name": "",
+                "courier_id": "",
+                "status": "",
+                "date_from": "",
+                "date_to": ""
+            },
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: None/null filters (omitted parameters)
+        success2, status2, response2 = self.make_request(
+            'GET', 'orders/search',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: Mixed empty and valid filters
+        success3, status3, response3 = self.make_request(
+            'GET', 'orders/search',
+            params={
+                "customer_name": "",
+                "status": "pending"
+            },
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        overall_success = success1 and success2 and success3
+        
+        if overall_success:
+            return self.log_test("Order Filtering Empty/Null Filters", True, f"- Empty filters handled correctly")
+        else:
+            details = f"- Empty strings: {success1} ({status1}), No params: {success2} ({status2}), Mixed: {success3} ({status3})"
+            return self.log_test("Order Filtering Empty/Null Filters", False, details)
+
+    def test_order_filtering_individual_filters(self):
+        """Test individual order filters"""
+        print("\n🎯 Testing Individual Order Filters")
+        
+        # Ensure we have test data
+        if 'visibility_test_order' not in self.test_data:
+            return self.log_test("Individual Order Filters", False, "- No test order available")
+        
+        test_order = self.test_data['visibility_test_order']
+        
+        # Test 1: Filter by customer name
+        success1, status1, response1 = self.make_request(
+            'GET', 'orders/search',
+            params={"customer_name": "Visibility Test"},
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Filter by status
+        success2, status2, response2 = self.make_request(
+            'GET', 'orders/search',
+            params={"status": "pending"},
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: Filter by date (today)
+        today = datetime.now().strftime('%Y-%m-%d')
+        success3, status3, response3 = self.make_request(
+            'GET', 'orders/search',
+            params={"date_from": today},
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Verify results contain expected data
+        name_filter_works = success1 and isinstance(response1, list) and any(
+            'Visibility Test' in order.get('customer_name', '') for order in response1
+        )
+        
+        status_filter_works = success2 and isinstance(response2, list) and all(
+            order.get('status') == 'pending' for order in response2 if response2
+        )
+        
+        date_filter_works = success3 and isinstance(response3, list)
+        
+        overall_success = name_filter_works and status_filter_works and date_filter_works
+        
+        if overall_success:
+            return self.log_test("Individual Order Filters", True, f"- Name, status, and date filters working")
+        else:
+            details = f"- Name filter: {name_filter_works}, Status filter: {status_filter_works}, Date filter: {date_filter_works}"
+            return self.log_test("Individual Order Filters", False, details)
+
+    def test_order_filtering_combinations(self):
+        """Test combination of multiple filters"""
+        print("\n🔗 Testing Multiple Filter Combinations")
+        
+        # Test 1: Customer name + status
+        success1, status1, response1 = self.make_request(
+            'GET', 'orders/search',
+            params={
+                "customer_name": "Test",
+                "status": "pending"
+            },
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Status + date range
+        today = datetime.now().strftime('%Y-%m-%d')
+        success2, status2, response2 = self.make_request(
+            'GET', 'orders/search',
+            params={
+                "status": "pending",
+                "date_from": today
+            },
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: All filters combined
+        if 'courier_id' in self.test_data:
+            success3, status3, response3 = self.make_request(
+                'GET', 'orders/search',
+                params={
+                    "customer_name": "Test",
+                    "courier_id": self.test_data['courier_id'],
+                    "status": "assigned",
+                    "date_from": today
+                },
+                token=self.tokens.get('company_admin'),
+                expected_status=200
+            )
+        else:
+            success3 = True  # Skip if no courier available
+        
+        overall_success = success1 and success2 and success3
+        
+        if overall_success:
+            return self.log_test("Multiple Filter Combinations", True, f"- Filter combinations working correctly")
+        else:
+            details = f"- Name+Status: {success1} ({status1}), Status+Date: {success2} ({status2}), All filters: {success3}"
+            return self.log_test("Multiple Filter Combinations", False, details)
+
+    def test_order_filtering_clear_filters(self):
+        """Test that clearing filters returns to showing all orders"""
+        print("\n🧹 Testing Filter Clearing Behavior")
+        
+        # Get all orders (no filters)
+        success1, status1, response1 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Get orders with search but no filters (should be same as above)
+        success2, status2, response2 = self.make_request(
+            'GET', 'orders/search',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Apply a filter
+        success3, status3, response3 = self.make_request(
+            'GET', 'orders/search',
+            params={"status": "pending"},
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Clear filters (back to no parameters)
+        success4, status4, response4 = self.make_request(
+            'GET', 'orders/search',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success1 and success2 and success4:
+            all_orders_count = len(response1) if isinstance(response1, list) else 0
+            search_no_filter_count = len(response2) if isinstance(response2, list) else 0
+            cleared_filter_count = len(response4) if isinstance(response4, list) else 0
+            
+            # All three should return the same number of orders
+            counts_match = all_orders_count == search_no_filter_count == cleared_filter_count
+            
+            if counts_match:
+                return self.log_test("Filter Clearing Behavior", True, f"- Clearing filters returns all {all_orders_count} orders")
+            else:
+                return self.log_test("Filter Clearing Behavior", False, f"- Count mismatch: all={all_orders_count}, search={search_no_filter_count}, cleared={cleared_filter_count}")
+        else:
+            details = f"- Get all: {success1}, Search no filter: {success2}, Filtered: {success3}, Cleared: {success4}"
+            return self.log_test("Filter Clearing Behavior", False, details)
+
+    def test_courier_full_name_assignment(self):
+        """Test order assignment with couriers having full names"""
+        print("\n👤 Testing Courier Full Name Assignment")
+        
+        timestamp = datetime.now().strftime('%H%M%S')
+        
+        # Create courier with full name
+        courier_data = {
+            "username": f"fullname_courier_{timestamp}",
+            "password": "FullNameTest123!",
+            "full_name": "Mario Rossi Delivery Expert"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'couriers',
+            data=courier_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success1:
+            return self.log_test("Courier Full Name Assignment - Create Courier", False, f"- Status: {status1}")
+        
+        # Get courier list to find the ID
+        success2, status2, response2 = self.make_request(
+            'GET', 'couriers',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("Courier Full Name Assignment - Get Couriers", False, f"- Status: {status2}")
+        
+        # Find our courier
+        test_courier = None
+        for courier in response2:
+            if courier.get('username') == courier_data['username']:
+                test_courier = courier
+                break
+        
+        if not test_courier:
+            return self.log_test("Courier Full Name Assignment - Find Courier", False, "- Courier not found in list")
+        
+        # Verify full_name field is present
+        if 'full_name' not in test_courier or test_courier['full_name'] != courier_data['full_name']:
+            return self.log_test("Courier Full Name Assignment - Full Name Field", False, f"- Full name not stored correctly")
+        
+        # Create an order for assignment
+        order_data = {
+            "customer_name": f"Assignment Test Customer {timestamp}",
+            "delivery_address": "Via Assignment Test 999, Roma, 00100 RM",
+            "phone_number": f"+39 333 {timestamp}9",
+            "reference_number": f"ASSIGN-{timestamp}"
+        }
+        
+        success3, status3, response3 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success3:
+            return self.log_test("Courier Full Name Assignment - Create Order", False, f"- Status: {status3}")
+        
+        test_order = response3['order']
+        
+        # Assign order to courier with full name
+        assign_data = {
+            "order_id": test_order['id'],
+            "courier_id": test_courier['id']
+        }
+        
+        success4, status4, response4 = self.make_request(
+            'PATCH', 'orders/assign',
+            data=assign_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success4:
+            return self.log_test("Courier Full Name Assignment - Assign Order", False, f"- Status: {status4}, Response: {response4}")
+        
+        # Verify assignment worked
+        success5, status5, response5 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if success5:
+            assigned_order = None
+            for order in response5:
+                if order['id'] == test_order['id']:
+                    assigned_order = order
+                    break
+            
+            if assigned_order and assigned_order.get('courier_id') == test_courier['id'] and assigned_order.get('status') == 'assigned':
+                return self.log_test("Courier Full Name Assignment", True, f"- Order assigned to courier with full name: {courier_data['full_name']}")
+            else:
+                return self.log_test("Courier Full Name Assignment", False, f"- Assignment not reflected in order")
+        else:
+            return self.log_test("Courier Full Name Assignment", False, f"- Could not verify assignment")
+
+    def test_orders_default_behavior_no_date_filter(self):
+        """Test that GET /api/orders returns all orders without date filtering"""
+        print("\n📅 Testing Orders Default Behavior (No Date Filter)")
+        
+        # Create orders on different dates (simulate by creating multiple orders)
+        timestamp = datetime.now().strftime('%H%M%S')
+        orders_created = []
+        
+        for i in range(3):
+            order_data = {
+                "customer_name": f"Default Behavior Test {timestamp}_{i}",
+                "delivery_address": f"Via Default Test {i}, Roma, 0010{i} RM",
+                "phone_number": f"+39 333 {timestamp}{i}",
+                "reference_number": f"DEFAULT-{timestamp}-{i}"
+            }
+            
+            success, status, response = self.make_request(
+                'POST', 'orders',
+                data=order_data,
+                token=self.tokens.get('company_admin'),
+                expected_status=200
+            )
+            
+            if success and 'order' in response:
+                orders_created.append(response['order'])
+        
+        if len(orders_created) != 3:
+            return self.log_test("Orders Default Behavior - Create Test Orders", False, f"- Only created {len(orders_created)}/3 orders")
+        
+        # Test 1: GET /api/orders (should return all orders)
+        success1, status1, response1 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: GET /api/orders/search with no date filters (should return all orders)
+        success2, status2, response2 = self.make_request(
+            'GET', 'orders/search',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: Verify our test orders are in both responses
+        if success1 and success2:
+            all_orders_ids = [order['id'] for order in response1] if isinstance(response1, list) else []
+            search_orders_ids = [order['id'] for order in response2] if isinstance(response2, list) else []
+            
+            test_orders_in_all = all(order['id'] in all_orders_ids for order in orders_created)
+            test_orders_in_search = all(order['id'] in search_orders_ids for order in orders_created)
+            
+            # Both endpoints should return the same orders
+            same_results = set(all_orders_ids) == set(search_orders_ids)
+            
+            if test_orders_in_all and test_orders_in_search and same_results:
+                return self.log_test("Orders Default Behavior (No Date Filter)", True, f"- All orders returned without date filtering ({len(response1)} orders)")
+            else:
+                details = f"- Test orders in /orders: {test_orders_in_all}, in /search: {test_orders_in_search}, same results: {same_results}"
+                return self.log_test("Orders Default Behavior (No Date Filter)", False, details)
+        else:
+            details = f"- GET /orders: {success1} ({status1}), GET /orders/search: {success2} ({status2})"
+            return self.log_test("Orders Default Behavior (No Date Filter)", False, details)
+
+    def run_farmygo_order_visibility_tests(self):
+        """Run focused tests for FarmyGo order visibility and filtering issues"""
+        print("🎯 Starting FarmyGo Order Visibility & Filtering Tests")
+        print("=" * 70)
+        
+        # Ensure we have authentication
+        if not self.tokens.get('company_admin'):
+            print("❌ No company admin token available. Running basic authentication first...")
+            self.test_super_admin_login()
+            self.test_create_company()
+            self.test_company_admin_login()
+        
+        # Run focused tests
+        print("\n📋 FarmyGo Order Visibility & Filtering Tests")
+        self.test_order_creation_immediate_visibility()
+        self.test_order_creation_with_without_phone()
+        self.test_order_filtering_empty_null_filters()
+        self.test_order_filtering_individual_filters()
+        self.test_order_filtering_combinations()
+        self.test_order_filtering_clear_filters()
+        self.test_courier_full_name_assignment()
+        self.test_orders_default_behavior_no_date_filter()
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print(f"📊 FarmyGo Test Results: {self.tests_passed}/{self.tests_run} tests passed")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All FarmyGo order visibility and filtering tests passed!")
+            return True
+        else:
+            failed_tests = self.tests_run - self.tests_passed
+            print(f"⚠️  {failed_tests} test(s) failed. Please review the issues above.")
+            return False
+
     def run_all_tests(self):
         """Run all API tests in sequence"""
         print("🚀 Starting FarmyGo Delivery Management API Comprehensive Tests")
