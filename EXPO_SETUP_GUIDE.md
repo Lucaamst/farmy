@@ -85,6 +85,8 @@ npx expo start --android
 
 ## 📋 CODICE COMPLETO DA COPIARE
 
+*(Il codice completo è nel container, copia direttamente i file)*
+
 ### App.js
 ```javascript
 import React, { useState, useEffect } from 'react';
