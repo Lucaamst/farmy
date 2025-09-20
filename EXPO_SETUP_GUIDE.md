@@ -3,9 +3,9 @@
 ## 🚨 SITUAZIONE ATTUALE
 - ✅ Ho preparato tutto il codice nel container
 - ❌ L'app non è ancora nel TUO account Expo
-- 🎯 Devi creare l'app sul TUO computer
+- 🎯 Devi creare l'app sul TUO computer e copiarci il codice
 
-## 🔧 PROCEDURA CORRETTA
+## 🔧 PROCEDURA COMPLETA
 
 ### STEP 1: Installa Expo CLI (Sul tuo computer)
 ```bash
@@ -13,15 +13,27 @@ npm install -g @expo/cli
 npm install -g eas-cli
 ```
 
-### STEP 2: Crea l'App Expo
+### STEP 2: Login in Expo
 ```bash
-npx create-expo-app FarmyGoCourier
+npx expo login
+# Inserisci le tue credenziali Expo
+```
+
+### STEP 3: Crea l'App Expo
+```bash
+npx create-expo-app FarmyGoCourier --template blank
 cd FarmyGoCourier
 eas init --id 2f53e315-043e-4bce-b8a3-0bffba91dad3
 ```
 
-### STEP 3: Copia il Codice FarmyGo
-Sostituisci i file generati con quelli che ho preparato:
+### STEP 4: Copia il Codice FarmyGo
+**IMPORTANTE**: Scarica la cartella `courier-app` dal container e sostituisci tutto:
+
+1. **Elimina** i file generati automaticamente da Expo
+2. **Copia** tutti i file dalla cartella `/app/courier-app/` del container
+3. **Mantieni** solo il file `.expo/` se esiste
+
+### STEP 5: File Principali da Copiare
 
 **App.js**
 ```javascript
