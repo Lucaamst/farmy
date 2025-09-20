@@ -159,6 +159,7 @@ export const english = {
   manageAllCouriers: "Manage all couriers",
   ordersManagement: "Orders Management",
   manageAllOrders: "Manage all orders",
+  todaysOrders: "Today's Orders",
   latestOrderActivity: "Latest order activity",
   
   // Filter and search
