@@ -224,11 +224,6 @@ function Login() {
               {loading ? t.signingIn : t.signIn}
             </Button>
           </form>
-          
-          <div className="mt-6 p-4 bg-blue-950/30 rounded-lg border border-blue-800/30">
-            <p className="text-xs text-blue-200 mb-2 font-medium">{t.demoCredentials}</p>
-            <p className="text-xs text-blue-300">{t.superAdmin}: superadmin / admin123</p>
-          </div>
         </CardContent>
       </Card>
     </div>
