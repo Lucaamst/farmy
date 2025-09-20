@@ -1890,7 +1890,8 @@ function CompanyAdminDashboard() {
       date_from: '',
       date_to: ''
     });
-    fetchOrders();
+    // Manually fetch all orders when clearing filters
+    setTimeout(() => fetchOrders(), 100);
   };
 
   const handleEditCourierClick = (courier) => {
