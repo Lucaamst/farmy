@@ -2027,7 +2027,9 @@ function CompanyAdminDashboard() {
               <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.companyDashboard}</h1>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
+                Dashboard {company?.name}
+              </h1>
               <p className="text-sm sm:text-base text-gray-600 truncate">{company?.name} • {user.username}</p>
             </div>
           </div>
