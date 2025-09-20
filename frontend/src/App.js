@@ -2316,6 +2316,17 @@ function CompanyAdminDashboard() {
                     </DialogHeader>
                     <form onSubmit={createCourier} className="space-y-4">
                       <div>
+                        <Label htmlFor="courierFullName" className="text-sm">{t.fullName}</Label>
+                        <Input
+                          id="courierFullName"
+                          value={newCourier.full_name}
+                          onChange={(e) => setNewCourier({ ...newCourier, full_name: e.target.value })}
+                          placeholder={t.enterFullName}
+                          required
+                          className="text-sm"
+                        />
+                      </div>
+                      <div>
                         <Label htmlFor="courierUsername" className="text-sm">{t.username}</Label>
                         <Input
                           id="courierUsername"
