@@ -134,10 +134,29 @@ eas submit --profile production --platform all
 eas init --id 2f53e315-043e-4bce-b8a3-0bffba91dad3
 ```
 
-### STEP 6: Test su Dispositivo
-1. Installa **Expo Go** sul tuo telefono
-2. Scansiona il QR code che appare nel terminale
-3. L'app si caricherà sul tuo dispositivo
+**"Dependencies error"**  
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**"Expo Go can't load"**
+```bash
+# Assicurati che telefono e computer siano sulla stessa rete
+npx expo start --tunnel
+```
+
+**"Build failed"**
+```bash
+# Pulisci cache
+eas build --clear-cache --platform all
+```
+
+### Performance Tips
+1. **Usa Wi-Fi veloce** per sync
+2. **Chiudi app non necessarie** durante build
+3. **Aggiorna Expo Go** all'ultima versione
+4. **Testa su dispositivi fisici** non solo simulatori
 
 ## 📱 TESTING CHECKLIST
 
