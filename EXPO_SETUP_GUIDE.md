@@ -94,42 +94,7 @@ npx expo start --android
 
 **package.json**
 ```json
-{
-  "name": "farmygo-courier",
-  "version": "1.0.0",
-  "main": "expo/AppEntry.js",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "@react-navigation/native": "^6.1.9",
-    "@react-navigation/native-stack": "^6.9.17",
-    "@react-navigation/bottom-tabs": "^6.5.11",
-    "expo": "~49.0.21",
-    "expo-location": "~16.5.5",
-    "expo-notifications": "~0.23.2",
-    "expo-camera": "~13.6.0",
-    "expo-status-bar": "~1.6.0",
-    "expo-constants": "~14.4.2",
-    "expo-secure-store": "~12.5.0",
-    "expo-splash-screen": "~0.20.5",
-    "react": "18.2.0",
-    "react-native": "0.72.6",
-    "react-native-paper": "^5.11.1",
-    "react-native-vector-icons": "^10.0.2",
-    "react-native-maps": "1.8.0",
-    "react-native-safe-area-context": "4.7.4",
-    "react-native-screens": "~3.27.0",
-    "axios": "^1.6.0",
-    "react-native-toast-message": "^2.1.7"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0"
-  }
-}
+*(Copia da courier-app/package.json)*
 ```
 
 **app.json**
