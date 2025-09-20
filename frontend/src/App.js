@@ -2360,6 +2360,7 @@ function CompanyAdminDashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="text-xs sm:text-sm">{t.fullName}</TableHead>
                       <TableHead className="text-xs sm:text-sm">{t.username}</TableHead>
                       <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
                       <TableHead className="text-xs sm:text-sm">{t.activeDeliveries}</TableHead>
