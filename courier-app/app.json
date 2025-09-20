@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "FarmyGo Courier",
+    "slug": "farmygo-courier",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ea580c"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ch.farmygo.courier",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "FarmyGo utilizza la posizione per ottimizzare le consegne e fornire indicazioni precise.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "FarmyGo utilizza la posizione per tracciare le consegne in tempo reale.",
+        "NSCameraUsageDescription": "FarmyGo utilizza la fotocamera per fotografare le consegne completate come prova.",
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ea580c"
+      },
+      "package": "ch.farmygo.courier",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-location",
+      "expo-notifications",
+      "expo-camera",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#ea580c",
+          "sounds": ["./assets/notification.wav"]
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#ea580c",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Nuova consegna disponibile"
+    },
+    "extra": {
+      "apiUrl": "https://farmygo.ch/api",
+      "eas": {
+        "projectId": "farmygo-courier-ch"
+      }
+    }
+  }
+}
