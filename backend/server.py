@@ -258,6 +258,80 @@ def require_role(required_roles: List[str]):
         return current_user
     return role_checker
 
+# SMS Cost Management Functions
+async def get_sms_cost_settings():
+    """Get current SMS cost settings"""
+    settings = await db.sms_cost_settings.find_one({})
+    if not settings:
+        # Create default settings
+        default_settings = {
+            "id": str(uuid.uuid4()),
+            "cost_per_sms": 0.05,
+            "currency": "EUR", 
+            "updated_at": datetime.now(timezone.utc),
+            "updated_by": "system"
+        }
+        await db.sms_cost_settings.insert_one(default_settings)
+        return default_settings
+    return settings
+
+async def update_monthly_sms_stats(success: bool = True, company_id: str = None):
+    """Update monthly SMS statistics"""
+    now = datetime.now(timezone.utc)
+    year = now.year
+    month = now.month
+    
+    # Get current cost settings
+    cost_settings = await get_sms_cost_settings()
+    cost_per_sms = cost_settings["cost_per_sms"]
+    
+    # Find or create monthly record
+    monthly_stats = await db.sms_monthly_stats.find_one({"year": year, "month": month})
+    
+    if not monthly_stats:
+        monthly_stats = {
+            "id": str(uuid.uuid4()),
+            "year": year,
+            "month": month,
+            "total_sms_sent": 0,
+            "successful_sms": 0,
+            "failed_sms": 0,
+            "total_cost": 0.0,
+            "cost_per_sms": cost_per_sms,
+            "currency": cost_settings["currency"],
+            "companies_breakdown": {},
+            "created_at": now,
+            "updated_at": now
+        }
+    
+    # Update counters
+    monthly_stats["total_sms_sent"] += 1
+    if success:
+        monthly_stats["successful_sms"] += 1
+        monthly_stats["total_cost"] += cost_per_sms
+    else:
+        monthly_stats["failed_sms"] += 1
+    
+    # Update company breakdown
+    if company_id:
+        if company_id not in monthly_stats["companies_breakdown"]:
+            monthly_stats["companies_breakdown"][company_id] = {"sent": 0, "success": 0, "failed": 0}
+        
+        monthly_stats["companies_breakdown"][company_id]["sent"] += 1
+        if success:
+            monthly_stats["companies_breakdown"][company_id]["success"] += 1
+        else:
+            monthly_stats["companies_breakdown"][company_id]["failed"] += 1
+    
+    monthly_stats["updated_at"] = now
+    
+    # Upsert the record
+    await db.sms_monthly_stats.replace_one(
+        {"year": year, "month": month},
+        monthly_stats,
+        upsert=True
+    )
+
 # Security helper functions
 def hash_pin(pin: str) -> str:
     """Hash PIN for secure storage"""
