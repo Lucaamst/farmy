@@ -331,6 +331,18 @@ frontend:
           agent: "testing"
           comment: "🎯 SMS STATISTICS APIs COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY! All SMS Statistics API tests passed (100% success rate). Comprehensive testing confirmed: ✅ SMS STATISTICS API ACCESS: Super Admin can access GET /api/super-admin/sms-stats with proper authentication and role-based access control, response format includes current_month, monthly_history, year_to_date, cost_settings, and companies_breakdown fields, ✅ SMS COST SETTINGS API: PUT /api/super-admin/sms-cost-settings works correctly with validation (negative costs rejected), settings update and verification working, ✅ SMS MONTHLY REPORT API: GET /api/super-admin/sms-monthly-report works with proper year/month parameters, returns 404 for non-existent data as expected, response format includes monthly_stats, daily_breakdown, and period fields, ✅ AUTOMATIC SMS TRACKING: SMS statistics automatically updated when delivery is completed, company_id correctly tracked in breakdown, SMS logs created with proper company association, ✅ REAL TWILIO INTEGRATION: SMS tracking works with real Twilio API calls, Italian message format correctly sent, statistics updated for both successful and failed SMS attempts. Fixed ObjectId serialization issues in SMS statistics APIs. All SMS Statistics features are production-ready and working correctly."
 
+  - task: "Company SMS History API for Super Admin"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎯 COMPANY SMS HISTORY API COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY! All 11 specialized tests passed (100% success rate). New Company SMS History API for billing purposes is fully implemented and working perfectly: ✅ API ACCESS CONTROL: GET /api/super-admin/company-sms-history/{company_id} properly restricted to Super Admin only, Company Admin and Courier access correctly blocked (403), ✅ DATE RANGE PARAMETERS: API works with start_year, start_month, end_year, end_month parameters, defaults to last 12 months when not specified, proper date range validation, ✅ RESPONSE FORMAT FOR BILLING: Complete response structure with company info (id, name), date_range (start, end), summary (total_sms, total_cost, currency, months_count), monthly_breakdown array with detailed monthly stats (year, month, period, total_sms, successful_sms, failed_sms, cost_per_sms, total_cost, success_rate, currency), recent_sms_logs array with SMS details, total_logs_count for pagination, ✅ INTEGRATION WORKFLOW: Complete end-to-end testing - create order with phone number, assign to courier, mark as delivered, SMS automatically tracked with company_id, SMS history correctly updated with company breakdown, ✅ ERROR HANDLING: Non-existent company returns 404, proper authentication required, ObjectId serialization fixed for SMS logs. The Company SMS History API provides comprehensive SMS tracking and cost breakdown per company for accurate billing and invoicing. All billing requirements met with detailed monthly breakdowns, cost tracking, and SMS logs."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
