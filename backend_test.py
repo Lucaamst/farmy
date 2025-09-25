@@ -3129,8 +3129,13 @@ def main():
     tester = DeliveryManagementAPITester()
     
     # Check if we should run focused tests or all tests
-    if len(sys.argv) > 1 and sys.argv[1] == "focused":
-        success = tester.run_farmygo_order_visibility_tests()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "focused":
+            success = tester.run_farmygo_order_visibility_tests()
+        elif sys.argv[1] == "sms-history":
+            success = tester.run_company_sms_history_tests()
+        else:
+            success = tester.run_all_tests()
     else:
         success = tester.run_all_tests()
     return 0 if success else 1
