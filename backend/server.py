@@ -273,6 +273,10 @@ async def get_sms_cost_settings():
         }
         await db.sms_cost_settings.insert_one(default_settings)
         return default_settings
+    
+    # Convert ObjectId to string for JSON serialization
+    if '_id' in settings:
+        settings['_id'] = str(settings['_id'])
     return settings
 
 async def update_monthly_sms_stats(success: bool = True, company_id: str = None):
