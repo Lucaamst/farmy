@@ -18,7 +18,7 @@ import { Label } from './components/ui/label';
 import { Separator } from './components/ui/separator';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
-import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus, Globe, Key, Smartphone, MessageSquare, Lock } from 'lucide-react';
+import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus, Globe, Key, Smartphone, MessageSquare, Lock, Settings, RefreshCw, Euro, TrendingUp, Eye } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
