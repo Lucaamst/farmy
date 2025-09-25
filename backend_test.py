@@ -3080,6 +3080,13 @@ class DeliveryManagementAPITester:
         self.test_sms_tracking_success_vs_failed()
         self.test_sms_statistics_company_breakdown()
         
+        # Phase 9.5: Company SMS History API Tests (NEW)
+        print("\n📋 Phase 9.5: Company SMS History API Tests")
+        self.test_company_sms_history_api_access()
+        self.test_company_sms_history_with_date_range()
+        self.test_company_sms_history_response_format()
+        self.test_company_sms_history_integration_workflow()
+        
         # Phase 10: Multi-Level Security System Tests
         print("\n📋 Phase 10: Multi-Level Security System Tests")
         self.test_security_status_api()
