@@ -811,6 +811,179 @@ function SMSStatsSection() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Company SMS History Dialog */}
+      <Dialog open={showCompanyHistoryDialog} onOpenChange={setShowCompanyHistoryDialog}>
+        <DialogContent className="mx-4 sm:mx-0 max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="w-5 h-5" />
+              Storico SMS - {companyHistory?.company?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Storico completo SMS per fatturazione • {companyHistory?.date_range?.start} - {companyHistory?.date_range?.end}
+            </DialogDescription>
+          </DialogHeader>
+          {companyHistory && (
+            <div className="space-y-6">
+              {/* Summary Card */}
+              <Card className="p-4 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-blue-600">{companyHistory.summary.total_sms}</p>
+                    <p className="text-sm text-gray-600">SMS Totali</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatCurrency(companyHistory.summary.total_cost, companyHistory.summary.currency)}
+                    </p>
+                    <p className="text-sm text-gray-600">Importo Totale</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-600">{companyHistory.summary.months_count}</p>
+                    <p className="text-sm text-gray-600">Mesi</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {Math.round(companyHistory.summary.total_sms / Math.max(companyHistory.summary.months_count, 1))}
+                    </p>
+                    <p className="text-sm text-gray-600">SMS/Mese Medio</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Monthly Breakdown Table */}
+              <div>
+                <h4 className="text-lg font-semibold mb-3">Breakdown Mensile per Fatturazione</h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mese</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SMS Inviati</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Successo</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tasso</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {companyHistory.monthly_breakdown.map((month) => (
+                        <tr key={month.period} className="hover:bg-gray-50">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {new Date(month.year, month.month - 1).toLocaleDateString('it-IT', { 
+                              year: 'numeric', 
+                              month: 'long' 
+                            })}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {month.total_sms}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-green-600">
+                            {month.successful_sms}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {month.success_rate}%
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            {formatCurrency(month.total_cost, month.currency)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Recent SMS Logs */}
+              {companyHistory.recent_sms_logs?.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-3">
+                    SMS Recenti 
+                    <span className="text-sm font-normal text-gray-500 ml-2">
+                      ({companyHistory.recent_sms_logs.length} di {companyHistory.total_logs_count})
+                    </span>
+                  </h4>
+                  <div className="max-h-60 overflow-y-auto border rounded-lg">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefono</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stato</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metodo</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {companyHistory.recent_sms_logs.map((log, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                              {new Date(log.sent_at).toLocaleDateString('it-IT', { 
+                                day: '2-digit', 
+                                month: '2-digit', 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                              {log.phone_number || 'N/A'}
+                            </td>
+                            <td className="px-4 py-2 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                log.status === 'sent' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {log.status === 'sent' ? '✓ Inviato' : '✗ Fallito'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                              {log.method === 'twilio' ? 'Twilio' : 'Mock'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Export Actions */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const csvContent = [
+                      ['Mese', 'SMS Inviati', 'SMS Successo', 'Tasso Successo (%)', 'Costo', 'Valuta'].join(','),
+                      ...companyHistory.monthly_breakdown.map(month => [
+                        `${month.year}-${month.month.toString().padStart(2, '0')}`,
+                        month.total_sms,
+                        month.successful_sms,
+                        month.success_rate,
+                        month.total_cost,
+                        month.currency
+                      ].join(','))
+                    ].join('\n');
+                    
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `sms-history-${companyHistory.company.name}-${companyHistory.date_range.start}-${companyHistory.date_range.end}.csv`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Esporta CSV
+                </Button>
+                <Button onClick={() => setShowCompanyHistoryDialog(false)}>
+                  Chiudi
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
