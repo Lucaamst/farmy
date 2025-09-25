@@ -2585,6 +2585,429 @@ class DeliveryManagementAPITester:
             print(f"⚠️  {failed_tests} test(s) failed. Please review the issues above.")
             return False
 
+    # ========== COMPANY SMS HISTORY API TESTS ==========
+    
+    def test_company_sms_history_api_access(self):
+        """Test Company SMS History API access and authentication"""
+        print("\n📊 Testing Company SMS History API Access")
+        
+        if 'company' not in self.test_data:
+            return self.log_test("Company SMS History API Access", False, "- No company data available")
+        
+        company_id = self.test_data['company']['id']
+        
+        # Test 1: Super Admin can access company SMS history
+        success1, status1, response1 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Company Admin cannot access company SMS history (should be forbidden)
+        success2, status2, response2 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Test 3: Courier cannot access company SMS history (should be forbidden)
+        success3, status3, response3 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('courier'),
+            expected_status=403
+        )
+        
+        # Test 4: No authentication (should be forbidden)
+        success4, status4, response4 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            expected_status=403
+        )
+        
+        # Verify response format for super admin
+        format_correct = True
+        if success1 and response1:
+            required_fields = ['company', 'date_range', 'summary', 'monthly_breakdown', 'recent_sms_logs', 'total_logs_count']
+            format_correct = all(field in response1 for field in required_fields)
+            
+            # Check company structure
+            if 'company' in response1:
+                company_fields = ['id', 'name']
+                company_correct = all(field in response1['company'] for field in company_fields)
+                format_correct = format_correct and company_correct
+            
+            # Check summary structure
+            if 'summary' in response1:
+                summary_fields = ['total_sms', 'total_cost', 'currency', 'months_count']
+                summary_correct = all(field in response1['summary'] for field in summary_fields)
+                format_correct = format_correct and summary_correct
+        else:
+            format_correct = False
+        
+        overall_success = success1 and success2 and success3 and success4 and format_correct
+        
+        if overall_success:
+            return self.log_test("Company SMS History API Access", True, f"- Super Admin access ✅, Others blocked ✅, Format correct ✅")
+        else:
+            details = f"- Super Admin: {success1}, Company Admin blocked: {success2}, Courier blocked: {success3}, No auth blocked: {success4}, Format: {format_correct}"
+            return self.log_test("Company SMS History API Access", False, details)
+
+    def test_company_sms_history_with_date_range(self):
+        """Test Company SMS History API with date range parameters"""
+        print("\n📅 Testing Company SMS History with Date Range")
+        
+        if 'company' not in self.test_data:
+            return self.log_test("Company SMS History Date Range", False, "- No company data available")
+        
+        company_id = self.test_data['company']['id']
+        from datetime import datetime
+        current_date = datetime.now()
+        current_year = current_date.year
+        current_month = current_date.month
+        
+        # Test 1: Get history with specific date range (current month)
+        success1, status1, response1 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            params={
+                "start_year": current_year,
+                "start_month": current_month,
+                "end_year": current_year,
+                "end_month": current_month
+            },
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Get history with partial date range (only start date)
+        success2, status2, response2 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            params={
+                "start_year": current_year,
+                "start_month": current_month
+            },
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: Get history with no date parameters (should use defaults)
+        success3, status3, response3 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 4: Get history for non-existent company
+        success4, status4, response4 = self.make_request(
+            'GET', 'super-admin/company-sms-history/non-existent-company-id',
+            token=self.tokens.get('super_admin'),
+            expected_status=404
+        )
+        
+        # Verify date range is correctly reflected in response
+        date_range_correct = True
+        if success1 and response1 and 'date_range' in response1:
+            date_range = response1['date_range']
+            expected_start = f"{current_year}-{current_month:02d}"
+            expected_end = f"{current_year}-{current_month:02d}"
+            date_range_correct = (date_range.get('start') == expected_start and 
+                                date_range.get('end') == expected_end)
+        
+        overall_success = success1 and success2 and success3 and success4 and date_range_correct
+        
+        if overall_success:
+            return self.log_test("Company SMS History Date Range", True, f"- Date range parameters working correctly ✅")
+        else:
+            details = f"- Specific range: {success1}, Partial range: {success2}, Default range: {success3}, Non-existent company: {success4}, Date range format: {date_range_correct}"
+            return self.log_test("Company SMS History Date Range", False, details)
+
+    def test_company_sms_history_integration_workflow(self):
+        """Test complete integration workflow: create order, complete delivery, verify SMS history"""
+        print("\n🔄 Testing Company SMS History Integration Workflow")
+        
+        if 'company' not in self.test_data or 'courier_id' not in self.test_data:
+            return self.log_test("Company SMS History Integration", False, "- Missing company or courier data")
+        
+        company_id = self.test_data['company']['id']
+        courier_id = self.test_data['courier_id']
+        
+        # Step 1: Get initial SMS history count
+        success1, status1, response1 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        initial_sms_count = 0
+        initial_cost = 0.0
+        if success1 and response1:
+            initial_sms_count = response1.get('summary', {}).get('total_sms', 0)
+            initial_cost = response1.get('summary', {}).get('total_cost', 0.0)
+        
+        # Step 2: Create a new order with phone number for SMS testing
+        timestamp = datetime.now().strftime('%H%M%S')
+        order_data = {
+            "customer_name": "SMS Test Customer",
+            "delivery_address": "Via SMS Test 123, Roma, 00100 RM",
+            "phone_number": "+39 333 7777777",  # Italian phone number
+            "reference_number": f"SMS-HIST-{timestamp}"
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("Company SMS History Integration", False, f"- Failed to create test order: {status2}")
+        
+        test_order = response2['order']
+        
+        # Step 3: Assign order to courier
+        assign_data = {
+            "order_id": test_order['id'],
+            "courier_id": courier_id
+        }
+        
+        success3, status3, response3 = self.make_request(
+            'PATCH', 'orders/assign',
+            data=assign_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success3:
+            return self.log_test("Company SMS History Integration", False, f"- Failed to assign order: {status3}")
+        
+        # Step 4: Mark delivery as completed (should trigger SMS and update history)
+        complete_data = {
+            "order_id": test_order['id']
+        }
+        
+        success4, status4, response4 = self.make_request(
+            'PATCH', 'courier/deliveries/mark-delivered',
+            data=complete_data,
+            token=self.tokens.get('courier'),
+            expected_status=200
+        )
+        
+        if not success4:
+            return self.log_test("Company SMS History Integration", False, f"- Failed to complete delivery: {status4}")
+        
+        # Step 5: Wait a moment for SMS processing
+        import time
+        time.sleep(2)
+        
+        # Step 6: Check updated SMS history
+        success5, status5, response5 = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        if not success5:
+            return self.log_test("Company SMS History Integration", False, f"- Failed to get updated SMS history: {status5}")
+        
+        # Step 7: Verify SMS was tracked for this company
+        sms_tracked = False
+        company_tracked = False
+        cost_updated = False
+        
+        if response5:
+            # Check if SMS count increased
+            new_sms_count = response5.get('summary', {}).get('total_sms', 0)
+            new_cost = response5.get('summary', {}).get('total_cost', 0.0)
+            
+            sms_tracked = new_sms_count > initial_sms_count
+            cost_updated = new_cost >= initial_cost  # Cost might increase if SMS was successful
+            
+            # Check if company is in the breakdown
+            monthly_breakdown = response5.get('monthly_breakdown', [])
+            if monthly_breakdown:
+                # Look for current month data
+                from datetime import datetime
+                current_date = datetime.now()
+                current_period = f"{current_date.year}-{current_date.month:02d}"
+                
+                for month_data in monthly_breakdown:
+                    if month_data.get('period') == current_period and month_data.get('total_sms', 0) > 0:
+                        company_tracked = True
+                        break
+            
+            # Check recent SMS logs for our test phone number
+            recent_logs = response5.get('recent_sms_logs', [])
+            for log in recent_logs:
+                if log.get('phone_number') == "+39 333 7777777":
+                    company_tracked = True
+                    break
+        
+        # Step 8: Cleanup - Delete test order
+        self.make_request(
+            'DELETE', f'orders/{test_order["id"]}',
+            token=self.tokens.get('company_admin'),
+            expected_status=[200, 400]  # 400 if already delivered
+        )
+        
+        overall_success = success1 and success2 and success3 and success4 and success5 and (sms_tracked or company_tracked)
+        
+        if overall_success:
+            return self.log_test("Company SMS History Integration", True, f"- Complete workflow ✅, SMS tracked ✅, Company data updated ✅")
+        else:
+            details = f"- Initial history: {success1}, Create order: {success2}, Assign: {success3}, Complete: {success4}, Updated history: {success5}, SMS tracked: {sms_tracked}, Company tracked: {company_tracked}, Cost updated: {cost_updated}"
+            return self.log_test("Company SMS History Integration", False, details)
+
+    def test_company_sms_history_response_format(self):
+        """Test Company SMS History API response format for billing requirements"""
+        print("\n📋 Testing Company SMS History Response Format for Billing")
+        
+        if 'company' not in self.test_data:
+            return self.log_test("Company SMS History Response Format", False, "- No company data available")
+        
+        company_id = self.test_data['company']['id']
+        
+        # Get company SMS history
+        success, status, response = self.make_request(
+            'GET', f'super-admin/company-sms-history/{company_id}',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        if not success:
+            return self.log_test("Company SMS History Response Format", False, f"- API call failed: {status}")
+        
+        # Verify all required fields for billing are present
+        billing_requirements = {
+            'company': ['id', 'name'],
+            'date_range': ['start', 'end'],
+            'summary': ['total_sms', 'total_cost', 'currency', 'months_count'],
+            'monthly_breakdown': [],  # Should be array
+            'recent_sms_logs': [],    # Should be array
+            'total_logs_count': None  # Should be number
+        }
+        
+        format_issues = []
+        
+        # Check top-level fields
+        for field in billing_requirements.keys():
+            if field not in response:
+                format_issues.append(f"Missing field: {field}")
+        
+        # Check company structure
+        if 'company' in response:
+            for field in billing_requirements['company']:
+                if field not in response['company']:
+                    format_issues.append(f"Missing company.{field}")
+        
+        # Check date_range structure
+        if 'date_range' in response:
+            for field in billing_requirements['date_range']:
+                if field not in response['date_range']:
+                    format_issues.append(f"Missing date_range.{field}")
+        
+        # Check summary structure
+        if 'summary' in response:
+            for field in billing_requirements['summary']:
+                if field not in response['summary']:
+                    format_issues.append(f"Missing summary.{field}")
+        
+        # Check array types
+        if 'monthly_breakdown' in response and not isinstance(response['monthly_breakdown'], list):
+            format_issues.append("monthly_breakdown should be array")
+        
+        if 'recent_sms_logs' in response and not isinstance(response['recent_sms_logs'], list):
+            format_issues.append("recent_sms_logs should be array")
+        
+        # Check monthly breakdown structure (if data exists)
+        if 'monthly_breakdown' in response and response['monthly_breakdown']:
+            monthly_fields = ['year', 'month', 'period', 'total_sms', 'successful_sms', 'failed_sms', 'cost_per_sms', 'total_cost', 'success_rate', 'currency']
+            first_month = response['monthly_breakdown'][0]
+            for field in monthly_fields:
+                if field not in first_month:
+                    format_issues.append(f"Missing monthly_breakdown[0].{field}")
+        
+        # Check SMS logs structure (if data exists)
+        if 'recent_sms_logs' in response and response['recent_sms_logs']:
+            log_fields = ['phone_number', 'message', 'sent_at', 'status']
+            first_log = response['recent_sms_logs'][0]
+            for field in log_fields:
+                if field not in first_log:
+                    format_issues.append(f"Missing recent_sms_logs[0].{field}")
+        
+        # Check data types
+        if 'summary' in response:
+            summary = response['summary']
+            if 'total_sms' in summary and not isinstance(summary['total_sms'], int):
+                format_issues.append("summary.total_sms should be integer")
+            if 'total_cost' in summary and not isinstance(summary['total_cost'], (int, float)):
+                format_issues.append("summary.total_cost should be number")
+            if 'currency' in summary and not isinstance(summary['currency'], str):
+                format_issues.append("summary.currency should be string")
+        
+        format_correct = len(format_issues) == 0
+        
+        if format_correct:
+            return self.log_test("Company SMS History Response Format", True, f"- All billing fields present ✅, Correct data types ✅")
+        else:
+            return self.log_test("Company SMS History Response Format", False, f"- Format issues: {', '.join(format_issues[:3])}{'...' if len(format_issues) > 3 else ''}")
+
+    def run_company_sms_history_tests(self):
+        """Run focused Company SMS History API tests"""
+        print("🎯 Starting Company SMS History API Tests")
+        print("=" * 60)
+        
+        # Reset counters
+        self.tests_run = 0
+        self.tests_passed = 0
+        
+        # Prerequisites: Login and setup
+        print("\n📋 Prerequisites: Authentication & Setup")
+        if not self.test_super_admin_login():
+            print("❌ Cannot proceed without super admin login")
+            return False
+        
+        if not self.test_create_company():
+            print("❌ Cannot proceed without test company")
+            return False
+        
+        if not self.test_company_admin_login():
+            print("❌ Cannot proceed without company admin login")
+            return False
+        
+        if not self.test_create_courier():
+            print("❌ Cannot proceed without test courier")
+            return False
+        
+        if not self.test_get_couriers():
+            print("❌ Cannot proceed without courier data")
+            return False
+        
+        if not self.test_courier_login():
+            print("❌ Cannot proceed without courier login")
+            return False
+        
+        # Main Company SMS History API Tests
+        print("\n📋 Company SMS History API Tests")
+        self.test_company_sms_history_api_access()
+        self.test_company_sms_history_with_date_range()
+        self.test_company_sms_history_response_format()
+        self.test_company_sms_history_integration_workflow()
+        
+        # Cleanup
+        print("\n📋 Cleanup")
+        self.test_delete_company()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print(f"📊 Company SMS History API Test Results: {self.tests_passed}/{self.tests_run} tests passed")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All Company SMS History API tests passed!")
+            return True
+        else:
+            failed_tests = self.tests_run - self.tests_passed
+            print(f"⚠️  {failed_tests} test(s) failed. Please review the issues above.")
+            return False
+
     def run_all_tests(self):
         """Run all API tests in sequence"""
         print("🚀 Starting FarmyGo Delivery Management API Comprehensive Tests")
