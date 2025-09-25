@@ -2743,6 +2743,7 @@ class DeliveryManagementAPITester:
             initial_cost = response1.get('summary', {}).get('total_cost', 0.0)
         
         # Step 2: Create a new order with phone number for SMS testing
+        from datetime import datetime
         timestamp = datetime.now().strftime('%H%M%S')
         order_data = {
             "customer_name": "SMS Test Customer",
