@@ -1333,12 +1333,23 @@ async def get_sms_statistics(
     if current_month_stats and current_month_stats.get("companies_breakdown"):
         company_ids = list(current_month_stats["companies_breakdown"].keys())
         companies = await db.companies.find({"id": {"$in": company_ids}}).to_list(None)
-        for company in companies:
-            company_id = company["id"]
-            companies_with_names[company_id] = {
-                "name": company["name"],
-                "stats": current_month_stats["companies_breakdown"][company_id]
-            }
+        
+        # Create a map of found companies
+        found_companies = {company["id"]: company for company in companies}
+        
+        for company_id, stats in current_month_stats["companies_breakdown"].items():
+            if company_id in found_companies:
+                company = found_companies[company_id]
+                companies_with_names[company_id] = {
+                    "name": company["name"],
+                    "stats": stats
+                }
+            else:
+                # Handle case where company_id is not found (might be old/invalid data)
+                companies_with_names[company_id] = {
+                    "name": f"Azienda Sconosciuta ({company_id[:8]}...)",
+                    "stats": stats
+                }
     
     return {
         "current_month": current_month_stats,
