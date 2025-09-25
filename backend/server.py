@@ -1346,7 +1346,7 @@ async def send_sms_code(
     
     # Send SMS
     message = f"Il tuo codice di verifica FarmyGo è: {code}. Valido per 5 minuti."
-    success = await send_sms_notification(request.phone_number, message)
+    success = await send_sms_notification(request.phone_number, message, current_user.company_id)
     
     if not success:
         raise HTTPException(status_code=500, detail="Failed to send SMS")
