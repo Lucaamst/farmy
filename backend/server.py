@@ -1426,6 +1426,108 @@ async def get_monthly_sms_report(
         "period": f"{year}-{month:02d}"
     }
 
+@api_router.get("/super-admin/company-sms-history/{company_id}")
+async def get_company_sms_history(
+    company_id: str,
+    start_year: Optional[int] = None,
+    start_month: Optional[int] = None,
+    end_year: Optional[int] = None,
+    end_month: Optional[int] = None,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Get SMS history for a specific company for billing purposes"""
+    # Get company info
+    company = await db.companies.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Set default date range (last 12 months if not specified)
+    current_date = datetime.now(timezone.utc)
+    if not end_year or not end_month:
+        end_year = current_date.year
+        end_month = current_date.month
+    
+    if not start_year or not start_month:
+        # 12 months back
+        start_date = datetime(current_date.year, current_date.month, 1) - timedelta(days=365)
+        start_year = start_date.year
+        start_month = start_date.month
+    
+    # Build query for monthly stats
+    monthly_stats = await db.sms_monthly_stats.find({
+        "$or": [
+            {"year": {"$gt": start_year}},
+            {"year": start_year, "month": {"$gte": start_month}},
+        ],
+        "$or": [
+            {"year": {"$lt": end_year}},
+            {"year": end_year, "month": {"$lte": end_month}},
+        ]
+    }).sort([("year", -1), ("month", -1)]).to_list(None)
+    
+    # Filter company data and calculate totals
+    company_monthly_data = []
+    total_sms = 0
+    total_cost = 0
+    cost_settings = await get_sms_cost_settings()
+    
+    for month_data in monthly_stats:
+        if company_id in month_data.get("companies_breakdown", {}):
+            company_stats = month_data["companies_breakdown"][company_id]
+            month_cost = company_stats["success"] * month_data.get("cost_per_sms", cost_settings["cost_per_sms"])
+            
+            monthly_record = {
+                "year": month_data["year"],
+                "month": month_data["month"],
+                "period": f"{month_data['year']}-{month_data['month']:02d}",
+                "total_sms": company_stats["sent"],
+                "successful_sms": company_stats["success"],
+                "failed_sms": company_stats["failed"],
+                "cost_per_sms": month_data.get("cost_per_sms", cost_settings["cost_per_sms"]),
+                "total_cost": month_cost,
+                "success_rate": round((company_stats["success"] / company_stats["sent"]) * 100, 1) if company_stats["sent"] > 0 else 0,
+                "currency": month_data.get("currency", cost_settings["currency"])
+            }
+            
+            company_monthly_data.append(monthly_record)
+            total_sms += company_stats["sent"]
+            total_cost += month_cost
+    
+    # Get detailed SMS logs for the company in date range
+    start_date = datetime(start_year, start_month, 1, tzinfo=timezone.utc)
+    from calendar import monthrange
+    days_in_end_month = monthrange(end_year, end_month)[1]
+    end_date = datetime(end_year, end_month, days_in_end_month, 23, 59, 59, tzinfo=timezone.utc)
+    
+    sms_logs = await db.sms_logs.find({
+        "company_id": company_id,
+        "sent_at": {"$gte": start_date, "$lte": end_date}
+    }).sort("sent_at", -1).to_list(500)  # Limit to 500 recent logs
+    
+    # Convert datetime objects for JSON serialization
+    for log in sms_logs:
+        log["sent_at"] = log["sent_at"].isoformat()
+    
+    return {
+        "company": {
+            "id": company["id"],
+            "name": company["name"]
+        },
+        "date_range": {
+            "start": f"{start_year}-{start_month:02d}",
+            "end": f"{end_year}-{end_month:02d}"
+        },
+        "summary": {
+            "total_sms": total_sms,
+            "total_cost": total_cost,
+            "currency": cost_settings["currency"],
+            "months_count": len(company_monthly_data)
+        },
+        "monthly_breakdown": company_monthly_data,
+        "recent_sms_logs": sms_logs[:100],  # Return only 100 most recent logs for UI
+        "total_logs_count": len(sms_logs)
+    }
+
 # Security Routes
 @api_router.get("/security/status")
 async def get_security_status(current_user: User = Depends(get_current_user)):
