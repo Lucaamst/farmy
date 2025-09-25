@@ -1300,8 +1300,10 @@ async def get_sms_statistics(
     # Get monthly stats
     monthly_stats = await db.sms_monthly_stats.find(query).sort([("year", -1), ("month", -1)]).to_list(12)
     
-    # Convert datetime objects
+    # Convert datetime objects and ObjectIds
     for stats in monthly_stats:
+        if '_id' in stats:
+            stats['_id'] = str(stats['_id'])
         stats["created_at"] = stats["created_at"].isoformat()
         stats["updated_at"] = stats["updated_at"].isoformat()
     
@@ -1312,6 +1314,8 @@ async def get_sms_statistics(
     })
     
     if current_month_stats:
+        if '_id' in current_month_stats:
+            current_month_stats['_id'] = str(current_month_stats['_id'])
         current_month_stats["created_at"] = current_month_stats["created_at"].isoformat()
         current_month_stats["updated_at"] = current_month_stats["updated_at"].isoformat()
     
