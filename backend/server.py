@@ -1256,7 +1256,7 @@ async def mark_delivery_completed(
     # Send SMS notification only if phone number is provided
     if order["phone_number"] and order["phone_number"].strip():
         message = f"Ciao {order['customer_name']}! 📦 La tua consegna è stata completata con successo all'indirizzo: {order['delivery_address']}. Grazie per aver scelto FarmyGo! 🚚"
-        await send_sms_notification(order["phone_number"], message)
+        await send_sms_notification(order["phone_number"], message, order.get("company_id"))
     else:
         print(f"📱 SMS skipped for order {request.order_id} - no phone number provided")
 
