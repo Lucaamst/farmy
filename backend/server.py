@@ -1276,6 +1276,144 @@ async def get_sms_logs(
     
     return sms_logs
 
+# SMS Cost Management APIs - Super Admin Only
+@api_router.get("/super-admin/sms-stats")
+async def get_sms_statistics(
+    year: Optional[int] = None,
+    month: Optional[int] = None,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Get SMS statistics and costs for super admin dashboard"""
+    current_date = datetime.now(timezone.utc)
+    
+    # Build query
+    query = {}
+    if year:
+        query["year"] = year
+    if month:
+        query["month"] = month
+    
+    # Get monthly stats
+    monthly_stats = await db.sms_monthly_stats.find(query).sort([("year", -1), ("month", -1)]).to_list(12)
+    
+    # Convert datetime objects
+    for stats in monthly_stats:
+        stats["created_at"] = stats["created_at"].isoformat()
+        stats["updated_at"] = stats["updated_at"].isoformat()
+    
+    # Get current month stats
+    current_month_stats = await db.sms_monthly_stats.find_one({
+        "year": current_date.year,
+        "month": current_date.month
+    })
+    
+    if current_month_stats:
+        current_month_stats["created_at"] = current_month_stats["created_at"].isoformat()
+        current_month_stats["updated_at"] = current_month_stats["updated_at"].isoformat()
+    
+    # Calculate year-to-date totals
+    ytd_stats = await db.sms_monthly_stats.find({"year": current_date.year}).to_list(None)
+    ytd_total_sms = sum(stats["total_sms_sent"] for stats in ytd_stats)
+    ytd_total_cost = sum(stats["total_cost"] for stats in ytd_stats)
+    ytd_success_rate = sum(stats["successful_sms"] for stats in ytd_stats) / max(ytd_total_sms, 1) * 100
+    
+    # Get cost settings
+    cost_settings = await get_sms_cost_settings()
+    
+    # Get company breakdown for current month
+    companies_with_names = {}
+    if current_month_stats and current_month_stats.get("companies_breakdown"):
+        company_ids = list(current_month_stats["companies_breakdown"].keys())
+        companies = await db.companies.find({"id": {"$in": company_ids}}).to_list(None)
+        for company in companies:
+            company_id = company["id"]
+            companies_with_names[company_id] = {
+                "name": company["name"],
+                "stats": current_month_stats["companies_breakdown"][company_id]
+            }
+    
+    return {
+        "current_month": current_month_stats,
+        "monthly_history": monthly_stats,
+        "year_to_date": {
+            "total_sms": ytd_total_sms,
+            "total_cost": ytd_total_cost,
+            "success_rate": round(ytd_success_rate, 1)
+        },
+        "cost_settings": cost_settings,
+        "companies_breakdown": companies_with_names
+    }
+
+@api_router.put("/super-admin/sms-cost-settings")
+async def update_sms_cost_settings(
+    request: UpdateSMSCostRequest,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Update SMS cost settings"""
+    if request.cost_per_sms < 0:
+        raise HTTPException(status_code=400, detail="Cost per SMS cannot be negative")
+    
+    settings = {
+        "cost_per_sms": request.cost_per_sms,
+        "currency": request.currency,
+        "updated_at": datetime.now(timezone.utc),
+        "updated_by": current_user.id
+    }
+    
+    await db.sms_cost_settings.update_one(
+        {},
+        {"$set": settings},
+        upsert=True
+    )
+    
+    return {"message": "SMS cost settings updated successfully", "settings": settings}
+
+@api_router.get("/super-admin/sms-monthly-report")
+async def get_monthly_sms_report(
+    year: int,
+    month: int,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Get detailed monthly SMS report"""
+    # Get monthly stats
+    monthly_stats = await db.sms_monthly_stats.find_one({"year": year, "month": month})
+    
+    if not monthly_stats:
+        raise HTTPException(status_code=404, detail="No SMS data found for this month")
+    
+    # Get daily SMS logs for the month
+    from calendar import monthrange
+    start_date = datetime(year, month, 1, tzinfo=timezone.utc)
+    days_in_month = monthrange(year, month)[1]
+    end_date = datetime(year, month, days_in_month, 23, 59, 59, tzinfo=timezone.utc)
+    
+    daily_logs = await db.sms_logs.find({
+        "sent_at": {"$gte": start_date, "$lte": end_date}
+    }).sort("sent_at", 1).to_list(None)
+    
+    # Group by day
+    daily_breakdown = {}
+    for log in daily_logs:
+        day = log["sent_at"].day
+        if day not in daily_breakdown:
+            daily_breakdown[day] = {"total": 0, "success": 0, "failed": 0}
+        
+        daily_breakdown[day]["total"] += 1
+        if log["status"] == "sent":
+            daily_breakdown[day]["success"] += 1
+        else:
+            daily_breakdown[day]["failed"] += 1
+    
+    # Convert datetime objects
+    monthly_stats["created_at"] = monthly_stats["created_at"].isoformat()
+    monthly_stats["updated_at"] = monthly_stats["updated_at"].isoformat()
+    
+    return {
+        "monthly_stats": monthly_stats,
+        "daily_breakdown": daily_breakdown,
+        "period": f"{year}-{month:02d}"
+    }
+
 # Security Routes
 @api_router.get("/security/status")
 async def get_security_status(current_user: User = Depends(get_current_user)):
