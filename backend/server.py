@@ -359,8 +359,9 @@ async def get_user_security(user_id: str):
         return new_security
     return UserSecurity(**security)
 
-async def send_sms_notification(phone_number: str, message: str):
-    """Send SMS notification using Twilio"""
+async def send_sms_notification(phone_number: str, message: str, company_id: str = None):
+    """Send SMS notification using Twilio and track costs"""
+    success = False
     try:
         # Initialize Twilio client
         from twilio.rest import Client
@@ -371,6 +372,7 @@ async def send_sms_notification(phone_number: str, message: str):
         if not account_sid or not auth_token:
             print(f"⚠️ Twilio credentials not found, using mock SMS")
             print(f"MOCK SMS to {phone_number}: {message}")
+            success = True  # Mock SMS considered successful
         else:
             client = Client(account_sid, auth_token)
             
@@ -382,6 +384,7 @@ async def send_sms_notification(phone_number: str, message: str):
             )
             
             print(f"✅ SMS sent via Twilio to {phone_number}, SID: {message_obj.sid}")
+            success = True
         
         # Store SMS log
         sms_log = {
@@ -390,9 +393,14 @@ async def send_sms_notification(phone_number: str, message: str):
             "message": message,
             "sent_at": datetime.now(timezone.utc),
             "status": "sent",
-            "method": "twilio" if account_sid and auth_token else "mock"
+            "method": "twilio" if account_sid and auth_token else "mock",
+            "company_id": company_id
         }
         await db.sms_logs.insert_one(sms_log)
+        
+        # Update monthly statistics
+        await update_monthly_sms_stats(success=True, company_id=company_id)
+        
         return True
         
     except Exception as e:
@@ -405,9 +413,14 @@ async def send_sms_notification(phone_number: str, message: str):
             "sent_at": datetime.now(timezone.utc),
             "status": "failed",
             "error": str(e),
-            "method": "twilio"
+            "method": "twilio",
+            "company_id": company_id
         }
         await db.sms_logs.insert_one(sms_log)
+        
+        # Update monthly statistics for failed SMS
+        await update_monthly_sms_stats(success=False, company_id=company_id)
+        
         return False
 
 # Initialize super admin
