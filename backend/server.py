@@ -1389,6 +1389,10 @@ async def get_monthly_sms_report(
     if not monthly_stats:
         raise HTTPException(status_code=404, detail="No SMS data found for this month")
     
+    # Convert ObjectId to string
+    if '_id' in monthly_stats:
+        monthly_stats['_id'] = str(monthly_stats['_id'])
+    
     # Get daily SMS logs for the month
     from calendar import monthrange
     start_date = datetime(year, month, 1, tzinfo=timezone.utc)
