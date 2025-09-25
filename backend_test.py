@@ -2648,7 +2648,16 @@ class DeliveryManagementAPITester:
         self.test_twilio_sms_integration()
         self.test_sms_logs()
         
-        # Phase 9: Multi-Level Security System Tests
+        # Phase 9: SMS Statistics API Tests (NEW)
+        print("\n📋 Phase 9: SMS Statistics API Tests")
+        self.test_sms_statistics_api_access()
+        self.test_sms_cost_settings_api()
+        self.test_sms_monthly_report_api()
+        self.test_sms_automatic_tracking_on_delivery()
+        self.test_sms_tracking_success_vs_failed()
+        self.test_sms_statistics_company_breakdown()
+        
+        # Phase 10: Multi-Level Security System Tests
         print("\n📋 Phase 9: Multi-Level Security System Tests")
         self.test_security_status_api()
         self.test_pin_security_system()
