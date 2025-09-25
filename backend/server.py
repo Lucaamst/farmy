@@ -196,6 +196,32 @@ class WebAuthnRegistrationRequest(BaseModel):
 class WebAuthnAuthenticationRequest(BaseModel):
     credential: dict
 
+# SMS Cost Tracking Models
+class SMSCostSettings(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    cost_per_sms: float = 0.05  # Default cost per SMS in EUR
+    currency: str = "EUR"
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_by: str  # Super admin user ID
+
+class SMSMonthlyStats(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    year: int
+    month: int
+    total_sms_sent: int = 0
+    successful_sms: int = 0
+    failed_sms: int = 0
+    total_cost: float = 0.0
+    cost_per_sms: float = 0.05
+    currency: str = "EUR"
+    companies_breakdown: dict = Field(default_factory=dict)  # company_id -> count
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UpdateSMSCostRequest(BaseModel):
+    cost_per_sms: float
+    currency: str = "EUR"
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
