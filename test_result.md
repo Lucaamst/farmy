@@ -319,6 +319,18 @@ frontend:
           agent: "testing"
           comment: "🎯 FARMYGO ORDER VISIBILITY & FILTERING COMPREHENSIVE TESTING COMPLETED - All 11 focused tests passed (100% success rate). Comprehensive testing of FarmyGo order visibility and filtering fixes: ✅ ORDER CREATION IMMEDIATE VISIBILITY: New orders appear instantly in orders list without refresh needed, ✅ ORDER CREATION WITH/WITHOUT PHONE: Both order types (with phone +39 333 format and without phone) create successfully and appear in listings, ✅ ORDER FILTERING EMPTY/NULL FILTERS: Empty string filters and omitted parameters handled correctly without errors, ✅ INDIVIDUAL ORDER FILTERS: Customer name search, status filtering, and date filtering all work independently, ✅ MULTIPLE FILTER COMBINATIONS: Complex filter combinations (name+status, status+date, all filters) work correctly, ✅ FILTER CLEARING BEHAVIOR: Clearing filters properly returns to showing all orders, ✅ COURIER FULL NAME ASSIGNMENT: Orders can be assigned to couriers with full names, assignment updates order status to 'assigned' and sets courier_id, ✅ ORDERS DEFAULT BEHAVIOR: GET /api/orders returns all orders without date restrictions, search without filters returns same results as default endpoint. All order management workflows are functioning correctly with proper visibility and filtering capabilities."
 
+  - task: "SMS Statistics APIs for Super Admin"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎯 SMS STATISTICS APIs COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY! All SMS Statistics API tests passed (100% success rate). Comprehensive testing confirmed: ✅ SMS STATISTICS API ACCESS: Super Admin can access GET /api/super-admin/sms-stats with proper authentication and role-based access control, response format includes current_month, monthly_history, year_to_date, cost_settings, and companies_breakdown fields, ✅ SMS COST SETTINGS API: PUT /api/super-admin/sms-cost-settings works correctly with validation (negative costs rejected), settings update and verification working, ✅ SMS MONTHLY REPORT API: GET /api/super-admin/sms-monthly-report works with proper year/month parameters, returns 404 for non-existent data as expected, response format includes monthly_stats, daily_breakdown, and period fields, ✅ AUTOMATIC SMS TRACKING: SMS statistics automatically updated when delivery is completed, company_id correctly tracked in breakdown, SMS logs created with proper company association, ✅ REAL TWILIO INTEGRATION: SMS tracking works with real Twilio API calls, Italian message format correctly sent, statistics updated for both successful and failed SMS attempts. Fixed ObjectId serialization issues in SMS statistics APIs. All SMS Statistics features are production-ready and working correctly."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
