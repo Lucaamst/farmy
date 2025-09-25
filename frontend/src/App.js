@@ -651,13 +651,13 @@ function SMSStatsSection() {
             <div className="space-y-2">
               {Object.entries(smsStats.companies_breakdown).map(([companyId, company]) => (
                 <div key={companyId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{company.name}</p>
                     <p className="text-sm text-gray-600">
                       {company.stats.sent} SMS • {company.stats.success} successi • {company.stats.failed} falliti
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right mr-4">
                     <p className="font-semibold">
                       {formatCurrency(company.stats.success * costSettings.cost_per_sms, costSettings.currency)}
                     </p>
@@ -665,6 +665,14 @@ function SMSStatsSection() {
                       {Math.round((company.stats.success / company.stats.sent) * 100) || 0}% successo
                     </p>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchCompanySMSHistory(companyId, company.name)}
+                  >
+                    <Receipt className="w-4 h-4 mr-1" />
+                    Storico
+                  </Button>
                 </div>
               ))}
             </div>
