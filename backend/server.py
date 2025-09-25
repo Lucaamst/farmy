@@ -1449,10 +1449,40 @@ async def get_company_sms_history(
     current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
 ):
     """Get SMS history for a specific company for billing purposes"""
+    # First, check if this is one of the "unknown" company IDs from SMS data
+    # If so, return a friendly message instead of 404
+    all_companies = await db.companies.find({}).to_list(None)
+    existing_company_ids = [comp["id"] for comp in all_companies]
+    
+    if company_id not in existing_company_ids:
+        # Check if there are SMS logs for this company_id (might be old/test data)
+        sms_count = await db.sms_logs.count_documents({"company_id": company_id})
+        if sms_count > 0:
+            return {
+                "company": {
+                    "id": company_id,
+                    "name": f"Azienda Test/Sconosciuta ({company_id[:8]}...)"
+                },
+                "date_range": {
+                    "start": "N/A",
+                    "end": "N/A"
+                },
+                "summary": {
+                    "total_sms": sms_count,
+                    "total_cost": 0.0,
+                    "currency": "EUR",
+                    "months_count": 0
+                },
+                "monthly_breakdown": [],
+                "recent_sms_logs": [],
+                "total_logs_count": sms_count,
+                "note": "Questi sono dati di test o legacy. Company ID non trovato nel database aziende."
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Company not found")
+    
     # Get company info
     company = await db.companies.find_one({"id": company_id})
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
     
     # Set default date range (last 12 months if not specified)
     current_date = datetime.now(timezone.utc)
