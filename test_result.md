@@ -339,7 +339,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "FarmyGo Order Visibility and Filtering Fixes"
+    - "SMS Statistics APIs for Super Admin"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
