@@ -398,6 +398,396 @@ function CourierDashboard() {
   );
 }
 
+// SMS Statistics Component for Super Admin
+function SMSStatsSection() {
+  const [smsStats, setSmsStats] = useState(null);
+  const [costSettings, setCostSettings] = useState({ cost_per_sms: 0.05, currency: 'EUR' });
+  const [loading, setLoading] = useState(true);
+  const [showCostDialog, setShowCostDialog] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [monthlyReport, setMonthlyReport] = useState(null);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const { t } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchSMSStats();
+  }, []);
+
+  const fetchSMSStats = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/super-admin/sms-stats`);
+      setSmsStats(response.data);
+      if (response.data.cost_settings) {
+        setCostSettings(response.data.cost_settings);
+      }
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Impossibile caricare statistiche SMS',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCostSettings = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${API}/super-admin/sms-cost-settings`, costSettings);
+      toast({
+        title: 'Successo',
+        description: 'Impostazioni costi SMS aggiornate',
+      });
+      setShowCostDialog(false);
+      fetchSMSStats();
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Impossibile aggiornare le impostazioni',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchMonthlyReport = async (year, month) => {
+    try {
+      const response = await axios.get(`${API}/super-admin/sms-monthly-report?year=${year}&month=${month}`);
+      setMonthlyReport(response.data);
+      setShowReportDialog(true);
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Nessun dato disponibile per questo mese',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMonthSelect = (monthValue) => {
+    const [year, month] = monthValue.split('-');
+    fetchMonthlyReport(parseInt(year), parseInt(month));
+  };
+
+  const formatCurrency = (amount, currency = 'EUR') => {
+    return new Intl.NumberFormat('it-IT', { 
+      style: 'currency', 
+      currency: currency 
+    }).format(amount);
+  };
+
+  const getMonthOptions = () => {
+    const options = [];
+    const currentDate = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = date.toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
+      options.push({ value, label });
+    }
+    return options;
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-white shadow-sm border-0 mb-6">
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2 text-sm">Caricamento statistiche SMS...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-white shadow-sm border-0 mb-6">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Statistiche SMS
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Monitoraggio costi e utilizzo SMS del sistema
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowCostDialog(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Costi SMS
+            </Button>
+            <Button
+              onClick={fetchSMSStats}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Aggiorna
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6">
+        {/* Current Month Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">SMS Inviati</p>
+                <p className="text-2xl font-bold">
+                  {smsStats?.current_month?.total_sms_sent || 0}
+                </p>
+                <p className="text-xs text-gray-500">Questo mese</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Tasso Successo</p>
+                <p className="text-2xl font-bold">
+                  {smsStats?.current_month ? 
+                    Math.round((smsStats.current_month.successful_sms / smsStats.current_month.total_sms_sent) * 100) || 0
+                    : 0}%
+                </p>
+                <p className="text-xs text-gray-500">
+                  {smsStats?.current_month?.successful_sms || 0} successi
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Euro className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Costo Mensile</p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(smsStats?.current_month?.total_cost || 0, costSettings.currency)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatCurrency(costSettings.cost_per_sms, costSettings.currency)} per SMS
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-violet-100 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-violet-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Anno Corrente</p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(smsStats?.year_to_date?.total_cost || 0, costSettings.currency)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {smsStats?.year_to_date?.total_sms || 0} SMS totali
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Monthly History Chart */}
+        {smsStats?.monthly_history?.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Storico Mensile</h3>
+            <div className="space-y-2">
+              {smsStats.monthly_history.slice(0, 6).map((month) => (
+                <div key={`${month.year}-${month.month}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <p className="font-medium">
+                      {new Date(month.year, month.month - 1).toLocaleDateString('it-IT', { 
+                        year: 'numeric', 
+                        month: 'long' 
+                      })}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {month.total_sms_sent} SMS • {Math.round((month.successful_sms / month.total_sms_sent) * 100) || 0}% successo
+                    </p>
+                  </div>
+                  <div className="text-right mr-4">
+                    <p className="font-semibold">
+                      {formatCurrency(month.total_cost, month.currency)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchMonthlyReport(month.year, month.month)}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Companies Breakdown */}
+        {smsStats?.companies_breakdown && Object.keys(smsStats.companies_breakdown).length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Utilizzo per Azienda (Mese Corrente)</h3>
+            <div className="space-y-2">
+              {Object.entries(smsStats.companies_breakdown).map(([companyId, company]) => (
+                <div key={companyId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">{company.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {company.stats.sent} SMS • {company.stats.success} successi • {company.stats.failed} falliti
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">
+                      {formatCurrency(company.stats.success * costSettings.cost_per_sms, costSettings.currency)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {Math.round((company.stats.success / company.stats.sent) * 100) || 0}% successo
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Cost Settings Dialog */}
+      <Dialog open={showCostDialog} onOpenChange={setShowCostDialog}>
+        <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Impostazioni Costi SMS</DialogTitle>
+            <DialogDescription>
+              Configura il costo per SMS e la valuta per il calcolo dei costi
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={updateCostSettings} className="space-y-4">
+            <div>
+              <Label htmlFor="costPerSms">Costo per SMS</Label>
+              <Input
+                id="costPerSms"
+                type="number"
+                step="0.001"
+                min="0"
+                value={costSettings.cost_per_sms}
+                onChange={(e) => setCostSettings({ ...costSettings, cost_per_sms: parseFloat(e.target.value) })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="currency">Valuta</Label>
+              <select
+                id="currency"
+                value={costSettings.currency}
+                onChange={(e) => setCostSettings({ ...costSettings, currency: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded-md"
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="USD">USD ($)</option>
+                <option value="CHF">CHF</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1">
+                Salva Impostazioni
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowCostDialog(false)}
+                className="flex-1"
+              >
+                Annulla
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Monthly Report Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="mx-4 sm:mx-0 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Report Mensile SMS - {monthlyReport?.period}
+            </DialogTitle>
+            <DialogDescription>
+              Dettaglio completo dell'utilizzo SMS mensile
+            </DialogDescription>
+          </DialogHeader>
+          {monthlyReport && (
+            <div className="space-y-4">
+              {/* Monthly Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">
+                    {monthlyReport.monthly_stats.total_sms_sent}
+                  </p>
+                  <p className="text-sm text-gray-600">SMS Totali</p>
+                </div>
+                <div className="text-center p-3 bg-green-50 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600">
+                    {monthlyReport.monthly_stats.successful_sms}
+                  </p>
+                  <p className="text-sm text-gray-600">Successi</p>
+                </div>
+                <div className="text-center p-3 bg-red-50 rounded-lg">
+                  <p className="text-2xl font-bold text-red-600">
+                    {monthlyReport.monthly_stats.failed_sms}
+                  </p>
+                  <p className="text-sm text-gray-600">Falliti</p>
+                </div>
+                <div className="text-center p-3 bg-orange-50 rounded-lg">
+                  <p className="text-2xl font-bold text-orange-600">
+                    {formatCurrency(monthlyReport.monthly_stats.total_cost, monthlyReport.monthly_stats.currency)}
+                  </p>
+                  <p className="text-sm text-gray-600">Costo Totale</p>
+                </div>
+              </div>
+
+              {/* Daily Breakdown */}
+              <div>
+                <h4 className="font-semibold mb-2">Utilizzo Giornaliero</h4>
+                <div className="max-h-40 overflow-y-auto">
+                  {Object.entries(monthlyReport.daily_breakdown).map(([day, stats]) => (
+                    <div key={day} className="flex justify-between items-center py-1 px-2 hover:bg-gray-50 rounded">
+                      <span className="text-sm">Giorno {day}</span>
+                      <span className="text-sm">
+                        {stats.total} SMS ({stats.success} ✓, {stats.failed} ✗)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
 // Super Admin Dashboard (with all new features)
 function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
