@@ -712,6 +712,9 @@ function SuperAdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* SMS Statistics Section */}
+        <SMSStatsSection />
+
         {/* All dialogs for company management */}
         {/* Edit Company Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
