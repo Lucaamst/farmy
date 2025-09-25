@@ -1507,6 +1507,9 @@ async def get_company_sms_history(
     # Convert datetime objects for JSON serialization
     for log in sms_logs:
         log["sent_at"] = log["sent_at"].isoformat()
+        # Convert ObjectId to string for JSON serialization
+        if '_id' in log:
+            log['_id'] = str(log['_id'])
     
     return {
         "company": {
