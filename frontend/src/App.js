@@ -224,6 +224,32 @@ function Login() {
               {loading ? t.signingIn : t.signIn}
             </Button>
           </form>
+          
+          {/* Legal Links */}
+          <div className="text-center mt-6 pt-4 border-t border-white/20">
+            <p className="text-xs text-blue-100 mb-2">
+              Utilizzando FarmyGo accetti i nostri:
+            </p>
+            <div className="flex justify-center space-x-4 text-xs">
+              <a 
+                href="/terms-and-conditions.html" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-200 hover:text-white underline"
+              >
+                Termini e Condizioni
+              </a>
+              <span className="text-blue-200">|</span>
+              <a 
+                href="/privacy-policy.html" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-200 hover:text-white underline"
+              >
+                Privacy Policy
+              </a>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
