@@ -407,6 +407,8 @@ function SMSStatsSection() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [monthlyReport, setMonthlyReport] = useState(null);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [companyHistory, setCompanyHistory] = useState(null);
+  const [showCompanyHistoryDialog, setShowCompanyHistoryDialog] = useState(false);
   const { t } = useAuth();
   const { toast } = useToast();
 
