@@ -473,6 +473,23 @@ function SMSStatsSection() {
     fetchMonthlyReport(parseInt(year), parseInt(month));
   };
 
+  const fetchCompanySMSHistory = async (companyId, companyName) => {
+    try {
+      const response = await axios.get(`${API}/super-admin/company-sms-history/${companyId}`);
+      setCompanyHistory({
+        ...response.data,
+        company_name: companyName
+      });
+      setShowCompanyHistoryDialog(true);
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Impossibile caricare lo storico SMS per questa azienda',
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatCurrency = (amount, currency = 'EUR') => {
     return new Intl.NumberFormat('it-IT', { 
       style: 'currency', 
