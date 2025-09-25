@@ -183,7 +183,7 @@ function Login() {
       <Card className="w-full max-w-md backdrop-blur-sm bg-white/10 border-white/20">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-            <Truck className="w-8 h-8 text-white" />
+            <Package className="w-8 h-8 text-white" />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-white">{t.appTitle}</CardTitle>
