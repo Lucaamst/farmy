@@ -1366,6 +1366,617 @@ class DeliveryManagementAPITester:
         else:
             return self.log_test("Delete Customer without Orders", False, f"- Could not create customer for deletion test")
 
+    # ========== SMS STATISTICS API TESTS ==========
+    
+    def test_sms_statistics_api_access(self):
+        """Test SMS statistics API access and authentication"""
+        print("\n📊 Testing SMS Statistics API Access")
+        
+        # Test 1: Super Admin can access SMS stats
+        success1, status1, response1 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: Company Admin cannot access SMS stats (should be forbidden)
+        success2, status2, response2 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Test 3: Courier cannot access SMS stats (should be forbidden)
+        success3, status3, response3 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('courier'),
+            expected_status=403
+        )
+        
+        # Test 4: No authentication (should be forbidden)
+        success4, status4, response4 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            expected_status=403
+        )
+        
+        # Verify response format for super admin
+        format_correct = True
+        if success1 and response1:
+            required_fields = ['current_month', 'monthly_history', 'year_to_date', 'cost_settings', 'companies_breakdown']
+            format_correct = all(field in response1 for field in required_fields)
+            
+            # Check year_to_date structure
+            if 'year_to_date' in response1:
+                ytd_fields = ['total_sms', 'total_cost', 'success_rate']
+                ytd_correct = all(field in response1['year_to_date'] for field in ytd_fields)
+                format_correct = format_correct and ytd_correct
+        else:
+            format_correct = False
+        
+        overall_success = success1 and success2 and success3 and success4 and format_correct
+        
+        if overall_success:
+            return self.log_test("SMS Statistics API Access", True, f"- Super Admin access ✅, Others blocked ✅, Format correct ✅")
+        else:
+            details = f"- Super Admin: {success1}, Company Admin blocked: {success2}, Courier blocked: {success3}, No auth blocked: {success4}, Format: {format_correct}"
+            return self.log_test("SMS Statistics API Access", False, details)
+
+    def test_sms_cost_settings_api(self):
+        """Test SMS cost settings update API"""
+        print("\n💰 Testing SMS Cost Settings API")
+        
+        # Test 1: Get initial cost settings (via stats API)
+        success1, status1, response1 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        initial_cost = 0.05  # Default cost
+        if success1 and response1 and 'cost_settings' in response1:
+            initial_cost = response1['cost_settings'].get('cost_per_sms', 0.05)
+        
+        # Test 2: Update SMS cost settings with valid data
+        new_cost_data = {
+            "cost_per_sms": 0.08,
+            "currency": "EUR"
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'PUT', 'super-admin/sms-cost-settings',
+            data=new_cost_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 3: Verify settings were updated
+        success3, status3, response3 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        settings_updated = False
+        if success3 and response3 and 'cost_settings' in response3:
+            updated_cost = response3['cost_settings'].get('cost_per_sms')
+            settings_updated = updated_cost == 0.08
+        
+        # Test 4: Try to update with negative cost (should fail)
+        invalid_cost_data = {
+            "cost_per_sms": -0.01,
+            "currency": "EUR"
+        }
+        
+        success4, status4, response4 = self.make_request(
+            'PUT', 'super-admin/sms-cost-settings',
+            data=invalid_cost_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=400
+        )
+        
+        # Test 5: Company Admin cannot update cost settings
+        success5, status5, response5 = self.make_request(
+            'PUT', 'super-admin/sms-cost-settings',
+            data=new_cost_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Test 6: Restore original cost settings
+        restore_data = {
+            "cost_per_sms": initial_cost,
+            "currency": "EUR"
+        }
+        
+        success6, status6, response6 = self.make_request(
+            'PUT', 'super-admin/sms-cost-settings',
+            data=restore_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        overall_success = success1 and success2 and success3 and settings_updated and success4 and success5 and success6
+        
+        if overall_success:
+            return self.log_test("SMS Cost Settings API", True, f"- Update ✅, Validation ✅, Access control ✅, Restore ✅")
+        else:
+            details = f"- Get initial: {success1}, Update: {success2}, Verify: {success3}, Updated: {settings_updated}, Negative rejected: {success4}, Access blocked: {success5}, Restore: {success6}"
+            return self.log_test("SMS Cost Settings API", False, details)
+
+    def test_sms_monthly_report_api(self):
+        """Test SMS monthly report API"""
+        print("\n📅 Testing SMS Monthly Report API")
+        
+        from datetime import datetime
+        current_date = datetime.now()
+        current_year = current_date.year
+        current_month = current_date.month
+        
+        # Test 1: Get current month report (may be empty initially)
+        success1, status1, response1 = self.make_request(
+            'GET', 'super-admin/sms-monthly-report',
+            params={"year": current_year, "month": current_month},
+            token=self.tokens.get('super_admin'),
+            expected_status=[200, 404]  # 404 if no data exists yet
+        )
+        
+        # Test 2: Get report for non-existent month (should return 404)
+        success2, status2, response2 = self.make_request(
+            'GET', 'super-admin/sms-monthly-report',
+            params={"year": 2020, "month": 1},  # Old date unlikely to have data
+            token=self.tokens.get('super_admin'),
+            expected_status=404
+        )
+        
+        # Test 3: Company Admin cannot access monthly report
+        success3, status3, response3 = self.make_request(
+            'GET', 'super-admin/sms-monthly-report',
+            params={"year": current_year, "month": current_month},
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Test 4: Test with invalid parameters (missing year/month)
+        success4, status4, response4 = self.make_request(
+            'GET', 'super-admin/sms-monthly-report',
+            token=self.tokens.get('super_admin'),
+            expected_status=422  # FastAPI validation error
+        )
+        
+        # Verify response format if data exists
+        format_correct = True
+        if success1 and status1 == 200 and response1:
+            required_fields = ['monthly_stats', 'daily_breakdown', 'period']
+            format_correct = all(field in response1 for field in required_fields)
+        
+        overall_success = success1 and success2 and success3 and success4 and format_correct
+        
+        if overall_success:
+            data_status = "with data" if status1 == 200 else "no data (expected)"
+            return self.log_test("SMS Monthly Report API", True, f"- Current month {data_status} ✅, Non-existent month 404 ✅, Access control ✅, Validation ✅")
+        else:
+            details = f"- Current month: {success1} ({status1}), Non-existent: {success2}, Access blocked: {success3}, Validation: {success4}, Format: {format_correct}"
+            return self.log_test("SMS Monthly Report API", False, details)
+
+    def test_sms_automatic_tracking_on_delivery(self):
+        """Test automatic SMS tracking when delivery is completed"""
+        print("\n🚚 Testing Automatic SMS Tracking on Delivery Completion")
+        
+        # Step 1: Create test company and courier for SMS tracking
+        timestamp = datetime.now().strftime('%H%M%S')
+        company_data = {
+            "name": f"SMS_Tracking_Company_{timestamp}",
+            "admin_username": f"sms_track_admin_{timestamp}",
+            "admin_password": "SMSTrack123!"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'companies',
+            data=company_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        if not success1:
+            return self.log_test("SMS Automatic Tracking - Create Company", False, f"- Status: {status1}")
+        
+        track_company = response1['company']
+        track_admin_creds = {
+            'username': company_data['admin_username'],
+            'password': company_data['admin_password']
+        }
+        
+        # Login as company admin
+        success2, status2, response2 = self.make_request(
+            'POST', 'auth/login',
+            data={"username": track_admin_creds['username'], "password": track_admin_creds['password']},
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("SMS Automatic Tracking - Admin Login", False, f"- Status: {status2}")
+        
+        track_admin_token = response2['access_token']
+        
+        # Create courier
+        courier_data = {
+            "username": f"sms_track_courier_{timestamp}",
+            "password": "SMSTrackCourier123!",
+            "full_name": f"SMS Tracker {timestamp}"
+        }
+        
+        success3, status3, response3 = self.make_request(
+            'POST', 'couriers',
+            data=courier_data,
+            token=track_admin_token,
+            expected_status=200
+        )
+        
+        if not success3:
+            return self.log_test("SMS Automatic Tracking - Create Courier", False, f"- Status: {status3}")
+        
+        # Get courier ID
+        success4, status4, response4 = self.make_request(
+            'GET', 'couriers',
+            token=track_admin_token,
+            expected_status=200
+        )
+        
+        if not success4 or not response4:
+            return self.log_test("SMS Automatic Tracking - Get Courier", False, f"- Status: {status4}")
+        
+        track_courier_id = response4[0]['id']
+        
+        # Login as courier
+        success5, status5, response5 = self.make_request(
+            'POST', 'auth/login',
+            data={"username": courier_data['username'], "password": courier_data['password']},
+            expected_status=200
+        )
+        
+        if not success5:
+            return self.log_test("SMS Automatic Tracking - Courier Login", False, f"- Status: {status5}")
+        
+        track_courier_token = response5['access_token']
+        
+        # Step 2: Get initial SMS statistics
+        success6, status6, response6 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        initial_sms_count = 0
+        if success6 and response6 and 'year_to_date' in response6:
+            initial_sms_count = response6['year_to_date'].get('total_sms', 0)
+        
+        # Step 3: Create order with phone number
+        order_data = {
+            "customer_name": "SMS Tracking Test Customer",
+            "delivery_address": "Via SMS Tracking 123, Roma, 00100 RM",
+            "phone_number": "+39 333 7777777",  # Italian phone number
+            "reference_number": f"SMS-TRACK-{timestamp}"
+        }
+        
+        success7, status7, response7 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=track_admin_token,
+            expected_status=200
+        )
+        
+        if not success7:
+            return self.log_test("SMS Automatic Tracking - Create Order", False, f"- Status: {status7}")
+        
+        track_order = response7['order']
+        
+        # Step 4: Assign order to courier
+        assign_data = {
+            "order_id": track_order['id'],
+            "courier_id": track_courier_id
+        }
+        
+        success8, status8, response8 = self.make_request(
+            'PATCH', 'orders/assign',
+            data=assign_data,
+            token=track_admin_token,
+            expected_status=200
+        )
+        
+        if not success8:
+            return self.log_test("SMS Automatic Tracking - Assign Order", False, f"- Status: {status8}")
+        
+        # Step 5: Mark order as delivered (this should trigger SMS and update statistics)
+        complete_data = {
+            "order_id": track_order['id']
+        }
+        
+        success9, status9, response9 = self.make_request(
+            'PATCH', 'courier/deliveries/mark-delivered',
+            data=complete_data,
+            token=track_courier_token,
+            expected_status=200
+        )
+        
+        if not success9:
+            return self.log_test("SMS Automatic Tracking - Mark Delivered", False, f"- Status: {status9}")
+        
+        # Step 6: Wait a moment for SMS processing
+        import time
+        time.sleep(2)
+        
+        # Step 7: Check if SMS statistics were updated
+        success10, status10, response10 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        sms_count_increased = False
+        company_tracked = False
+        if success10 and response10 and 'year_to_date' in response10:
+            new_sms_count = response10['year_to_date'].get('total_sms', 0)
+            sms_count_increased = new_sms_count > initial_sms_count
+            
+            # Check if company is tracked in breakdown
+            if 'companies_breakdown' in response10:
+                company_tracked = track_company['id'] in response10['companies_breakdown']
+        
+        # Step 8: Check SMS logs for the delivery notification
+        success11, status11, response11 = self.make_request(
+            'GET', 'sms-logs',
+            token=track_admin_token,
+            expected_status=200
+        )
+        
+        sms_log_found = False
+        correct_message = False
+        if success11 and isinstance(response11, list):
+            for log in response11:
+                if (log.get('phone_number') == "+39 333 7777777" and 
+                    log.get('company_id') == track_company['id']):
+                    sms_log_found = True
+                    message = log.get('message', '')
+                    if 'SMS Tracking Test Customer' in message and 'completata con successo' in message:
+                        correct_message = True
+                    break
+        
+        # Step 9: Cleanup - Delete test company
+        delete_data = {"password": "admin123"}
+        self.make_request(
+            'DELETE', f'companies/{track_company["id"]}',
+            data=delete_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Evaluate results
+        overall_success = (success9 and sms_count_increased and company_tracked and 
+                          sms_log_found and correct_message)
+        
+        if overall_success:
+            return self.log_test("SMS Automatic Tracking on Delivery", True, 
+                               f"- SMS sent ✅, Statistics updated ✅, Company tracked ✅, Message correct ✅")
+        else:
+            details = f"- Delivery marked: {success9}, SMS count increased: {sms_count_increased}, Company tracked: {company_tracked}, SMS log found: {sms_log_found}, Message correct: {correct_message}"
+            return self.log_test("SMS Automatic Tracking on Delivery", False, details)
+
+    def test_sms_tracking_success_vs_failed(self):
+        """Test SMS tracking for both successful and failed SMS attempts"""
+        print("\n📈 Testing SMS Tracking for Success vs Failed SMS")
+        
+        # Get initial statistics
+        success1, status1, response1 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        initial_total = 0
+        initial_successful = 0
+        initial_failed = 0
+        
+        if success1 and response1 and 'year_to_date' in response1:
+            initial_total = response1['year_to_date'].get('total_sms', 0)
+            # We need to calculate success/failed from current month or monthly history
+            if 'current_month' in response1 and response1['current_month']:
+                initial_successful = response1['current_month'].get('successful_sms', 0)
+                initial_failed = response1['current_month'].get('failed_sms', 0)
+        
+        # Test SMS sending through security system (this will likely fail due to Twilio permissions)
+        # This failure will be tracked in statistics
+        sms_data = {"phone_number": "+39 333 8888888"}
+        success2, status2, response2 = self.make_request(
+            'POST', 'security/send-sms-code',
+            data=sms_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=[200, 500]  # 500 expected if Twilio permissions not enabled
+        )
+        
+        # Wait for SMS processing
+        import time
+        time.sleep(2)
+        
+        # Check updated statistics
+        success3, status3, response3 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        stats_updated = False
+        sms_tracked_correctly = False
+        
+        if success3 and response3:
+            new_total = response3['year_to_date'].get('total_sms', 0)
+            stats_updated = new_total > initial_total
+            
+            # Check current month stats for success/failed breakdown
+            if 'current_month' in response3 and response3['current_month']:
+                new_successful = response3['current_month'].get('successful_sms', 0)
+                new_failed = response3['current_month'].get('failed_sms', 0)
+                
+                if status2 == 200:
+                    # SMS should have been successful
+                    sms_tracked_correctly = new_successful > initial_successful
+                else:
+                    # SMS should have failed
+                    sms_tracked_correctly = new_failed > initial_failed
+        
+        # Check SMS logs to verify tracking
+        success4, status4, response4 = self.make_request(
+            'GET', 'sms-logs',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        sms_log_found = False
+        log_status_correct = False
+        
+        if success4 and isinstance(response4, list):
+            for log in response4:
+                if log.get('phone_number') == "+39 333 8888888":
+                    sms_log_found = True
+                    log_status = log.get('status')
+                    if status2 == 200:
+                        log_status_correct = log_status == 'sent'
+                    else:
+                        log_status_correct = log_status == 'failed'
+                    break
+        
+        overall_success = stats_updated and sms_tracked_correctly and sms_log_found and log_status_correct
+        
+        if overall_success:
+            sms_result = "successful" if status2 == 200 else "failed (expected)"
+            return self.log_test("SMS Tracking Success vs Failed", True, 
+                               f"- SMS {sms_result} ✅, Statistics updated ✅, Tracking correct ✅, Log status correct ✅")
+        else:
+            details = f"- Stats updated: {stats_updated}, SMS tracked correctly: {sms_tracked_correctly}, Log found: {sms_log_found}, Log status correct: {log_status_correct}"
+            return self.log_test("SMS Tracking Success vs Failed", False, details)
+
+    def test_sms_statistics_company_breakdown(self):
+        """Test that SMS statistics correctly track company_id breakdown"""
+        print("\n🏢 Testing SMS Statistics Company Breakdown")
+        
+        # Create a test company for company-specific SMS tracking
+        timestamp = datetime.now().strftime('%H%M%S')
+        company_data = {
+            "name": f"SMS_Breakdown_Company_{timestamp}",
+            "admin_username": f"sms_breakdown_admin_{timestamp}",
+            "admin_password": "SMSBreakdown123!"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'companies',
+            data=company_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        if not success1:
+            return self.log_test("SMS Statistics Company Breakdown - Create Company", False, f"- Status: {status1}")
+        
+        breakdown_company = response1['company']
+        breakdown_admin_creds = {
+            'username': company_data['admin_username'],
+            'password': company_data['admin_password']
+        }
+        
+        # Login as company admin
+        success2, status2, response2 = self.make_request(
+            'POST', 'auth/login',
+            data={"username": breakdown_admin_creds['username'], "password": breakdown_admin_creds['password']},
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("SMS Statistics Company Breakdown - Admin Login", False, f"- Status: {status2}")
+        
+        breakdown_admin_token = response2['access_token']
+        
+        # Get initial company breakdown
+        success3, status3, response3 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        initial_company_stats = {}
+        if success3 and response3 and 'companies_breakdown' in response3:
+            initial_company_stats = response3['companies_breakdown'].get(breakdown_company['id'], {})
+        
+        # Send SMS from this company (through security system)
+        sms_data = {"phone_number": "+39 333 9999999"}
+        success4, status4, response4 = self.make_request(
+            'POST', 'security/send-sms-code',
+            data=sms_data,
+            token=breakdown_admin_token,
+            expected_status=[200, 500]  # 500 expected if Twilio permissions not enabled
+        )
+        
+        # Wait for SMS processing
+        import time
+        time.sleep(2)
+        
+        # Check updated company breakdown
+        success5, status5, response5 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        company_tracked = False
+        company_stats_updated = False
+        
+        if success5 and response5 and 'companies_breakdown' in response5:
+            company_breakdown = response5['companies_breakdown']
+            
+            if breakdown_company['id'] in company_breakdown:
+                company_tracked = True
+                company_stats = company_breakdown[breakdown_company['id']]
+                
+                # Check if company name is included
+                if 'name' in company_stats and company_stats['name'] == breakdown_company['name']:
+                    # Check if stats were updated
+                    if 'stats' in company_stats:
+                        stats = company_stats['stats']
+                        initial_sent = initial_company_stats.get('stats', {}).get('sent', 0) if initial_company_stats else 0
+                        new_sent = stats.get('sent', 0)
+                        company_stats_updated = new_sent > initial_sent
+        
+        # Verify SMS log has correct company_id
+        success6, status6, response6 = self.make_request(
+            'GET', 'sms-logs',
+            token=breakdown_admin_token,
+            expected_status=200
+        )
+        
+        company_id_in_log = False
+        if success6 and isinstance(response6, list):
+            for log in response6:
+                if (log.get('phone_number') == "+39 333 9999999" and 
+                    log.get('company_id') == breakdown_company['id']):
+                    company_id_in_log = True
+                    break
+        
+        # Cleanup - Delete test company
+        delete_data = {"password": "admin123"}
+        self.make_request(
+            'DELETE', f'companies/{breakdown_company["id"]}',
+            data=delete_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        overall_success = company_tracked and company_stats_updated and company_id_in_log
+        
+        if overall_success:
+            return self.log_test("SMS Statistics Company Breakdown", True, 
+                               f"- Company tracked ✅, Stats updated ✅, Company ID in logs ✅")
+        else:
+            details = f"- Company tracked: {company_tracked}, Stats updated: {company_stats_updated}, Company ID in log: {company_id_in_log}"
+            return self.log_test("SMS Statistics Company Breakdown", False, details)
+
     # ========== CLEANUP TESTS ==========
     
     def test_delete_order(self):
