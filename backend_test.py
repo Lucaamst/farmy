@@ -3447,6 +3447,8 @@ def main():
             success = tester.run_farmygo_order_visibility_tests()
         elif sys.argv[1] == "sms-history":
             success = tester.run_company_sms_history_tests()
+        elif sys.argv[1] == "new-features":
+            success = tester.run_new_features_tests()
         else:
             success = tester.run_all_tests()
     else:
