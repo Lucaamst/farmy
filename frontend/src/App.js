@@ -3650,6 +3650,20 @@ function CompanyAdminDashboard() {
                           <TableCell className="text-xs sm:text-sm">{order.reference_number || '-'}</TableCell>
                           <TableCell className="text-xs sm:text-sm">{getCourierName(order.courier_id)}</TableCell>
                           <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-xs sm:text-sm max-w-32">
+                            {order.delivery_comment ? (
+                              <div className="group relative">
+                                <p className="truncate text-gray-700">
+                                  💬 {order.delivery_comment}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {order.commented_by} - {order.commented_at ? new Date(order.commented_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
+                                </p>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">Nessun commento</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-xs sm:text-sm">
                             {new Date(order.created_at).toLocaleDateString()}
                           </TableCell>
