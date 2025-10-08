@@ -281,10 +281,19 @@ function CourierDashboard() {
     }
   };
 
-  const markAsDelivered = async (orderId) => {
+  const openCompleteDialog = (delivery) => {
+    setCompletingDelivery(delivery);
+    setDeliveryComment('');
+    setShowCompleteDialog(true);
+  };
+
+  const markAsDelivered = async () => {
+    if (!completingDelivery) return;
+    
     try {
       await axios.patch(`${API}/courier/deliveries/mark-delivered`, {
-        order_id: orderId
+        order_id: completingDelivery.id,
+        delivery_comment: deliveryComment || null
       });
       
       toast({
@@ -292,6 +301,9 @@ function CourierDashboard() {
         description: t.deliveryMarkedCompleted,
       });
       
+      setShowCompleteDialog(false);
+      setCompletingDelivery(null);
+      setDeliveryComment('');
       fetchDeliveries();
     } catch (error) {
       toast({
