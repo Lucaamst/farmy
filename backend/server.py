@@ -149,6 +149,7 @@ class AssignOrderRequest(BaseModel):
 
 class MarkDeliveredRequest(BaseModel):
     order_id: str
+    delivery_comment: Optional[str] = None
 
 class CreateCustomerRequest(BaseModel):
     name: str
