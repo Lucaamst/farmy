@@ -2026,25 +2026,6 @@ async def remove_banner(
     
     return {"message": f"Banner removed successfully. {result.modified_count} banners deactivated."}
 
-# Test endpoint to create SMS with correct company_id
-@api_router.post("/test-sms")
-async def create_test_sms():
-    """Create test SMS with valid company_id for testing"""
-    companies = await db.companies.find({}).limit(3).to_list(None)
-    
-    for company in companies:
-        # Create test SMS log
-        await send_sms_notification(
-            "+41791234567", 
-            f"Test SMS per {company['name']}", 
-            company['id']
-        )
-        
-        # Update monthly stats
-        await update_monthly_sms_stats(success=True, company_id=company['id'])
-    
-    return {"message": f"Created test SMS for {len(companies)} companies"}
-
 # Include the router in the main app
 app.include_router(api_router)
 
