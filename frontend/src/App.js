@@ -483,6 +483,7 @@ function CourierDashboard() {
         </div>
       </DialogContent>
     </Dialog>
+    </div>
   );
 }
 
