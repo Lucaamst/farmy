@@ -1098,7 +1098,7 @@ function BannerManagementSection() {
     try {
       setLoading(true);
       const response = await axios.get(`${API}/super-admin/banner`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setBanner(response.data.banner);
     } catch (error) {
