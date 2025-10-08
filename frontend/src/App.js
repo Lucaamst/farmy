@@ -508,9 +508,10 @@ function SMSStatsSection() {
       });
       setShowCompanyHistoryDialog(true);
     } catch (error) {
+      console.error('SMS History error:', error);
       toast({
         title: 'Errore',
-        description: 'Impossibile caricare lo storico SMS per questa azienda',
+        description: error.response?.data?.detail || 'Impossibile caricare lo storico SMS per questa azienda',
         variant: "destructive",
       });
     }
