@@ -3636,6 +3636,7 @@ function CompanyAdminDashboard() {
                         <TableHead className="text-xs sm:text-sm">{t.reference}</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.courier}</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Commento</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
                       </TableRow>
