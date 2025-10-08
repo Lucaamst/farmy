@@ -4164,6 +4164,12 @@ function CompanyAdminDashboard() {
                                   ✅ Consegnato: {new Date(order.delivered_at).toLocaleDateString()} alle {new Date(order.delivered_at).toLocaleTimeString()}
                                 </span>
                               )}
+                              {order.delivery_comment && (
+                                <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs">
+                                  💬 {order.delivery_comment}
+                                  <span className="text-gray-500 ml-1">- {order.commented_by}</span>
+                                </span>
+                              )}
                             </div>
                             <span>{getCourierName(order.courier_id)}</span>
                           </div>
