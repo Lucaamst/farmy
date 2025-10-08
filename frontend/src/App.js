@@ -3750,9 +3750,6 @@ function CompanyAdminDashboard() {
                       />
                     </div>
                     <div className="flex items-end space-x-2">
-                      <Button onClick={applyFilters} size="sm" className="text-sm">
-                        {t.applyFilters}
-                      </Button>
                       <Button onClick={clearFilters} variant="outline" size="sm" className="text-sm">
                         {t.clearFilters}
                       </Button>
