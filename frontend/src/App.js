@@ -1266,6 +1266,34 @@ function BannerManagementSection() {
               <p className="text-xs text-gray-500 mt-1">
                 Consigliato: 800x200 pixel, JPG o PNG
               </p>
+              
+              {/* Quick Examples */}
+              <div className="mt-2">
+                <p className="text-xs font-medium text-gray-600 mb-1">Esempi rapidi:</p>
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    type="button"
+                    className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://via.placeholder.com/800x200/ea580c/ffffff?text=FarmyGo+Banner'})}
+                  >
+                    Banner Demo
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://via.placeholder.com/800x200/059669/ffffff?text=Promozione+Speciale'})}
+                  >
+                    Promo Verde
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200"
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://via.placeholder.com/800x200/7c3aed/ffffff?text=Novita+2025'})}
+                  >
+                    Novità 2025
+                  </button>
+                </div>
+              </div>
             </div>
             
             <div>
