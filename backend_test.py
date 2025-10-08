@@ -2743,6 +2743,13 @@ class DeliveryManagementAPITester:
         """Test Banner Management APIs"""
         print("\n🎨 Testing Banner Management APIs")
         
+        # Cleanup: Remove any existing banners first
+        self.make_request(
+            'DELETE', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=[200, 404]  # 404 if no banner exists
+        )
+        
         # Test 1: GET /api/banner/current (public endpoint)
         success1, status1, response1 = self.make_request(
             'GET', 'banner/current',
