@@ -343,6 +343,42 @@ frontend:
           agent: "testing"
           comment: "🎯 COMPANY SMS HISTORY API COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY! All 11 specialized tests passed (100% success rate). New Company SMS History API for billing purposes is fully implemented and working perfectly: ✅ API ACCESS CONTROL: GET /api/super-admin/company-sms-history/{company_id} properly restricted to Super Admin only, Company Admin and Courier access correctly blocked (403), ✅ DATE RANGE PARAMETERS: API works with start_year, start_month, end_year, end_month parameters, defaults to last 12 months when not specified, proper date range validation, ✅ RESPONSE FORMAT FOR BILLING: Complete response structure with company info (id, name), date_range (start, end), summary (total_sms, total_cost, currency, months_count), monthly_breakdown array with detailed monthly stats (year, month, period, total_sms, successful_sms, failed_sms, cost_per_sms, total_cost, success_rate, currency), recent_sms_logs array with SMS details, total_logs_count for pagination, ✅ INTEGRATION WORKFLOW: Complete end-to-end testing - create order with phone number, assign to courier, mark as delivered, SMS automatically tracked with company_id, SMS history correctly updated with company breakdown, ✅ ERROR HANDLING: Non-existent company returns 404, proper authentication required, ObjectId serialization fixed for SMS logs. The Company SMS History API provides comprehensive SMS tracking and cost breakdown per company for accurate billing and invoicing. All billing requirements met with detailed monthly breakdowns, cost tracking, and SMS logs."
 
+  - task: "Company SMS History API Fix for Unknown Company IDs"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPANY SMS HISTORY UNKNOWN COMPANY FIX TESTED SUCCESSFULLY! The API fix is working correctly: Unknown company IDs without SMS logs return 404 as expected (proper error handling), existing companies return complete data with proper format (no note field for valid companies), the fix handles legacy/test data scenarios appropriately. The implementation correctly distinguishes between truly unknown companies and companies with historical SMS data, providing appropriate responses for billing and administrative purposes."
+
+  - task: "Courier Delivery Comments System"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COURIER DELIVERY COMMENTS SYSTEM TESTED SUCCESSFULLY! The new delivery comment functionality is fully working: PATCH /api/courier/deliveries/mark-delivered now accepts delivery_comment parameter, comments are properly saved to the order record, all three required fields are populated correctly (delivery_comment, commented_at, commented_by), courier username is correctly recorded as the commenter, delivery completion workflow integrates seamlessly with comment system. This enhancement allows couriers to provide detailed delivery notes for better customer service and record keeping."
+
+  - task: "Banner Management System"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ BANNER MANAGEMENT SYSTEM TESTED SUCCESSFULLY! All banner management APIs are fully functional: GET /api/banner/current (public endpoint) works correctly with proper 404 handling when no banner exists, GET /api/super-admin/banner (super admin only) provides management interface access, PUT /api/super-admin/banner creates/updates banners with proper data validation, DELETE /api/super-admin/banner removes banners and updates public visibility, access control properly restricts super-admin endpoints to super admin role only (403 for company admin/courier), banner data persistence and retrieval working correctly with proper JSON serialization. Fixed ObjectId serialization issues and HTTP 404 handling for deleted banners. The banner system provides complete CRUD functionality for promotional banner management."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
