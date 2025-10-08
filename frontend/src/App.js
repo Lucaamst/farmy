@@ -2513,6 +2513,7 @@ function CompanyAdminDashboard() {
   const [deletingCustomer, setDeletingCustomer] = useState(null);
   const [viewingCustomer, setViewingCustomer] = useState(null);
   const [customerOrders, setCustomerOrders] = useState([]);
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [showCreateCustomerDialog, setShowCreateCustomerDialog] = useState(false);
   const [showEditCustomerDialog, setShowEditCustomerDialog] = useState(false);
   const [showDeleteCustomerDialog, setShowDeleteCustomerDialog] = useState(false);
