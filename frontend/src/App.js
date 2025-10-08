@@ -435,6 +435,9 @@ function CourierDashboard() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Banner pubblicitario */}
+      <BannerDisplay />
     </div>
     
     {/* Complete Delivery Dialog */}
