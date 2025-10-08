@@ -227,6 +227,22 @@ class UpdateSMSCostRequest(BaseModel):
     cost_per_sms: float
     currency: str = "EUR"
 
+# Banner System Models
+class Banner(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    image_url: str
+    alt_text: Optional[str] = None
+    link_url: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_by: str  # Super admin user ID
+
+class UpdateBannerRequest(BaseModel):
+    image_url: str
+    alt_text: Optional[str] = None
+    link_url: Optional[str] = None
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
