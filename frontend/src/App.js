@@ -1097,7 +1097,9 @@ function BannerManagementSection() {
   const fetchBanner = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/super-admin/banner`);
+      const response = await axios.get(`${API}/super-admin/banner`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+      });
       setBanner(response.data.banner);
     } catch (error) {
       console.error('Banner fetch error:', error);
