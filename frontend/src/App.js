@@ -2909,7 +2909,7 @@ function CompanyAdminDashboard() {
         });
         
         const response = await axios.get(`${API}/orders?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setOrders(response.data);
         setShowFilters(false);
@@ -2942,7 +2942,7 @@ function CompanyAdminDashboard() {
     setTimeout(async () => {
       try {
         const response = await axios.get(`${API}/orders`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setOrders(response.data);
         setShowFilters(false);
