@@ -387,7 +387,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Company SMS History API for Super Admin"
+    - "Company SMS History API Fix for Unknown Company IDs"
+    - "Courier Delivery Comments System"
+    - "Banner Management System"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
