@@ -3618,7 +3618,23 @@ function CompanyAdminDashboard() {
                     
                     <div className="flex space-x-1">
                       <Button
-                        onClick={() => setSearchFilters({...searchFilters, status: ''})}
+                        onClick={async () => {
+                          try {
+                            const response = await axios.get(`${API}/orders`);
+                            setOrders(response.data);
+                            setSearchFilters({...searchFilters, status: ''});
+                            toast({
+                              title: t.success,
+                              description: `Visualizzati tutti gli ordini (${response.data.length})`,
+                            });
+                          } catch (error) {
+                            toast({
+                              title: t.error,
+                              description: 'Errore durante caricamento ordini',
+                              variant: "destructive",
+                            });
+                          }
+                        }}
                         variant="outline"
                         size="sm"
                         className="text-sm"
