@@ -3505,6 +3505,9 @@ function CompanyAdminDashboard() {
                 </Table>
               </div>
             </CardContent>
+            
+            {/* Banner pubblicitario */}
+            <BannerDisplay />
           </Card>
         )}
 
