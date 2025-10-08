@@ -2898,15 +2898,25 @@ function CompanyAdminDashboard() {
   };
 
   const clearFilters = () => {
-    setSearchFilters({
+    const clearedFilters = {
       customer_name: '',
       courier_id: '',
       status: '',
       date_from: '',
       date_to: ''
-    });
-    // Return to showing only pending orders when clearing filters
-    setTimeout(() => fetchOrders(), 100);
+    };
+    setSearchFilters(clearedFilters);
+    
+    // Force immediate fetch with cleared filters
+    setTimeout(async () => {
+      try {
+        const response = await axios.get(`${API}/orders`);
+        setOrders(response.data);
+        setShowFilters(false);
+      } catch (error) {
+        console.error('Failed to fetch orders after clearing filters:', error);
+      }
+    }, 50);
   };
 
   const handleEditCourierClick = (courier) => {
