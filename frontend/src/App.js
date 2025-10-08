@@ -3624,7 +3624,9 @@ function CompanyAdminDashboard() {
                       <Button
                         onClick={async () => {
                           try {
-                            const response = await axios.get(`${API}/orders`);
+                            const response = await axios.get(`${API}/orders`, {
+                              headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+                            });
                             setOrders(response.data);
                             setSearchFilters({...searchFilters, status: ''});
                             toast({
