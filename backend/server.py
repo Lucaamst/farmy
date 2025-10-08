@@ -1249,13 +1249,21 @@ async def mark_delivery_completed(
         raise HTTPException(status_code=400, detail="Order already delivered")
     
     # Update order status
+    update_data = {
+        "status": "delivered",
+        "delivered_at": datetime.now(timezone.utc),
+        "sms_sent": True
+    }
+    
+    # Add courier comment if provided
+    if request.delivery_comment and request.delivery_comment.strip():
+        update_data["delivery_comment"] = request.delivery_comment.strip()
+        update_data["commented_at"] = datetime.now(timezone.utc)
+        update_data["commented_by"] = current_user.username
+    
     await db.orders.update_one(
         {"id": request.order_id},
-        {"$set": {
-            "status": "delivered",
-            "delivered_at": datetime.now(timezone.utc),
-            "sms_sent": True
-        }}
+        {"$set": update_data}
     )
     
     # Send SMS notification only if phone number is provided
