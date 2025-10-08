@@ -1332,6 +1332,9 @@ function SuperAdminDashboard() {
         {/* SMS Statistics Section */}
         <SMSStatsSection />
 
+        {/* Banner Management Section */}
+        <BannerManagementSection />
+
         {/* All dialogs for company management */}
         {/* Edit Company Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
