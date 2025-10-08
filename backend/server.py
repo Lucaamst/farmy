@@ -79,6 +79,10 @@ class Order(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     delivered_at: Optional[datetime] = None
     sms_sent: bool = False
+    # Courier delivery comments
+    delivery_comment: Optional[str] = None
+    commented_at: Optional[datetime] = None
+    commented_by: Optional[str] = None
 
 class Customer(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
