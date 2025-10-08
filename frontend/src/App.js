@@ -2752,8 +2752,11 @@ function CompanyAdminDashboard() {
   };
 
   const applyFilters = () => {
-    fetchOrders();
-    setShowFilters(false);
+    // Force re-fetch with current filter values
+    setTimeout(() => {
+      fetchOrders();
+      setShowFilters(false);
+    }, 50);
   };
 
   const clearFilters = () => {
