@@ -436,6 +436,51 @@ function CourierDashboard() {
         </Card>
       </div>
     </div>
+    
+    {/* Complete Delivery Dialog */}
+    <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+      <DialogContent className="mx-4 sm:mx-0 max-w-md">
+        <DialogHeader>
+          <DialogTitle>Completa Consegna</DialogTitle>
+          <DialogDescription>
+            {completingDelivery?.customer_name} - {completingDelivery?.delivery_address}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="comment">Commento Consegna (opzionale)</Label>
+            <textarea
+              id="comment"
+              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              rows={3}
+              maxLength={200}
+              placeholder="Aggiungi note sulla consegna (es: consegnato al vicino, pacchetto lasciato alla porta, ecc.)"
+              value={deliveryComment}
+              onChange={(e) => setDeliveryComment(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {deliveryComment.length}/200 caratteri
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={markAsDelivered} 
+              className="flex-1"
+            >
+              ✅ Conferma Consegna
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCompleteDialog(false)}
+              className="flex-1"
+            >
+              Annulla
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
