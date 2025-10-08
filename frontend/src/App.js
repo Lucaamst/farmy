@@ -260,6 +260,9 @@ function Login() {
 function CourierDashboard() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [completingDelivery, setCompletingDelivery] = useState(null);
+  const [deliveryComment, setDeliveryComment] = useState('');
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
