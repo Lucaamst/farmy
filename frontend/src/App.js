@@ -3356,6 +3356,18 @@ function CompanyAdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {customers.filter(customer => 
+                      customerSearchTerm === '' || 
+                      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                      customer.phone_number.includes(customerSearchTerm) ||
+                      customer.address.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                    ).length === 0 && customerSearchTerm !== '' && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                          🔍 Nessun cliente trovato per "{customerSearchTerm}"
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
