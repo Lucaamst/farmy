@@ -1141,7 +1141,9 @@ function BannerManagementSection() {
 
   const handleRemoveBanner = async () => {
     try {
-      await axios.delete(`${API}/super-admin/banner`);
+      await axios.delete(`${API}/super-admin/banner`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+      });
       toast({
         title: 'Successo',
         description: 'Banner rimosso con successo',
