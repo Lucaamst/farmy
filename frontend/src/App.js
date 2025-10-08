@@ -2898,7 +2898,9 @@ function CompanyAdminDashboard() {
           if (value) params.append(key, value);
         });
         
-        const response = await axios.get(`${API}/orders?${params.toString()}`);
+        const response = await axios.get(`${API}/orders?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+        });
         setOrders(response.data);
         setShowFilters(false);
         
