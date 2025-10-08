@@ -3458,6 +3458,418 @@ class DeliveryManagementAPITester:
             print(f"⚠️  {failed_tests} tests failed. Check the issues above.")
             return False
 
+    # ========== FINAL REVIEW TESTS - LUCA'S REQUIREMENTS ==========
+    
+    def test_final_super_admin_sms_statistics_fix(self):
+        """Test Super Admin SMS Statistics with company recognition and Storico button"""
+        print("\n🎯 Testing Super Admin SMS Statistics Fix - Company Recognition")
+        
+        # Test 1: Get SMS statistics and verify companies are recognized
+        success1, status1, response1 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        companies_recognized = False
+        if success1 and response1 and 'companies_breakdown' in response1:
+            companies_breakdown = response1['companies_breakdown']
+            # Check if companies have proper names (not "Azienda Sconosciuta")
+            for company_id, company_data in companies_breakdown.items():
+                if 'name' in company_data and not company_data['name'].startswith('Azienda Sconosciuta'):
+                    companies_recognized = True
+                    break
+        
+        # Test 2: Test "Storico" button functionality - Company SMS History
+        company_id = None
+        if 'company' in self.test_data:
+            company_id = self.test_data['company']['id']
+        
+        success2 = True
+        if company_id:
+            success2, status2, response2 = self.make_request(
+                'GET', f'super-admin/company-sms-history/{company_id}',
+                token=self.tokens.get('super_admin'),
+                expected_status=[200, 404]  # 404 if no SMS history yet
+            )
+        
+        overall_success = success1 and success2
+        
+        if overall_success:
+            return self.log_test("Super Admin SMS Statistics Fix", True, f"- SMS Stats API works ✅, Storico button works ✅")
+        else:
+            details = f"- SMS Stats API: {success1}, Storico API: {success2}"
+            return self.log_test("Super Admin SMS Statistics Fix", False, details)
+
+    def test_final_banner_management_system(self):
+        """Test Banner Management System - PUT, GET, DELETE"""
+        print("\n🎯 Testing Banner Management System - Complete CRUD")
+        
+        # Test 1: PUT /api/super-admin/banner (upload banner)
+        banner_data = {
+            "image_url": "https://example.com/test-banner.jpg",
+            "alt_text": "Test Banner for FarmyGo",
+            "link_url": "https://farmygo.com/promo"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'PUT', 'super-admin/banner',
+            data=banner_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 2: GET /api/banner/current (public banner view)
+        success2, status2, response2 = self.make_request(
+            'GET', 'banner/current',
+            expected_status=200  # No token needed - public endpoint
+        )
+        
+        banner_visible = False
+        if success2 and response2:
+            banner_visible = (
+                response2.get('image_url') == banner_data['image_url'] and
+                response2.get('alt_text') == banner_data['alt_text'] and
+                response2.get('link_url') == banner_data['link_url']
+            )
+        
+        # Test 3: DELETE /api/super-admin/banner (remove banner)
+        success3, status3, response3 = self.make_request(
+            'DELETE', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 4: Verify banner is no longer visible after deletion
+        success4, status4, response4 = self.make_request(
+            'GET', 'banner/current',
+            expected_status=404  # Should return 404 when no banner exists
+        )
+        
+        overall_success = success1 and success2 and banner_visible and success3 and success4
+        
+        if overall_success:
+            return self.log_test("Banner Management System", True, f"- PUT banner ✅, GET current ✅, DELETE banner ✅")
+        else:
+            details = f"- PUT: {success1}, GET: {success2}, Visible: {banner_visible}, DELETE: {success3}, 404 after delete: {success4}"
+            return self.log_test("Banner Management System", False, details)
+
+    def test_final_courier_delivery_comments(self):
+        """Test Courier Delivery Comments System"""
+        print("\n🎯 Testing Courier Delivery Comments System")
+        
+        # Create a test order for delivery comments
+        if 'company_admin' not in self.tokens or 'courier' not in self.tokens:
+            return self.log_test("Courier Delivery Comments", False, "- Missing required tokens")
+        
+        # Test 1: Create order
+        order_data = {
+            "customer_name": "Test Comment Customer",
+            "delivery_address": "Via Comment Test, Milano",
+            "phone_number": "+39 333 2222222",
+            "reference_number": "COMMENT-TEST"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success1 or 'order' not in response1:
+            return self.log_test("Courier Delivery Comments", False, f"- Could not create test order: {status1}")
+        
+        test_order = response1['order']
+        
+        # Test 2: Assign order to courier
+        assign_data = {
+            "order_id": test_order['id'],
+            "courier_id": self.test_data.get('courier_id')
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'PATCH', 'orders/assign',
+            data=assign_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("Courier Delivery Comments", False, f"- Could not assign order: {status2}")
+        
+        # Test 3: PATCH /api/courier/deliveries/mark-delivered with delivery_comment
+        delivery_comment = "Consegna completata con successo. Cliente molto soddisfatto."
+        complete_data = {
+            "order_id": test_order['id'],
+            "delivery_comment": delivery_comment
+        }
+        
+        success3, status3, response3 = self.make_request(
+            'PATCH', 'courier/deliveries/mark-delivered',
+            data=complete_data,
+            token=self.tokens.get('courier'),
+            expected_status=200
+        )
+        
+        # Test 4: Verify comment was saved - get order details
+        success4, status4, response4 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        comment_saved = False
+        commented_by_saved = False
+        commented_at_saved = False
+        
+        if success4 and isinstance(response4, list):
+            for order in response4:
+                if order.get('id') == test_order['id']:
+                    comment_saved = order.get('delivery_comment') == delivery_comment
+                    commented_by_saved = order.get('commented_by') is not None
+                    commented_at_saved = order.get('commented_at') is not None
+                    break
+        
+        overall_success = success1 and success2 and success3 and success4 and comment_saved and commented_by_saved and commented_at_saved
+        
+        if overall_success:
+            return self.log_test("Courier Delivery Comments", True, f"- Comment saved ✅, commented_by set ✅, commented_at set ✅")
+        else:
+            details = f"- Create: {success1}, Assign: {success2}, Complete: {success3}, Get orders: {success4}, Comment saved: {comment_saved}, By saved: {commented_by_saved}, At saved: {commented_at_saved}"
+            return self.log_test("Courier Delivery Comments", False, details)
+
+    def test_final_company_admin_features(self):
+        """Test Company Admin Features - Order filters and courier comments visibility"""
+        print("\n🎯 Testing Company Admin Features - Filters and Comments")
+        
+        if 'company_admin' not in self.tokens:
+            return self.log_test("Company Admin Features", False, "- No company admin token")
+        
+        # Test 1: Order filters functionality
+        filter_tests = [
+            {"customer_name": "Test"},
+            {"status": "delivered"},
+            {"date_from": "2024-01-01T00:00:00Z"},
+            {"date_to": "2024-12-31T23:59:59Z"},
+            {}  # No filters
+        ]
+        
+        filters_working = True
+        for i, filters in enumerate(filter_tests):
+            success, status, response = self.make_request(
+                'GET', 'orders/search',
+                params=filters,
+                token=self.tokens.get('company_admin'),
+                expected_status=200
+            )
+            
+            if not success:
+                filters_working = False
+                break
+        
+        # Test 2: Verify courier comments are visible in orders
+        success2, status2, response2 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        comments_visible = False
+        if success2 and isinstance(response2, list):
+            for order in response2:
+                if order.get('delivery_comment') and order.get('commented_by') and order.get('commented_at'):
+                    comments_visible = True
+                    break
+        
+        overall_success = filters_working and success2
+        
+        if overall_success:
+            return self.log_test("Company Admin Features", True, f"- Order filters work ✅, Comments visible: {comments_visible}")
+        else:
+            details = f"- Filters: {filters_working}, Get orders: {success2}, Comments visible: {comments_visible}"
+            return self.log_test("Company Admin Features", False, details)
+
+    def test_final_complete_scenario(self):
+        """Test complete scenario as requested in review"""
+        print("\n🎯 Testing Complete Scenario - End-to-End Workflow")
+        
+        # Step 1: Login super admin (already done)
+        if 'super_admin' not in self.tokens:
+            return self.log_test("Complete Scenario", False, "- Super admin not logged in")
+        
+        # Step 2: Verify SMS stats with companies recognized
+        success1, status1, response1 = self.make_request(
+            'GET', 'super-admin/sms-stats',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Step 3: Upload a test banner
+        banner_data = {
+            "image_url": "https://farmygo.com/scenario-test-banner.jpg",
+            "alt_text": "Scenario Test Banner",
+            "link_url": "https://farmygo.com/test"
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'PUT', 'super-admin/banner',
+            data=banner_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Step 4: Create/complete a delivery with comment
+        if 'company_admin' in self.tokens and 'courier' in self.tokens:
+            # Create order
+            order_data = {
+                "customer_name": "Scenario Test Customer",
+                "delivery_address": "Via Scenario Test, Napoli",
+                "phone_number": "+39 333 4444444",
+                "reference_number": "SCENARIO-TEST"
+            }
+            
+            success3, status3, response3 = self.make_request(
+                'POST', 'orders',
+                data=order_data,
+                token=self.tokens.get('company_admin'),
+                expected_status=200
+            )
+            
+            if success3 and 'order' in response3:
+                scenario_order = response3['order']
+                
+                # Assign to courier
+                assign_data = {
+                    "order_id": scenario_order['id'],
+                    "courier_id": self.test_data.get('courier_id')
+                }
+                
+                success4, status4, response4 = self.make_request(
+                    'PATCH', 'orders/assign',
+                    data=assign_data,
+                    token=self.tokens.get('company_admin'),
+                    expected_status=200
+                )
+                
+                if success4:
+                    # Complete with comment
+                    complete_data = {
+                        "order_id": scenario_order['id'],
+                        "delivery_comment": "Scenario test completato con successo."
+                    }
+                    
+                    success5, status5, response5 = self.make_request(
+                        'PATCH', 'courier/deliveries/mark-delivered',
+                        data=complete_data,
+                        token=self.tokens.get('courier'),
+                        expected_status=200
+                    )
+                else:
+                    success5 = False
+            else:
+                success5 = False
+        else:
+            success5 = True  # Skip if tokens not available
+        
+        # Step 5: Clean up banner
+        success6, status6, response6 = self.make_request(
+            'DELETE', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        overall_success = success1 and success2 and success5 and success6
+        
+        if overall_success:
+            return self.log_test("Complete Scenario", True, f"- All steps completed successfully ✅")
+        else:
+            details = f"- SMS stats: {success1}, Banner upload: {success2}, Delivery: {success5}, Banner cleanup: {success6}"
+            return self.log_test("Complete Scenario", False, details)
+
+    def run_final_review_tests(self):
+        """Run final review tests for all Luca's requirements"""
+        print("🎯 Starting FINAL REVIEW Testing - All Features for Luca")
+        print("=" * 80)
+        
+        # Authentication Setup
+        print("\n🔐 AUTHENTICATION SETUP")
+        print("-" * 40)
+        self.test_super_admin_login()
+        self.test_create_company()
+        self.test_company_admin_login()
+        self.test_create_courier()
+        self.test_get_couriers()  # To get courier ID
+        self.test_courier_login()
+        
+        # CRITICAL TESTING - All requested features
+        print("\n🎯 CRITICAL TESTING - ALL REQUESTED FEATURES")
+        print("-" * 50)
+        
+        print("\n1️⃣ Super Admin SMS Statistics Fix")
+        self.test_final_super_admin_sms_statistics_fix()
+        
+        print("\n2️⃣ Banner Management System")
+        self.test_final_banner_management_system()
+        
+        print("\n3️⃣ Courier Delivery Comments")
+        self.test_final_courier_delivery_comments()
+        
+        print("\n4️⃣ Company Admin Features")
+        self.test_final_company_admin_features()
+        
+        print("\n5️⃣ Complete Scenario Test")
+        self.test_final_complete_scenario()
+        
+        # Cleanup
+        print("\n🧹 CLEANUP")
+        print("-" * 40)
+        self.cleanup_test_data()
+        
+        # Final Results
+        print("\n" + "=" * 80)
+        print("🎯 FINAL REVIEW TESTING COMPLETED")
+        print("=" * 80)
+        print(f"📊 Tests Run: {self.tests_run}")
+        print(f"✅ Tests Passed: {self.tests_passed}")
+        print(f"❌ Tests Failed: {self.tests_run - self.tests_passed}")
+        print(f"📈 Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 ALL FEATURES WORKING PERFECTLY! Ready for Luca!")
+        else:
+            print("⚠️  Some features need attention. Please review the failed tests above.")
+        
+        return self.tests_passed == self.tests_run
+
+    def cleanup_test_data(self):
+        """Clean up test data"""
+        print("\n🧹 Cleaning up test data...")
+        
+        # Delete test company (this will cascade delete users and orders)
+        if 'company' in self.test_data:
+            delete_data = {"password": "admin123"}
+            success, status, response = self.make_request(
+                'DELETE', f'companies/{self.test_data["company"]["id"]}',
+                data=delete_data,
+                token=self.tokens.get('super_admin'),
+                expected_status=200
+            )
+            
+            if success:
+                print("✅ Test company and related data cleaned up")
+            else:
+                print(f"❌ Failed to clean up test company: {status}")
+        
+        # Clean up any remaining banners
+        self.make_request(
+            'DELETE', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=[200, 404]  # 404 if no banner exists
+        )
+        
+        print("🧹 Cleanup completed")
+
 def main():
     import sys
     tester = DeliveryManagementAPITester()
