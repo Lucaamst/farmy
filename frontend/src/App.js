@@ -1142,7 +1142,7 @@ function BannerManagementSection() {
   const handleRemoveBanner = async () => {
     try {
       await axios.delete(`${API}/super-admin/banner`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       toast({
         title: 'Successo',
