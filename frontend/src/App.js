@@ -3211,6 +3211,17 @@ function CompanyAdminDashboard() {
                   <CardTitle className="text-lg sm:text-xl">{t.customerManagement}</CardTitle>
                   <CardDescription className="text-sm">{t.manageAllCustomers}</CardDescription>
                 </div>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  {/* Customer Search */}
+                  <div className="flex-1 sm:w-64">
+                    <Input
+                      type="text"
+                      placeholder="🔍 Cerca cliente per nome..."
+                      value={customerSearchTerm}
+                      onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
                 <Dialog open={showCreateCustomerDialog} onOpenChange={setShowCreateCustomerDialog}>
                   <DialogTrigger asChild>
                     <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
