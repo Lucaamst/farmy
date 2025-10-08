@@ -2122,7 +2122,6 @@ class DeliveryManagementAPITester:
                     break
         
         # Test 3: Filter by date (today's orders)
-        from datetime import datetime
         today = datetime.now().strftime('%Y-%m-%d')
         success3, status3, response3 = self.make_request(
             'GET', 'orders/search',
