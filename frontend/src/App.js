@@ -3222,7 +3222,7 @@ function CompanyAdminDashboard() {
                       className="text-sm"
                     />
                   </div>
-                <Dialog open={showCreateCustomerDialog} onOpenChange={setShowCreateCustomerDialog}>
+                  <Dialog open={showCreateCustomerDialog} onOpenChange={setShowCreateCustomerDialog}>
                   <DialogTrigger asChild>
                     <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
                       <UserPlus className="w-4 h-4 mr-2" />
