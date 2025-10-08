@@ -4688,13 +4688,16 @@ def main():
             success = tester.run_final_review_tests()
         elif test_type == "comprehensive":
             success = tester.run_comprehensive_tests()
+        elif test_type == "luca":
+            success = tester.run_luca_specific_tests()
         else:
-            print("Usage: python backend_test.py [focused|sms-history|new-features|final|comprehensive|all]")
+            print("Usage: python backend_test.py [focused|sms-history|new-features|final|comprehensive|luca|all]")
             print("  focused       - Run FarmyGo order visibility & filtering tests")
             print("  sms-history   - Run Company SMS History API tests")
             print("  new-features  - Run new features tests (review request)")
             print("  final         - Run FINAL REVIEW tests for all Luca's requirements")
             print("  comprehensive - Run comprehensive backend API tests")
+            print("  luca          - Run Luca's specific issue tests")
             print("  all           - Run all tests in sequence")
             return 1
     else:
