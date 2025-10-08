@@ -3659,14 +3659,6 @@ function CompanyAdminDashboard() {
                       </DialogContent>
                     </Dialog>
                     
-                    <Button
-                      onClick={() => setShowFilters(!showFilters)}
-                      variant="outline"
-                      size="sm"
-                      className="text-sm"
-                    >
-                      🔍 {t.filters}
-                    </Button>
                     
                     <div className="flex space-x-1">
                       <Button
