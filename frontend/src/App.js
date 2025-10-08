@@ -3310,7 +3310,14 @@ function CompanyAdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customers.map((customer) => (
+                    {customers
+                      .filter(customer => 
+                        customerSearchTerm === '' || 
+                        customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                        customer.phone_number.includes(customerSearchTerm) ||
+                        customer.address.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                      )
+                      .map((customer) => (
                       <TableRow key={customer.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">{customer.name}</TableCell>
                         <TableCell className="text-xs sm:text-sm">{customer.phone_number}</TableCell>
