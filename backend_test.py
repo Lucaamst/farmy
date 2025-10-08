@@ -2585,6 +2585,318 @@ class DeliveryManagementAPITester:
             print(f"⚠️  {failed_tests} test(s) failed. Please review the issues above.")
             return False
 
+    # ========== NEW FEATURES TESTS (REVIEW REQUEST) ==========
+    
+    def test_company_sms_history_unknown_company_fix(self):
+        """Test Company SMS History API fix for unknown company_ids"""
+        print("\n🔧 Testing Company SMS History API Fix for Unknown Company IDs")
+        
+        # Test with a completely unknown company ID
+        unknown_company_id = "unknown-test-company-12345"
+        
+        success, status, response = self.make_request(
+            'GET', f'super-admin/company-sms-history/{unknown_company_id}',
+            token=self.tokens.get('super_admin'),
+            expected_status=200  # Should return 200 instead of 404 now
+        )
+        
+        if success and response:
+            # Verify the response includes the "note" field for legacy data
+            has_note_field = 'note' in response
+            has_company_info = 'company' in response and 'name' in response['company']
+            has_summary = 'summary' in response
+            
+            # Check if company name indicates it's unknown/test data
+            company_name_indicates_unknown = False
+            if has_company_info:
+                company_name = response['company']['name']
+                company_name_indicates_unknown = ('Sconosciuta' in company_name or 'Test' in company_name or 'unknown' in company_name.lower())
+            
+            if has_note_field and has_company_info and has_summary and company_name_indicates_unknown:
+                note_content = response.get('note', '')
+                return self.log_test("Company SMS History Unknown Company Fix", True, 
+                                   f"- Returns data instead of 404 ✅, Has note field ✅, Note: '{note_content[:50]}...'")
+            else:
+                details = f"- Note field: {has_note_field}, Company info: {has_company_info}, Summary: {has_summary}, Unknown name: {company_name_indicates_unknown}"
+                return self.log_test("Company SMS History Unknown Company Fix", False, details)
+        else:
+            return self.log_test("Company SMS History Unknown Company Fix", False, f"- Status: {status}, Expected 200 but got error")
+
+    def test_courier_delivery_comments(self):
+        """Test courier delivery comments functionality"""
+        print("\n💬 Testing Courier Delivery Comments")
+        
+        # Prerequisites check
+        if 'company' not in self.test_data or 'courier_id' not in self.test_data:
+            return self.log_test("Courier Delivery Comments", False, "- Missing company or courier data")
+        
+        # Step 1: Create an order for testing
+        timestamp = datetime.now().strftime('%H%M%S')
+        order_data = {
+            "customer_name": f"Comment Test Customer {timestamp}",
+            "delivery_address": "Via Comment Test 456, Roma, 00100 RM",
+            "phone_number": f"+39 333 {timestamp}",
+            "reference_number": f"COMMENT-{timestamp}"
+        }
+        
+        success1, status1, response1 = self.make_request(
+            'POST', 'orders',
+            data=order_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success1:
+            return self.log_test("Courier Delivery Comments - Create Order", False, f"- Status: {status1}")
+        
+        test_order = response1['order']
+        
+        # Step 2: Assign order to courier
+        assign_data = {
+            "order_id": test_order['id'],
+            "courier_id": self.test_data['courier_id']
+        }
+        
+        success2, status2, response2 = self.make_request(
+            'PATCH', 'orders/assign',
+            data=assign_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success2:
+            return self.log_test("Courier Delivery Comments - Assign Order", False, f"- Status: {status2}")
+        
+        # Step 3: Mark delivery as completed WITH delivery comment
+        delivery_comment = "Consegna completata con successo. Cliente molto soddisfatto. Pacchetto lasciato al portiere come richiesto."
+        complete_data = {
+            "order_id": test_order['id'],
+            "delivery_comment": delivery_comment
+        }
+        
+        success3, status3, response3 = self.make_request(
+            'PATCH', 'courier/deliveries/mark-delivered',
+            data=complete_data,
+            token=self.tokens.get('courier'),
+            expected_status=200
+        )
+        
+        if not success3:
+            return self.log_test("Courier Delivery Comments - Mark Delivered", False, f"- Status: {status3}, Response: {response3}")
+        
+        # Step 4: Verify the comment was saved in the order
+        success4, status4, response4 = self.make_request(
+            'GET', 'orders',
+            token=self.tokens.get('company_admin'),
+            expected_status=200
+        )
+        
+        if not success4:
+            return self.log_test("Courier Delivery Comments - Get Orders", False, f"- Status: {status4}")
+        
+        # Find our test order in the response
+        updated_order = None
+        for order in response4:
+            if order['id'] == test_order['id']:
+                updated_order = order
+                break
+        
+        if not updated_order:
+            return self.log_test("Courier Delivery Comments - Find Updated Order", False, "- Order not found in list")
+        
+        # Step 5: Verify all comment fields are populated
+        comment_saved = updated_order.get('delivery_comment') == delivery_comment
+        commented_at_present = 'commented_at' in updated_order and updated_order['commented_at'] is not None
+        commented_by_present = 'commented_by' in updated_order and updated_order['commented_by'] is not None
+        
+        # Get courier username for verification
+        courier_username = None
+        if 'courier_username' in self.test_data:
+            courier_username = self.test_data['courier_username']
+        
+        commented_by_correct = updated_order.get('commented_by') == courier_username if courier_username else True
+        
+        overall_success = comment_saved and commented_at_present and commented_by_present and commented_by_correct
+        
+        if overall_success:
+            return self.log_test("Courier Delivery Comments", True, 
+                               f"- Comment saved ✅, commented_at populated ✅, commented_by populated ✅")
+        else:
+            details = f"- Comment saved: {comment_saved}, commented_at: {commented_at_present}, commented_by: {commented_by_present}, correct user: {commented_by_correct}"
+            return self.log_test("Courier Delivery Comments", False, details)
+
+    def test_banner_management_apis(self):
+        """Test Banner Management APIs"""
+        print("\n🎨 Testing Banner Management APIs")
+        
+        # Test 1: GET /api/banner/current (public endpoint)
+        success1, status1, response1 = self.make_request(
+            'GET', 'banner/current',
+            expected_status=[200, 404]  # 404 if no banner exists yet
+        )
+        
+        initial_banner_exists = status1 == 200
+        
+        # Test 2: GET /api/super-admin/banner (super admin only)
+        success2, status2, response2 = self.make_request(
+            'GET', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=[200, 404]  # 404 if no banner exists yet
+        )
+        
+        # Test 3: Verify non-super-admin cannot access super-admin banner endpoint
+        success3, status3, response3 = self.make_request(
+            'GET', 'super-admin/banner',
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Test 4: PUT /api/super-admin/banner (create/update banner)
+        banner_data = {
+            "image_url": "https://example.com/farmygo-banner.jpg",
+            "alt_text": "FarmyGo Delivery Service Banner",
+            "link_url": "https://farmygo.com/promo"
+        }
+        
+        success4, status4, response4 = self.make_request(
+            'PUT', 'super-admin/banner',
+            data=banner_data,
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 5: Verify banner was created - check public endpoint
+        success5, status5, response5 = self.make_request(
+            'GET', 'banner/current',
+            expected_status=200
+        )
+        
+        banner_created = False
+        banner_data_correct = False
+        
+        if success5 and response5:
+            banner_created = True
+            # Verify banner data
+            banner_data_correct = (
+                response5.get('image_url') == banner_data['image_url'] and
+                response5.get('alt_text') == banner_data['alt_text'] and
+                response5.get('link_url') == banner_data['link_url'] and
+                response5.get('is_active') == True
+            )
+        
+        # Test 6: Verify super admin can see the banner
+        success6, status6, response6 = self.make_request(
+            'GET', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        super_admin_can_see = success6 and response6 and response6.get('image_url') == banner_data['image_url']
+        
+        # Test 7: DELETE /api/super-admin/banner (remove banner)
+        success7, status7, response7 = self.make_request(
+            'DELETE', 'super-admin/banner',
+            token=self.tokens.get('super_admin'),
+            expected_status=200
+        )
+        
+        # Test 8: Verify banner was deleted - public endpoint should return 404
+        success8, status8, response8 = self.make_request(
+            'GET', 'banner/current',
+            expected_status=404
+        )
+        
+        # Test 9: Verify non-super-admin cannot create banner
+        success9, status9, response9 = self.make_request(
+            'PUT', 'super-admin/banner',
+            data=banner_data,
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Test 10: Verify non-super-admin cannot delete banner
+        success10, status10, response10 = self.make_request(
+            'DELETE', 'super-admin/banner',
+            token=self.tokens.get('company_admin'),
+            expected_status=403
+        )
+        
+        # Evaluate overall success
+        public_access_works = success1  # Public endpoint accessible
+        super_admin_access_works = success2  # Super admin can access
+        access_control_works = success3 and success9 and success10  # Non-super-admin blocked
+        banner_creation_works = success4 and banner_created and banner_data_correct
+        banner_visibility_works = success5 and super_admin_can_see
+        banner_deletion_works = success7 and success8
+        
+        overall_success = (public_access_works and super_admin_access_works and 
+                          access_control_works and banner_creation_works and 
+                          banner_visibility_works and banner_deletion_works)
+        
+        if overall_success:
+            return self.log_test("Banner Management APIs", True, 
+                               f"- Public access ✅, Super admin access ✅, Access control ✅, CRUD operations ✅")
+        else:
+            details = f"- Public: {public_access_works}, Super admin: {super_admin_access_works}, Access control: {access_control_works}, Creation: {banner_creation_works}, Visibility: {banner_visibility_works}, Deletion: {banner_deletion_works}"
+            return self.log_test("Banner Management APIs", False, details)
+
+    def run_new_features_tests(self):
+        """Run tests for the new features mentioned in the review request"""
+        print("🎯 Starting New Features Tests (Review Request)")
+        print("=" * 60)
+        
+        # Reset counters
+        self.tests_run = 0
+        self.tests_passed = 0
+        
+        # Prerequisites: Login and setup
+        print("\n📋 Prerequisites: Authentication & Setup")
+        if not self.test_super_admin_login():
+            print("❌ Cannot proceed without super admin login")
+            return False
+        
+        if not self.test_create_company():
+            print("❌ Cannot proceed without test company")
+            return False
+        
+        if not self.test_company_admin_login():
+            print("❌ Cannot proceed without company admin login")
+            return False
+        
+        if not self.test_create_courier():
+            print("❌ Cannot proceed without test courier")
+            return False
+        
+        if not self.test_get_couriers():
+            print("❌ Cannot proceed without courier data")
+            return False
+        
+        if not self.test_courier_login():
+            print("❌ Cannot proceed without courier login")
+            return False
+        
+        # Main New Features Tests
+        print("\n📋 New Features Tests")
+        self.test_company_sms_history_unknown_company_fix()
+        self.test_courier_delivery_comments()
+        self.test_banner_management_apis()
+        
+        # Cleanup
+        print("\n📋 Cleanup")
+        self.test_delete_company()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print(f"📊 New Features Test Results: {self.tests_passed}/{self.tests_run} tests passed")
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All new features tests passed!")
+            return True
+        else:
+            failed_tests = self.tests_run - self.tests_passed
+            print(f"⚠️  {failed_tests} test(s) failed. Please review the issues above.")
+            return False
+
     # ========== COMPANY SMS HISTORY API TESTS ==========
     
     def test_company_sms_history_api_access(self):
