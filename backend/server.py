@@ -2005,7 +2005,12 @@ async def update_banner(
     
     await db.banners.insert_one(new_banner)
     
-    return {"message": "Banner updated successfully", "banner": new_banner}
+    # Convert datetime objects for JSON serialization
+    response_banner = new_banner.copy()
+    response_banner["created_at"] = response_banner["created_at"].isoformat()
+    response_banner["updated_at"] = response_banner["updated_at"].isoformat()
+    
+    return {"message": "Banner updated successfully", "banner": response_banner}
 
 @api_router.delete("/super-admin/banner")
 async def remove_banner(
