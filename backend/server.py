@@ -1950,6 +1950,75 @@ async def verify_webauthn_authentication(
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
 
+# Banner Management Routes - Super Admin Only
+@api_router.get("/banner/current")
+async def get_current_banner():
+    """Get current active banner for display - Public endpoint"""
+    banner = await db.banners.find_one({"is_active": True})
+    if banner:
+        # Convert ObjectId to string
+        if '_id' in banner:
+            banner['_id'] = str(banner['_id'])
+        banner["created_at"] = banner["created_at"].isoformat()
+        banner["updated_at"] = banner["updated_at"].isoformat()
+        return banner
+    return None
+
+@api_router.get("/super-admin/banner")
+async def get_banner_management(
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Get current banner for Super Admin management"""
+    banner = await db.banners.find_one({"is_active": True})
+    if banner:
+        # Convert ObjectId to string
+        if '_id' in banner:
+            banner['_id'] = str(banner['_id'])
+        banner["created_at"] = banner["created_at"].isoformat()
+        banner["updated_at"] = banner["updated_at"].isoformat()
+        return {"banner": banner}
+    return {"banner": None}
+
+@api_router.put("/super-admin/banner")
+async def update_banner(
+    request: UpdateBannerRequest,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Update or create banner"""
+    # Deactivate any existing banners
+    await db.banners.update_many(
+        {"is_active": True},
+        {"$set": {"is_active": False}}
+    )
+    
+    # Create new active banner
+    new_banner = {
+        "id": str(uuid.uuid4()),
+        "image_url": request.image_url,
+        "alt_text": request.alt_text,
+        "link_url": request.link_url,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "updated_by": current_user.id
+    }
+    
+    await db.banners.insert_one(new_banner)
+    
+    return {"message": "Banner updated successfully", "banner": new_banner}
+
+@api_router.delete("/super-admin/banner")
+async def remove_banner(
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Remove current banner"""
+    result = await db.banners.update_many(
+        {"is_active": True},
+        {"$set": {"is_active": False}}
+    )
+    
+    return {"message": f"Banner removed successfully. {result.modified_count} banners deactivated."}
+
 # Include the router in the main app
 app.include_router(api_router)
 
