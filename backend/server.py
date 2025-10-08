@@ -2005,8 +2005,10 @@ async def update_banner(
     
     await db.banners.insert_one(new_banner)
     
-    # Convert datetime objects for JSON serialization
+    # Convert datetime objects for JSON serialization and remove MongoDB _id
     response_banner = new_banner.copy()
+    if '_id' in response_banner:
+        del response_banner['_id']
     response_banner["created_at"] = response_banner["created_at"].isoformat()
     response_banner["updated_at"] = response_banner["updated_at"].isoformat()
     
