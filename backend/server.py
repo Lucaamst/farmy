@@ -912,7 +912,10 @@ async def export_orders(
             "Corriere": courier_map.get(order.get("courier_id"), "Non assegnato"),
             "Stato": order["status"].title(),
             "Data Creazione": order["created_at"].strftime("%d/%m/%Y %H:%M"),
-            "Data Consegna": order.get("delivered_at").strftime("%d/%m/%Y %H:%M") if order.get("delivered_at") else ""
+            "Data Consegna": order.get("delivered_at").strftime("%d/%m/%Y %H:%M") if order.get("delivered_at") else "",
+            "Commento Corriere": order.get("delivery_comment", ""),
+            "Commentato Da": order.get("commented_by", ""),
+            "Data Commento": order.get("commented_at").strftime("%d/%m/%Y %H:%M") if order.get("commented_at") else ""
         })
     
     if format == "excel":
