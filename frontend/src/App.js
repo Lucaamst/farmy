@@ -1321,6 +1321,53 @@ function BannerManagementSection() {
   );
 }
 
+// Banner Display Component (for Company and Courier dashboards)
+function BannerDisplay() {
+  const [banner, setBanner] = useState(null);
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const response = await axios.get(`${API}/banner/current`);
+        setBanner(response.data);
+      } catch (error) {
+        // No banner available or error - don't show anything
+        setBanner(null);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
+  if (!banner) return null;
+
+  const handleBannerClick = () => {
+    if (banner.link_url) {
+      window.open(banner.link_url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  return (
+    <div className="mt-6">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0 shadow-lg overflow-hidden">
+        <div 
+          className={`p-4 ${banner.link_url ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+          onClick={handleBannerClick}
+        >
+          <img 
+            src={banner.image_url} 
+            alt={banner.alt_text || 'Pubblicità'} 
+            className="w-full h-auto max-h-48 object-contain mx-auto rounded-lg"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 // Super Admin Dashboard (with all new features)
 function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
