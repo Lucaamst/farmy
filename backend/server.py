@@ -394,11 +394,13 @@ async def send_sms_notification(phone_number: str, message: str, company_id: str
         account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
         auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
         
-        if not account_sid or not auth_token:
-            print(f"⚠️ Twilio credentials not found, using mock SMS")
-            print(f"MOCK SMS to {phone_number}: {message}")
-            success = True  # Mock SMS considered successful
-        else:
+        # Forza uso di SMS mock per evitare limiti Twilio
+        print(f"📱 MOCK SMS to {phone_number}: {message}")
+        print(f"🏢 Company: {company_id}")
+        success = True  # Mock SMS sempre successful
+        
+        # Commenta questo blocco per disabilitare Twilio temporaneamente
+        if False:  # account_sid and auth_token:
             client = Client(account_sid, auth_token)
             
             # Send SMS via Twilio
