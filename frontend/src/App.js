@@ -2890,10 +2890,29 @@ function CompanyAdminDashboard() {
   };
 
   const applyFilters = () => {
-    // Force re-fetch with current filter values
-    setTimeout(() => {
-      fetchOrders();
-      setShowFilters(false);
+    // Force immediate fetch with current filter values
+    setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        Object.entries(searchFilters).forEach(([key, value]) => {
+          if (value) params.append(key, value);
+        });
+        
+        const response = await axios.get(`${API}/orders?${params.toString()}`);
+        setOrders(response.data);
+        setShowFilters(false);
+        
+        toast({
+          title: t.success,
+          description: `Trovati ${response.data.length} ordini`,
+        });
+      } catch (error) {
+        toast({
+          title: t.error,
+          description: 'Errore durante applicazione filtri',
+          variant: "destructive",
+        });
+      }
     }, 50);
   };
 
