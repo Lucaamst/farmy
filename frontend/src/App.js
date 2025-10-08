@@ -434,10 +434,10 @@ function CourierDashboard() {
             )}
           </CardContent>
         </Card>
+        
+        {/* Banner pubblicitario */}
+        <BannerDisplay />
       </div>
-      
-      {/* Banner pubblicitario */}
-      <BannerDisplay />
     </div>
     
     {/* Complete Delivery Dialog */}
