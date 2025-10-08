@@ -4670,6 +4670,60 @@ class DeliveryManagementAPITester:
         
         print("🧹 Cleanup completed")
 
+    def run_luca_specific_tests(self):
+        """Run Luca's specific issue tests"""
+        print("🔍 Starting Luca's Specific Issue Tests")
+        print("=" * 70)
+        print("Testing the exact issues reported by Luca:")
+        print("1. Pulsante 'Filtra' non funziona")
+        print("2. Banner 'Novità 2025' da errore")
+        print("3. Commenti non si leggono completamente in 'Tutti gli ordini'")
+        print("4. Export non include commenti corriere")
+        print("5. Storico cliente non mostra commenti corriere")
+        print("=" * 70)
+        
+        # Phase 1: Authentication (required for all tests)
+        print("\n📋 Phase 1: Authentication Setup")
+        self.test_super_admin_login()
+        self.test_find_company_admin_from_database()
+        
+        # Create test company and admin if needed
+        if 'existing_company_admin' not in self.tokens:
+            print("\n📋 Creating Test Company for Luca's Tests")
+            self.test_create_company()
+            self.test_company_admin_login()
+        
+        # Create test courier for order assignment tests
+        print("\n📋 Setting up Test Courier")
+        self.test_create_courier()
+        self.test_get_couriers()
+        self.test_courier_login()
+        
+        # Phase 2: Luca's Specific Issue Tests
+        print("\n📋 Phase 2: Luca's Specific Issue Tests")
+        self.test_luca_issue_1_filter_button()
+        self.test_luca_issue_2_banner_novita_2025()
+        self.test_luca_issue_3_comments_not_readable()
+        self.test_luca_issue_4_export_missing_courier_comments()
+        self.test_luca_issue_5_customer_history_missing_comments()
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print(f"🎯 LUCA'S ISSUE TESTING COMPLETED!")
+        print(f"📊 Total Tests: {self.tests_run}")
+        print(f"✅ Passed: {self.tests_passed}")
+        print(f"❌ Failed: {self.tests_run - self.tests_passed}")
+        print(f"📈 Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        print("=" * 70)
+        
+        if self.tests_passed == self.tests_run:
+            print("🎉 All Luca's issue tests passed! Backend APIs are working correctly.")
+            return True
+        else:
+            failed_tests = self.tests_run - self.tests_passed
+            print(f"⚠️  {failed_tests} tests failed. Check the issues above.")
+            return False
+
 def main():
     import sys
     tester = DeliveryManagementAPITester()
