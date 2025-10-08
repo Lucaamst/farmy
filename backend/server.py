@@ -1962,7 +1962,7 @@ async def get_current_banner():
         banner["created_at"] = banner["created_at"].isoformat()
         banner["updated_at"] = banner["updated_at"].isoformat()
         return banner
-    return None
+    raise HTTPException(status_code=404, detail="No active banner found")
 
 @api_router.get("/super-admin/banner")
 async def get_banner_management(
