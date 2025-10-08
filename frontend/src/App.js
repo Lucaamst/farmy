@@ -3779,15 +3779,29 @@ function CompanyAdminDashboard() {
                           <TableCell className="text-xs sm:text-sm">{order.reference_number || '-'}</TableCell>
                           <TableCell className="text-xs sm:text-sm">{getCourierName(order.courier_id)}</TableCell>
                           <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
-                          <TableCell className="text-xs sm:text-sm max-w-32">
+                          <TableCell className="text-xs sm:text-sm max-w-48">
                             {order.delivery_comment ? (
                               <div className="group relative">
-                                <p className="truncate text-gray-700">
-                                  💬 {order.delivery_comment}
-                                </p>
+                                <div 
+                                  className="text-gray-700 cursor-help"
+                                  title={`${order.delivery_comment} - ${order.commented_by} (${order.commented_at ? new Date(order.commented_at).toLocaleString('it-IT') : ''})`}
+                                >
+                                  <p className={order.delivery_comment.length > 30 ? "truncate" : ""}>
+                                    💬 {order.delivery_comment}
+                                  </p>
+                                </div>
                                 <p className="text-xs text-gray-500 mt-1">
                                   {order.commented_by} - {order.commented_at ? new Date(order.commented_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
                                 </p>
+                                
+                                {/* Hover tooltip per commenti lunghi */}
+                                {order.delivery_comment.length > 30 && (
+                                  <div className="absolute z-10 invisible group-hover:visible bg-black text-white text-xs rounded p-2 -top-2 left-0 w-64 shadow-lg">
+                                    💬 {order.delivery_comment}
+                                    <br />
+                                    <span className="text-gray-300">- {order.commented_by}</span>
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <span className="text-gray-400 text-xs">Nessun commento</span>
