@@ -1015,6 +1015,252 @@ function SMSStatsSection() {
   );
 }
 
+// Banner Management Component for Super Admin
+function BannerManagementSection() {
+  const [banner, setBanner] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showBannerDialog, setShowBannerDialog] = useState(false);
+  const [bannerForm, setBannerForm] = useState({
+    image_url: '',
+    alt_text: '',
+    link_url: ''
+  });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchBanner();
+  }, []);
+
+  const fetchBanner = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/super-admin/banner`);
+      setBanner(response.data.banner);
+    } catch (error) {
+      console.error('Banner fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitBanner = async (e) => {
+    e.preventDefault();
+    if (!bannerForm.image_url) {
+      toast({
+        title: 'Errore',
+        description: 'URL immagine richiesto',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/super-admin/banner`, bannerForm);
+      toast({
+        title: 'Successo',
+        description: 'Banner aggiornato con successo',
+      });
+      setShowBannerDialog(false);
+      fetchBanner();
+      setBannerForm({ image_url: '', alt_text: '', link_url: '' });
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Errore durante aggiornamento banner',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    try {
+      await axios.delete(`${API}/super-admin/banner`);
+      toast({
+        title: 'Successo',
+        description: 'Banner rimosso con successo',
+      });
+      setBanner(null);
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Errore durante rimozione banner',
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-white shadow-sm border-0 mb-6">
+        <CardContent className="p-6">
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2 text-sm">Caricamento banner...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-white shadow-sm border-0 mb-6">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Gestione Banner Pubblicitari
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Gestisci il banner pubblicitario mostrato ad aziende e corrieri
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowBannerDialog(true)}
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {banner ? 'Cambia Banner' : 'Carica Banner'}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6">
+        {banner ? (
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start gap-4">
+                <img 
+                  src={banner.image_url} 
+                  alt={banner.alt_text || 'Banner'} 
+                  className="w-32 h-20 object-cover rounded border"
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIxOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkVycm9yZTwvdGV4dD48L3N2Zz4=';
+                  }}
+                />
+                <div className="flex-1">
+                  <h3 className="font-medium text-sm">Banner Attivo</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    URL: {banner.image_url}
+                  </p>
+                  {banner.alt_text && (
+                    <p className="text-xs text-gray-600">
+                      Alt Text: {banner.alt_text}
+                    </p>
+                  )}
+                  {banner.link_url && (
+                    <p className="text-xs text-blue-600">
+                      Link: <a href={banner.link_url} target="_blank" rel="noopener noreferrer">{banner.link_url}</a>
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    Aggiornato: {new Date(banner.updated_at).toLocaleString('it-IT')}
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveBanner}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Rimuovi
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Globe className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">Nessun Banner Attivo</p>
+            <p className="text-sm mt-1">Carica un banner per mostrarlo ad aziende e corrieri</p>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Banner Upload Dialog */}
+      <Dialog open={showBannerDialog} onOpenChange={setShowBannerDialog}>
+        <DialogContent className="mx-4 sm:mx-0 max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {banner ? 'Cambia Banner' : 'Carica Nuovo Banner'}
+            </DialogTitle>
+            <DialogDescription>
+              Inserisci l'URL dell'immagine del banner
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmitBanner} className="space-y-4">
+            <div>
+              <Label htmlFor="image_url">URL Immagine *</Label>
+              <Input
+                id="image_url"
+                type="url"
+                placeholder="https://esempio.com/banner.jpg"
+                value={bannerForm.image_url}
+                onChange={(e) => setBannerForm({...bannerForm, image_url: e.target.value})}
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Consigliato: 800x200 pixel, JPG o PNG
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="alt_text">Testo Alternativo</Label>
+              <Input
+                id="alt_text"
+                placeholder="Descrizione del banner"
+                value={bannerForm.alt_text}
+                onChange={(e) => setBannerForm({...bannerForm, alt_text: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="link_url">URL Link (opzionale)</Label>
+              <Input
+                id="link_url"
+                type="url"
+                placeholder="https://esempio.com"
+                value={bannerForm.link_url}
+                onChange={(e) => setBannerForm({...bannerForm, link_url: e.target.value})}
+              />
+            </div>
+
+            {/* Preview */}
+            {bannerForm.image_url && (
+              <div className="border rounded p-2">
+                <p className="text-xs text-gray-500 mb-2">Anteprima:</p>
+                <img 
+                  src={bannerForm.image_url} 
+                  alt="Preview" 
+                  className="w-full h-20 object-cover rounded"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1">
+                {banner ? 'Aggiorna' : 'Carica'} Banner
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowBannerDialog(false)}
+                className="flex-1"
+              >
+                Annulla
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
 // Super Admin Dashboard (with all new features)
 function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
