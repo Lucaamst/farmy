@@ -3462,18 +3462,33 @@ def main():
     import sys
     tester = DeliveryManagementAPITester()
     
-    # Check if we should run focused tests or all tests
+    # Check if we should run specific tests
     if len(sys.argv) > 1:
-        if sys.argv[1] == "focused":
+        test_type = sys.argv[1].lower()
+        
+        if test_type == "focused":
             success = tester.run_farmygo_order_visibility_tests()
-        elif sys.argv[1] == "sms-history":
+        elif test_type == "sms-history":
             success = tester.run_company_sms_history_tests()
-        elif sys.argv[1] == "new-features":
+        elif test_type == "new-features":
             success = tester.run_new_features_tests()
+        elif test_type == "final":
+            success = tester.run_final_review_tests()
+        elif test_type == "comprehensive":
+            success = tester.run_comprehensive_tests()
         else:
-            success = tester.run_all_tests()
+            print("Usage: python backend_test.py [focused|sms-history|new-features|final|comprehensive|all]")
+            print("  focused       - Run FarmyGo order visibility & filtering tests")
+            print("  sms-history   - Run Company SMS History API tests")
+            print("  new-features  - Run new features tests (review request)")
+            print("  final         - Run FINAL REVIEW tests for all Luca's requirements")
+            print("  comprehensive - Run comprehensive backend API tests")
+            print("  all           - Run all tests in sequence")
+            return 1
     else:
-        success = tester.run_all_tests()
+        # Default: run final review tests for Luca's requirements
+        success = tester.run_final_review_tests()
+    
     return 0 if success else 1
 
 if __name__ == "__main__":
