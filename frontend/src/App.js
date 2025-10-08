@@ -420,7 +420,7 @@ function CourierDashboard() {
                         {t.createdAt}: {new Date(delivery.created_at).toLocaleDateString()}
                       </p>
                       <Button 
-                        onClick={() => markAsDelivered(delivery.id)}
+                        onClick={() => openCompleteDialog(delivery)}
                         size="sm"
                         className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm"
                       >
