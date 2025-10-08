@@ -1118,7 +1118,9 @@ function BannerManagementSection() {
     }
 
     try {
-      await axios.put(`${API}/super-admin/banner`, bannerForm);
+      await axios.put(`${API}/super-admin/banner`, bannerForm, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('farmygo_token')}` }
+      });
       toast({
         title: 'Successo',
         description: 'Banner aggiornato con successo',
