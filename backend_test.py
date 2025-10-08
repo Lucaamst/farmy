@@ -2785,6 +2785,7 @@ class DeliveryManagementAPITester:
             token=self.tokens.get('super_admin'),
             expected_status=200
         )
+        print(f"DEBUG: Test 4 - PUT banner: success={success4}, status={status4}")
         
         # Test 5: Verify banner was created - check public endpoint
         success5, status5, response5 = self.make_request(
