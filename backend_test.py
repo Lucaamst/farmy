@@ -2835,6 +2835,7 @@ class DeliveryManagementAPITester:
             token=self.tokens.get('company_admin'),
             expected_status=403
         )
+        print(f"DEBUG: Test 9 - Company admin PUT: success={success9}, status={status9}")
         
         # Test 10: Verify non-super-admin cannot delete banner
         success10, status10, response10 = self.make_request(
