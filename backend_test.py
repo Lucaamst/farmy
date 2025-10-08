@@ -2552,7 +2552,6 @@ class DeliveryManagementAPITester:
         status_filtered_export_works = success8 and response8.get('content_type', '').startswith('application/vnd.openxmlformats')
         
         # Test 5: Test export with date filters
-        from datetime import datetime
         today = datetime.now().strftime('%Y-%m-%d')
         success9, status9, response9 = self.make_request(
             'GET', 'orders/export',
