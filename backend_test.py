@@ -2805,7 +2805,7 @@ class DeliveryManagementAPITester:
             expected_status=200
         )
         
-        super_admin_can_see = success6 and response6 and response6.get('image_url') == banner_data['image_url']
+        super_admin_can_see = success6 and response6 and response6.get('banner') and response6['banner'].get('image_url') == banner_data['image_url']
         
         # Test 7: DELETE /api/super-admin/banner (remove banner)
         success7, status7, response7 = self.make_request(
