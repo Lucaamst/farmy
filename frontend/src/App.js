@@ -438,10 +438,9 @@ function CourierDashboard() {
         {/* Banner pubblicitario */}
         <BannerDisplay />
       </div>
-    </div>
-    
-    {/* Complete Delivery Dialog */}
-    <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+      
+      {/* Complete Delivery Dialog */}
+      <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
       <DialogContent className="mx-4 sm:mx-0 max-w-md">
         <DialogHeader>
           <DialogTitle>Completa Consegna</DialogTitle>
