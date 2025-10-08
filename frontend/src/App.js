@@ -1275,30 +1275,34 @@ function BannerManagementSection() {
               
               {/* Quick Examples */}
               <div className="mt-2">
-                <p className="text-xs font-medium text-gray-600 mb-1">Esempi rapidi:</p>
+                <p className="text-xs font-medium text-gray-600 mb-1">⚠️ Google Drive non funziona! Usa questi esempi:</p>
                 <div className="flex flex-wrap gap-1">
                   <button
                     type="button"
                     className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
-                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://via.placeholder.com/800x200/ea580c/ffffff?text=FarmyGo+Banner'})}
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=200&fit=crop&crop=center'})}
                   >
-                    Banner Demo
+                    Consegne
                   </button>
                   <button
                     type="button"
                     className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
-                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://via.placeholder.com/800x200/059669/ffffff?text=Promozione+Speciale'})}
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=200&fit=crop&crop=center'})}
                   >
-                    Promo Verde
+                    Trasporti
                   </button>
                   <button
                     type="button"
                     className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200"
-                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://via.placeholder.com/800x200/7c3aed/ffffff?text=Novita+2025'})}
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://picsum.photos/800/200?random=1'})}
                   >
-                    Novità 2025
+                    Casuale
                   </button>
                 </div>
+                <p className="text-xs text-red-600 mt-2">
+                  ❌ Non funzionano: Google Drive, Dropbox share links<br/>
+                  ✅ Funzionano: URL diretti, Unsplash, Imgur, Picsum
+                </p>
               </div>
             </div>
             
