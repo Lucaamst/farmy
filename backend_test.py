@@ -2850,6 +2850,12 @@ class DeliveryManagementAPITester:
         banner_visibility_works = success5 and super_admin_can_see
         banner_deletion_works = success7 and success8
         
+        # Debug output
+        print(f"DEBUG: success3={success3}, success9={success9}, success10={success10}")
+        print(f"DEBUG: success4={success4}, banner_created={banner_created}, banner_data_correct={banner_data_correct}")
+        print(f"DEBUG: success5={success5}, super_admin_can_see={super_admin_can_see}")
+        print(f"DEBUG: success7={success7}, success8={success8}")
+        
         overall_success = (public_access_works and super_admin_access_works and 
                           access_control_works and banner_creation_works and 
                           banner_visibility_works and banner_deletion_works)
