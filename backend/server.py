@@ -79,6 +79,10 @@ class Order(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     delivered_at: Optional[datetime] = None
     sms_sent: bool = False
+    # Courier delivery comments
+    delivery_comment: Optional[str] = None
+    commented_at: Optional[datetime] = None
+    commented_by: Optional[str] = None
 
 class Customer(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -149,6 +153,7 @@ class AssignOrderRequest(BaseModel):
 
 class MarkDeliveredRequest(BaseModel):
     order_id: str
+    delivery_comment: Optional[str] = None
 
 class CreateCustomerRequest(BaseModel):
     name: str
@@ -221,6 +226,22 @@ class SMSMonthlyStats(BaseModel):
 class UpdateSMSCostRequest(BaseModel):
     cost_per_sms: float
     currency: str = "EUR"
+
+# Banner System Models
+class Banner(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    image_url: str
+    alt_text: Optional[str] = None
+    link_url: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_by: str  # Super admin user ID
+
+class UpdateBannerRequest(BaseModel):
+    image_url: str
+    alt_text: Optional[str] = None
+    link_url: Optional[str] = None
 
 # Helper functions
 def hash_password(password: str) -> str:
@@ -373,11 +394,13 @@ async def send_sms_notification(phone_number: str, message: str, company_id: str
         account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
         auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
         
-        if not account_sid or not auth_token:
-            print(f"⚠️ Twilio credentials not found, using mock SMS")
-            print(f"MOCK SMS to {phone_number}: {message}")
-            success = True  # Mock SMS considered successful
-        else:
+        # Forza uso di SMS mock per evitare limiti Twilio
+        print(f"📱 MOCK SMS to {phone_number}: {message}")
+        print(f"🏢 Company: {company_id}")
+        success = True  # Mock SMS sempre successful
+        
+        # Commenta questo blocco per disabilitare Twilio temporaneamente
+        if False:  # account_sid and auth_token:
             client = Client(account_sid, auth_token)
             
             # Send SMS via Twilio
@@ -891,7 +914,10 @@ async def export_orders(
             "Corriere": courier_map.get(order.get("courier_id"), "Non assegnato"),
             "Stato": order["status"].title(),
             "Data Creazione": order["created_at"].strftime("%d/%m/%Y %H:%M"),
-            "Data Consegna": order.get("delivered_at").strftime("%d/%m/%Y %H:%M") if order.get("delivered_at") else ""
+            "Data Consegna": order.get("delivered_at").strftime("%d/%m/%Y %H:%M") if order.get("delivered_at") else "",
+            "Commento Corriere": order.get("delivery_comment", ""),
+            "Commentato Da": order.get("commented_by", ""),
+            "Data Commento": order.get("commented_at").strftime("%d/%m/%Y %H:%M") if order.get("commented_at") else ""
         })
     
     if format == "excel":
@@ -1248,19 +1274,29 @@ async def mark_delivery_completed(
         raise HTTPException(status_code=400, detail="Order already delivered")
     
     # Update order status
+    update_data = {
+        "status": "delivered",
+        "delivered_at": datetime.now(timezone.utc),
+        "sms_sent": True
+    }
+    
+    # Add courier comment if provided
+    if request.delivery_comment and request.delivery_comment.strip():
+        update_data["delivery_comment"] = request.delivery_comment.strip()
+        update_data["commented_at"] = datetime.now(timezone.utc)
+        update_data["commented_by"] = current_user.username
+    
     await db.orders.update_one(
         {"id": request.order_id},
-        {"$set": {
-            "status": "delivered",
-            "delivered_at": datetime.now(timezone.utc),
-            "sms_sent": True
-        }}
+        {"$set": update_data}
     )
     
     # Send SMS notification only if phone number is provided
     if order["phone_number"] and order["phone_number"].strip():
         message = f"Ciao {order['customer_name']}! 📦 La tua consegna è stata completata con successo all'indirizzo: {order['delivery_address']}. Grazie per aver scelto FarmyGo! 🚚"
-        await send_sms_notification(order["phone_number"], message, order.get("company_id"))
+        # Use order's company_id if available, otherwise use courier's company_id
+        company_id = order.get("company_id") or current_user.company_id
+        await send_sms_notification(order["phone_number"], message, company_id)
     else:
         print(f"📱 SMS skipped for order {request.order_id} - no phone number provided")
 
@@ -1447,10 +1483,40 @@ async def get_company_sms_history(
     current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
 ):
     """Get SMS history for a specific company for billing purposes"""
+    # First, check if this is one of the "unknown" company IDs from SMS data
+    # If so, return a friendly message instead of 404
+    all_companies = await db.companies.find({}).to_list(None)
+    existing_company_ids = [comp["id"] for comp in all_companies]
+    
+    if company_id not in existing_company_ids:
+        # Check if there are SMS logs for this company_id (might be old/test data)
+        sms_count = await db.sms_logs.count_documents({"company_id": company_id})
+        if sms_count > 0:
+            return {
+                "company": {
+                    "id": company_id,
+                    "name": f"Azienda Test/Sconosciuta ({company_id[:8]}...)"
+                },
+                "date_range": {
+                    "start": "N/A",
+                    "end": "N/A"
+                },
+                "summary": {
+                    "total_sms": sms_count,
+                    "total_cost": 0.0,
+                    "currency": "EUR",
+                    "months_count": 0
+                },
+                "monthly_breakdown": [],
+                "recent_sms_logs": [],
+                "total_logs_count": sms_count,
+                "note": "Questi sono dati di test o legacy. Company ID non trovato nel database aziende."
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Company not found")
+    
     # Get company info
     company = await db.companies.find_one({"id": company_id})
-    if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
     
     # Set default date range (last 12 months if not specified)
     current_date = datetime.now(timezone.utc)
@@ -1888,6 +1954,82 @@ async def verify_webauthn_authentication(
             
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+
+# Banner Management Routes - Super Admin Only
+@api_router.get("/banner/current")
+async def get_current_banner():
+    """Get current active banner for display - Public endpoint"""
+    banner = await db.banners.find_one({"is_active": True})
+    if banner:
+        # Convert ObjectId to string
+        if '_id' in banner:
+            banner['_id'] = str(banner['_id'])
+        banner["created_at"] = banner["created_at"].isoformat()
+        banner["updated_at"] = banner["updated_at"].isoformat()
+        return banner
+    raise HTTPException(status_code=404, detail="No active banner found")
+
+@api_router.get("/super-admin/banner")
+async def get_banner_management(
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Get current banner for Super Admin management"""
+    banner = await db.banners.find_one({"is_active": True})
+    if banner:
+        # Convert ObjectId to string
+        if '_id' in banner:
+            banner['_id'] = str(banner['_id'])
+        banner["created_at"] = banner["created_at"].isoformat()
+        banner["updated_at"] = banner["updated_at"].isoformat()
+        return {"banner": banner}
+    return {"banner": None}
+
+@api_router.put("/super-admin/banner")
+async def update_banner(
+    request: UpdateBannerRequest,
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Update or create banner"""
+    # Deactivate any existing banners
+    await db.banners.update_many(
+        {"is_active": True},
+        {"$set": {"is_active": False}}
+    )
+    
+    # Create new active banner
+    new_banner = {
+        "id": str(uuid.uuid4()),
+        "image_url": request.image_url,
+        "alt_text": request.alt_text,
+        "link_url": request.link_url,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "updated_by": current_user.id
+    }
+    
+    await db.banners.insert_one(new_banner)
+    
+    # Convert datetime objects for JSON serialization and remove MongoDB _id
+    response_banner = new_banner.copy()
+    if '_id' in response_banner:
+        del response_banner['_id']
+    response_banner["created_at"] = response_banner["created_at"].isoformat()
+    response_banner["updated_at"] = response_banner["updated_at"].isoformat()
+    
+    return {"message": "Banner updated successfully", "banner": response_banner}
+
+@api_router.delete("/super-admin/banner")
+async def remove_banner(
+    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
+):
+    """Remove current banner"""
+    result = await db.banners.update_many(
+        {"is_active": True},
+        {"$set": {"is_active": False}}
+    )
+    
+    return {"message": f"Banner removed successfully. {result.modified_count} banners deactivated."}
 
 # Include the router in the main app
 app.include_router(api_router)

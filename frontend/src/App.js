@@ -18,7 +18,7 @@ import { Label } from './components/ui/label';
 import { Separator } from './components/ui/separator';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
-import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus, Globe, Key, Smartphone, MessageSquare, Lock, Settings, RefreshCw, Euro, TrendingUp, Eye, Receipt, Download } from 'lucide-react';
+import { Truck, Package, Users, Building2, CheckCircle, Clock, User, LogOut, Shield, UserPlus, Plus, Globe, Key, Smartphone, MessageSquare, Lock, Settings, RefreshCw, Euro, TrendingUp, Eye, Receipt, Download, X } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -260,6 +260,9 @@ function Login() {
 function CourierDashboard() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [completingDelivery, setCompletingDelivery] = useState(null);
+  const [deliveryComment, setDeliveryComment] = useState('');
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
@@ -278,10 +281,19 @@ function CourierDashboard() {
     }
   };
 
-  const markAsDelivered = async (orderId) => {
+  const openCompleteDialog = (delivery) => {
+    setCompletingDelivery(delivery);
+    setDeliveryComment('');
+    setShowCompleteDialog(true);
+  };
+
+  const markAsDelivered = async () => {
+    if (!completingDelivery) return;
+    
     try {
       await axios.patch(`${API}/courier/deliveries/mark-delivered`, {
-        order_id: orderId
+        order_id: completingDelivery.id,
+        delivery_comment: deliveryComment || null
       });
       
       toast({
@@ -289,6 +301,9 @@ function CourierDashboard() {
         description: t.deliveryMarkedCompleted,
       });
       
+      setShowCompleteDialog(false);
+      setCompletingDelivery(null);
+      setDeliveryComment('');
       fetchDeliveries();
     } catch (error) {
       toast({
@@ -405,7 +420,7 @@ function CourierDashboard() {
                         {t.createdAt}: {new Date(delivery.created_at).toLocaleDateString()}
                       </p>
                       <Button 
-                        onClick={() => markAsDelivered(delivery.id)}
+                        onClick={() => openCompleteDialog(delivery)}
                         size="sm"
                         className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm"
                       >
@@ -419,7 +434,55 @@ function CourierDashboard() {
             )}
           </CardContent>
         </Card>
+        
+        {/* Banner pubblicitario */}
+        <BannerDisplay />
       </div>
+      
+      {/* Complete Delivery Dialog */}
+      <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+      <DialogContent className="mx-4 sm:mx-0 max-w-md">
+        <DialogHeader>
+          <DialogTitle>Completa Consegna</DialogTitle>
+          <DialogDescription>
+            {completingDelivery?.customer_name} - {completingDelivery?.delivery_address}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="comment">Commento Consegna (opzionale)</Label>
+            <textarea
+              id="comment"
+              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              rows={3}
+              maxLength={200}
+              placeholder="Aggiungi note sulla consegna (es: consegnato al vicino, pacchetto lasciato alla porta, ecc.)"
+              value={deliveryComment}
+              onChange={(e) => setDeliveryComment(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {deliveryComment.length}/200 caratteri
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={markAsDelivered} 
+              className="flex-1"
+            >
+              ✅ Conferma Consegna
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCompleteDialog(false)}
+              className="flex-1"
+            >
+              Annulla
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }
@@ -508,9 +571,10 @@ function SMSStatsSection() {
       });
       setShowCompanyHistoryDialog(true);
     } catch (error) {
+      console.error('SMS History error:', error);
       toast({
         title: 'Errore',
-        description: 'Impossibile caricare lo storico SMS per questa azienda',
+        description: error.response?.data?.detail || 'Impossibile caricare lo storico SMS per questa azienda',
         variant: "destructive",
       });
     }
@@ -1014,6 +1078,337 @@ function SMSStatsSection() {
   );
 }
 
+// Banner Management Component for Super Admin
+function BannerManagementSection() {
+  const [banner, setBanner] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showBannerDialog, setShowBannerDialog] = useState(false);
+  const [bannerForm, setBannerForm] = useState({
+    image_url: '',
+    alt_text: '',
+    link_url: ''
+  });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchBanner();
+  }, []);
+
+  const fetchBanner = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/super-admin/banner`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setBanner(response.data.banner);
+    } catch (error) {
+      console.error('Banner fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitBanner = async (e) => {
+    e.preventDefault();
+    if (!bannerForm.image_url) {
+      toast({
+        title: 'Errore',
+        description: 'URL immagine richiesto',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await axios.put(`${API}/super-admin/banner`, bannerForm, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      toast({
+        title: 'Successo',
+        description: 'Banner aggiornato con successo',
+      });
+      setShowBannerDialog(false);
+      fetchBanner();
+      setBannerForm({ image_url: '', alt_text: '', link_url: '' });
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Errore durante aggiornamento banner',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    try {
+      await axios.delete(`${API}/super-admin/banner`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      toast({
+        title: 'Successo',
+        description: 'Banner rimosso con successo',
+      });
+      setBanner(null);
+    } catch (error) {
+      toast({
+        title: 'Errore',
+        description: 'Errore durante rimozione banner',
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-white shadow-sm border-0 mb-6">
+        <CardContent className="p-6">
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2 text-sm">Caricamento banner...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-white shadow-sm border-0 mb-6">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Gestione Banner Pubblicitari
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Gestisci il banner pubblicitario mostrato ad aziende e corrieri
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowBannerDialog(true)}
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {banner ? 'Cambia Banner' : 'Carica Banner'}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6">
+        {banner ? (
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start gap-4">
+                <img 
+                  src={banner.image_url} 
+                  alt={banner.alt_text || 'Banner'} 
+                  className="w-32 h-20 object-cover rounded border"
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSIxOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkVycm9yZTwvdGV4dD48L3N2Zz4=';
+                  }}
+                />
+                <div className="flex-1">
+                  <h3 className="font-medium text-sm">Banner Attivo</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    URL: {banner.image_url}
+                  </p>
+                  {banner.alt_text && (
+                    <p className="text-xs text-gray-600">
+                      Alt Text: {banner.alt_text}
+                    </p>
+                  )}
+                  {banner.link_url && (
+                    <p className="text-xs text-blue-600">
+                      Link: <a href={banner.link_url} target="_blank" rel="noopener noreferrer">{banner.link_url}</a>
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    Aggiornato: {new Date(banner.updated_at).toLocaleString('it-IT')}
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveBanner}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Rimuovi
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Globe className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">Nessun Banner Attivo</p>
+            <p className="text-sm mt-1">Carica un banner per mostrarlo ad aziende e corrieri</p>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Banner Upload Dialog */}
+      <Dialog open={showBannerDialog} onOpenChange={setShowBannerDialog}>
+        <DialogContent className="mx-4 sm:mx-0 max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {banner ? 'Cambia Banner' : 'Carica Nuovo Banner'}
+            </DialogTitle>
+            <DialogDescription>
+              Inserisci l'URL dell'immagine del banner
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmitBanner} className="space-y-4">
+            <div>
+              <Label htmlFor="image_url">URL Immagine *</Label>
+              <Input
+                id="image_url"
+                type="url"
+                placeholder="https://esempio.com/banner.jpg"
+                value={bannerForm.image_url}
+                onChange={(e) => setBannerForm({...bannerForm, image_url: e.target.value})}
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Consigliato: 800x200 pixel, JPG o PNG
+              </p>
+              
+              {/* Quick Examples */}
+              <div className="mt-2">
+                <p className="text-xs font-medium text-gray-600 mb-1">⚠️ Google Drive non funziona! Usa questi esempi:</p>
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    type="button"
+                    className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=200&fit=crop&crop=center'})}
+                  >
+                    Consegne
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=200&fit=crop&crop=center'})}
+                  >
+                    Trasporti
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200"
+                    onClick={() => setBannerForm({...bannerForm, image_url: 'https://picsum.photos/800/200?random=1'})}
+                  >
+                    Casuale
+                  </button>
+                </div>
+                <p className="text-xs text-red-600 mt-2">
+                  ❌ Non funzionano: Google Drive, Dropbox share links<br/>
+                  ✅ Funzionano: URL diretti, Unsplash, Imgur, Picsum
+                </p>
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="alt_text">Testo Alternativo</Label>
+              <Input
+                id="alt_text"
+                placeholder="Descrizione del banner"
+                value={bannerForm.alt_text}
+                onChange={(e) => setBannerForm({...bannerForm, alt_text: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="link_url">URL Link (opzionale)</Label>
+              <Input
+                id="link_url"
+                type="url"
+                placeholder="https://esempio.com"
+                value={bannerForm.link_url}
+                onChange={(e) => setBannerForm({...bannerForm, link_url: e.target.value})}
+              />
+            </div>
+
+            {/* Preview */}
+            {bannerForm.image_url && (
+              <div className="border rounded p-2">
+                <p className="text-xs text-gray-500 mb-2">Anteprima:</p>
+                <img 
+                  src={bannerForm.image_url} 
+                  alt="Preview" 
+                  className="w-full h-20 object-cover rounded"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1">
+                {banner ? 'Aggiorna' : 'Carica'} Banner
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowBannerDialog(false)}
+                className="flex-1"
+              >
+                Annulla
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
+// Banner Display Component (for Company and Courier dashboards)
+function BannerDisplay() {
+  const [banner, setBanner] = useState(null);
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const response = await axios.get(`${API}/banner/current`);
+        setBanner(response.data);
+      } catch (error) {
+        // No banner available or error - don't show anything
+        setBanner(null);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
+  if (!banner) return null;
+
+  const handleBannerClick = () => {
+    if (banner.link_url) {
+      window.open(banner.link_url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  return (
+    <div className="mt-6">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0 shadow-lg overflow-hidden">
+        <div 
+          className={`p-4 ${banner.link_url ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+          onClick={handleBannerClick}
+        >
+          <img 
+            src={banner.image_url} 
+            alt={banner.alt_text || 'Pubblicità'} 
+            className="w-full h-auto max-h-48 object-contain mx-auto rounded-lg"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 // Super Admin Dashboard (with all new features)
 function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
@@ -1330,6 +1725,9 @@ function SuperAdminDashboard() {
 
         {/* SMS Statistics Section */}
         <SMSStatsSection />
+
+        {/* Banner Management Section */}
+        <BannerManagementSection />
 
         {/* All dialogs for company management */}
         {/* Edit Company Dialog */}
@@ -2115,6 +2513,7 @@ function CompanyAdminDashboard() {
   const [deletingCustomer, setDeletingCustomer] = useState(null);
   const [viewingCustomer, setViewingCustomer] = useState(null);
   const [customerOrders, setCustomerOrders] = useState([]);
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [showCreateCustomerDialog, setShowCreateCustomerDialog] = useState(false);
   const [showEditCustomerDialog, setShowEditCustomerDialog] = useState(false);
   const [showDeleteCustomerDialog, setShowDeleteCustomerDialog] = useState(false);
@@ -2502,20 +2901,56 @@ function CompanyAdminDashboard() {
   };
 
   const applyFilters = () => {
-    fetchOrders();
-    setShowFilters(false);
+    // Force immediate fetch with current filter values
+    setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        Object.entries(searchFilters).forEach(([key, value]) => {
+          if (value) params.append(key, value);
+        });
+        
+        const response = await axios.get(`${API}/orders?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setOrders(response.data);
+        setShowFilters(false);
+        
+        toast({
+          title: t.success,
+          description: `Trovati ${response.data.length} ordini`,
+        });
+      } catch (error) {
+        toast({
+          title: t.error,
+          description: 'Errore durante applicazione filtri',
+          variant: "destructive",
+        });
+      }
+    }, 50);
   };
 
   const clearFilters = () => {
-    setSearchFilters({
+    const clearedFilters = {
       customer_name: '',
       courier_id: '',
       status: '',
       date_from: '',
       date_to: ''
-    });
-    // Return to showing only pending orders when clearing filters
-    setTimeout(() => fetchOrders(), 100);
+    };
+    setSearchFilters(clearedFilters);
+    
+    // Force immediate fetch with cleared filters
+    setTimeout(async () => {
+      try {
+        const response = await axios.get(`${API}/orders`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setOrders(response.data);
+        setShowFilters(false);
+      } catch (error) {
+        console.error('Failed to fetch orders after clearing filters:', error);
+      }
+    }, 50);
   };
 
   const handleEditCourierClick = (courier) => {
@@ -2776,7 +3211,18 @@ function CompanyAdminDashboard() {
                   <CardTitle className="text-lg sm:text-xl">{t.customerManagement}</CardTitle>
                   <CardDescription className="text-sm">{t.manageAllCustomers}</CardDescription>
                 </div>
-                <Dialog open={showCreateCustomerDialog} onOpenChange={setShowCreateCustomerDialog}>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  {/* Customer Search */}
+                  <div className="flex-1 sm:w-64">
+                    <Input
+                      type="text"
+                      placeholder="🔍 Cerca cliente per nome..."
+                      value={customerSearchTerm}
+                      onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+                  <Dialog open={showCreateCustomerDialog} onOpenChange={setShowCreateCustomerDialog}>
                   <DialogTrigger asChild>
                     <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
                       <UserPlus className="w-4 h-4 mr-2" />
@@ -2847,6 +3293,7 @@ function CompanyAdminDashboard() {
                     </form>
                   </DialogContent>
                 </Dialog>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
@@ -2863,7 +3310,14 @@ function CompanyAdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customers.map((customer) => (
+                    {customers
+                      .filter(customer => 
+                        customerSearchTerm === '' || 
+                        customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                        customer.phone_number.includes(customerSearchTerm) ||
+                        customer.address.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                      )
+                      .map((customer) => (
                       <TableRow key={customer.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">{customer.name}</TableCell>
                         <TableCell className="text-xs sm:text-sm">{customer.phone_number}</TableCell>
@@ -2902,10 +3356,25 @@ function CompanyAdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {customers.filter(customer => 
+                      customerSearchTerm === '' || 
+                      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                      customer.phone_number.includes(customerSearchTerm) ||
+                      customer.address.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                    ).length === 0 && customerSearchTerm !== '' && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                          🔍 Nessun cliente trovato per "{customerSearchTerm}"
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
             </CardContent>
+            
+            {/* Banner pubblicitario */}
+            <BannerDisplay />
           </Card>
         )}
 
@@ -3036,6 +3505,9 @@ function CompanyAdminDashboard() {
                 </Table>
               </div>
             </CardContent>
+            
+            {/* Banner pubblicitario */}
+            <BannerDisplay />
           </Card>
         )}
 
@@ -3187,18 +3659,28 @@ function CompanyAdminDashboard() {
                       </DialogContent>
                     </Dialog>
                     
-                    <Button
-                      onClick={() => setShowFilters(!showFilters)}
-                      variant="outline"
-                      size="sm"
-                      className="text-sm"
-                    >
-                      🔍 {t.filters}
-                    </Button>
                     
                     <div className="flex space-x-1">
                       <Button
-                        onClick={() => setSearchFilters({...searchFilters, status: ''})}
+                        onClick={async () => {
+                          try {
+                            const response = await axios.get(`${API}/orders`, {
+                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                            });
+                            setOrders(response.data);
+                            setSearchFilters({...searchFilters, status: ''});
+                            toast({
+                              title: t.success,
+                              description: `Visualizzati tutti gli ordini (${response.data.length})`,
+                            });
+                          } catch (error) {
+                            toast({
+                              title: t.error,
+                              description: 'Errore durante caricamento ordini',
+                              variant: "destructive",
+                            });
+                          }
+                        }}
                         variant="outline"
                         size="sm"
                         className="text-sm"
@@ -3226,88 +3708,7 @@ function CompanyAdminDashboard() {
                 </div>
               </CardHeader>
               
-              {/* Filters */}
-              {showFilters && (
-                <CardContent className="p-4 sm:p-6 border-t">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="filterCustomer" className="text-sm">{t.customerName}</Label>
-                      <Input
-                        id="filterCustomer"
-                        value={searchFilters.customer_name}
-                        onChange={(e) => setSearchFilters({ ...searchFilters, customer_name: e.target.value })}
-                        placeholder={t.searchByCustomer}
-                        className="text-sm"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="filterCourier" className="text-sm">{t.courier}</Label>
-                      <Select
-                        value={searchFilters.courier_id}
-                        onValueChange={(value) => setSearchFilters({ ...searchFilters, courier_id: value })}
-                      >
-                        <SelectTrigger className="text-sm">
-                          <SelectValue placeholder={t.selectCourier} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">{t.allCouriers}</SelectItem>
-                          {couriers.map((courier) => (
-                            <SelectItem key={courier.id} value={courier.id}>
-                              {courier.username}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="filterStatus" className="text-sm">{t.status}</Label>
-                      <Select
-                        value={searchFilters.status}
-                        onValueChange={(value) => setSearchFilters({ ...searchFilters, status: value })}
-                      >
-                        <SelectTrigger className="text-sm">
-                          <SelectValue placeholder={t.selectStatus} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">{t.allStatuses}</SelectItem>
-                          <SelectItem value="pending">{t.pending}</SelectItem>
-                          <SelectItem value="assigned">{t.assigned}</SelectItem>
-                          <SelectItem value="in_progress">{t.inProgress}</SelectItem>
-                          <SelectItem value="delivered">{t.delivered}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="filterDateFrom" className="text-sm">{t.dateFrom}</Label>
-                      <Input
-                        id="filterDateFrom"
-                        type="date"
-                        value={searchFilters.date_from}
-                        onChange={(e) => setSearchFilters({ ...searchFilters, date_from: e.target.value })}
-                        className="text-sm"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="filterDateTo" className="text-sm">{t.dateTo}</Label>
-                      <Input
-                        id="filterDateTo"
-                        type="date"
-                        value={searchFilters.date_to}
-                        onChange={(e) => setSearchFilters({ ...searchFilters, date_to: e.target.value })}
-                        className="text-sm"
-                      />
-                    </div>
-                    <div className="flex items-end space-x-2">
-                      <Button onClick={applyFilters} size="sm" className="text-sm">
-                        {t.applyFilters}
-                      </Button>
-                      <Button onClick={clearFilters} variant="outline" size="sm" className="text-sm">
-                        {t.clearFilters}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              )}
+              {/* Filtri rimossi come richiesto da Luca */}
             </Card>
 
             {/* Orders Table */}
@@ -3323,6 +3724,7 @@ function CompanyAdminDashboard() {
                         <TableHead className="text-xs sm:text-sm">{t.reference}</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.courier}</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.status}</TableHead>
+                        <TableHead className="text-xs sm:text-sm">Commento</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.created}</TableHead>
                         <TableHead className="text-xs sm:text-sm">{t.actions}</TableHead>
                       </TableRow>
@@ -3336,6 +3738,34 @@ function CompanyAdminDashboard() {
                           <TableCell className="text-xs sm:text-sm">{order.reference_number || '-'}</TableCell>
                           <TableCell className="text-xs sm:text-sm">{getCourierName(order.courier_id)}</TableCell>
                           <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-xs sm:text-sm max-w-48">
+                            {order.delivery_comment ? (
+                              <div className="group relative">
+                                <div 
+                                  className="text-gray-700 cursor-help"
+                                  title={`${order.delivery_comment} - ${order.commented_by} (${order.commented_at ? new Date(order.commented_at).toLocaleString('it-IT') : ''})`}
+                                >
+                                  <p className={order.delivery_comment.length > 30 ? "truncate" : ""}>
+                                    💬 {order.delivery_comment}
+                                  </p>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {order.commented_by} - {order.commented_at ? new Date(order.commented_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
+                                </p>
+                                
+                                {/* Hover tooltip per commenti lunghi */}
+                                {order.delivery_comment.length > 30 && (
+                                  <div className="absolute z-10 invisible group-hover:visible bg-black text-white text-xs rounded p-2 -top-2 left-0 w-64 shadow-lg">
+                                    💬 {order.delivery_comment}
+                                    <br />
+                                    <span className="text-gray-300">- {order.commented_by}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">Nessun commento</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-xs sm:text-sm">
                             {new Date(order.created_at).toLocaleDateString()}
                           </TableCell>
@@ -3377,6 +3807,9 @@ function CompanyAdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Banner pubblicitario */}
+            <BannerDisplay />
           </div>
         )}
 
@@ -3753,6 +4186,12 @@ function CompanyAdminDashboard() {
                               {order.delivered_at && (
                                 <span className="text-green-600">
                                   ✅ Consegnato: {new Date(order.delivered_at).toLocaleDateString()} alle {new Date(order.delivered_at).toLocaleTimeString()}
+                                </span>
+                              )}
+                              {order.delivery_comment && (
+                                <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs">
+                                  💬 {order.delivery_comment}
+                                  <span className="text-gray-500 ml-1">- {order.commented_by}</span>
                                 </span>
                               )}
                             </div>
