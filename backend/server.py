@@ -402,9 +402,11 @@ async def send_sms_notification(phone_number: str, message: str, company_id: str
             client = Client(account_sid, auth_token)
             
             # Send SMS via Twilio
+            twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER', '+15005550006')
+            
             message_obj = client.messages.create(
                 body=message,
-                from_='+15005550006',  # Twilio test number - you can replace with your Twilio number
+                from_=twilio_phone,
                 to=phone_number
             )
             
