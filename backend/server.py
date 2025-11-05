@@ -1289,6 +1289,14 @@ async def mark_delivery_completed(
     if order["status"] == "delivered":
         raise HTTPException(status_code=400, detail="Order already delivered")
     
+    # Check if signature is required but not provided and not skipped
+    if order.get("requires_signature", False):
+        if not request.signature_data and not request.signature_skipped:
+            raise HTTPException(
+                status_code=400, 
+                detail="Signature required but not provided. Please collect signature or skip with reason."
+            )
+    
     # Update order status
     update_data = {
         "status": "delivered",
@@ -1301,6 +1309,15 @@ async def mark_delivery_completed(
         update_data["delivery_comment"] = request.delivery_comment.strip()
         update_data["commented_at"] = datetime.now(timezone.utc)
         update_data["commented_by"] = current_user.username
+    
+    # Add signature data if provided
+    if request.signature_data:
+        update_data["signature_data"] = request.signature_data
+        update_data["signed_by_name"] = request.signed_by_name or order["customer_name"]
+        update_data["signed_at"] = datetime.now(timezone.utc)
+        update_data["signature_skipped"] = False
+    elif request.signature_skipped:
+        update_data["signature_skipped"] = True
     
     await db.orders.update_one(
         {"id": request.order_id},
