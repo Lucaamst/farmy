@@ -145,6 +145,7 @@ class CreateOrderRequest(BaseModel):
     phone_number: Optional[str] = None  # Made optional for SMS notifications
     reference_number: Optional[str] = None
     customer_id: Optional[str] = None  # If selecting existing customer
+    requires_signature: bool = False  # Digital signature requirement
 
 class UpdateOrderRequest(BaseModel):
     customer_name: str
