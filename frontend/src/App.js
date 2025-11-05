@@ -3654,6 +3654,18 @@ function CompanyAdminDashboard() {
                               className="text-sm"
                             />
                           </div>
+                          <div className="flex items-center space-x-2 border rounded-md p-3 bg-blue-50 border-blue-200">
+                            <input
+                              id="requiresSignature"
+                              type="checkbox"
+                              checked={newOrder.requires_signature || false}
+                              onChange={(e) => setNewOrder({ ...newOrder, requires_signature: e.target.checked })}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <Label htmlFor="requiresSignature" className="text-sm font-medium text-blue-900 cursor-pointer">
+                              ✍️ {t.requiresSignature || 'Richiede firma digitale'}
+                            </Label>
+                          </div>
                           <Button type="submit" className="w-full text-sm">{t.createOrder}</Button>
                         </form>
                       </DialogContent>
