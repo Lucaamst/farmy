@@ -299,14 +299,44 @@ function CourierDashboard() {
     }, 100);
   };
 
-  const markAsDelivered = async () => {
+  const markAsDelivered = async (skipSignature = false) => {
     if (!completingDelivery) return;
     
+    // Check if signature is required but not provided
+    if (signatureRequired && !skipSignature) {
+      if (!signatureRef.current || signatureRef.current.isEmpty()) {
+        toast({
+          title: t.error,
+          description: 'Firma digitale richiesta. Per favore, fai firmare il cliente o salta la firma.',
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!signedByName.trim()) {
+        toast({
+          title: t.error,
+          description: 'Per favore, inserisci il nome di chi firma.',
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     try {
-      await axios.patch(`${API}/courier/deliveries/mark-delivered`, {
+      const requestData = {
         order_id: completingDelivery.id,
-        delivery_comment: deliveryComment || null
-      });
+        delivery_comment: deliveryComment || null,
+        signature_skipped: skipSignature
+      };
+      
+      // Add signature data if provided and not skipped
+      if (signatureRequired && !skipSignature && signatureRef.current && !signatureRef.current.isEmpty()) {
+        requestData.signature_data = signatureRef.current.toDataURL();
+        requestData.signed_by_name = signedByName.trim();
+      }
+      
+      await axios.patch(`${API}/courier/deliveries/mark-delivered`, requestData);
       
       toast({
         title: t.success,
@@ -316,6 +346,7 @@ function CourierDashboard() {
       setShowCompleteDialog(false);
       setCompletingDelivery(null);
       setDeliveryComment('');
+      setSignedByName('');
       fetchDeliveries();
     } catch (error) {
       toast({
@@ -323,6 +354,12 @@ function CourierDashboard() {
         description: error.response?.data?.detail || t.failedToMarkDelivery,
         variant: "destructive",
       });
+    }
+  };
+  
+  const clearSignature = () => {
+    if (signatureRef.current) {
+      signatureRef.current.clear();
     }
   };
 
