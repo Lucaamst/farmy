@@ -4192,6 +4192,13 @@ class DeliveryManagementAPITester:
         self.test_order_search_filters()
         self.test_order_export()
         
+        # Phase 6.5: Digital Signature System Tests
+        print("\n📋 Phase 6.5: Digital Signature System Tests")
+        self.test_order_creation_with_signature_requirement()
+        self.test_delivery_completion_with_signature()
+        self.test_pdf_generation()
+        self.test_signature_integration_workflow()
+        
         # Phase 7: Courier API Tests
         print("\n📋 Phase 7: Courier API Tests")
         self.test_courier_login()
