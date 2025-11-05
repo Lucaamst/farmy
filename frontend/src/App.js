@@ -490,7 +490,7 @@ function CourierDashboard() {
       
       {/* Complete Delivery Dialog */}
       <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
-      <DialogContent className="mx-4 sm:mx-0 max-w-md">
+      <DialogContent className="mx-4 sm:mx-0 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Completa Consegna</DialogTitle>
           <DialogDescription>
@@ -514,13 +514,73 @@ function CourierDashboard() {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          {/* Signature Section */}
+          {signatureRequired && (
+            <div className="space-y-3 border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+              <div className="flex items-center gap-2 text-blue-800 font-medium">
+                <MessageSquare className="w-5 h-5" />
+                <span>Firma Digitale Richiesta</span>
+              </div>
+              
+              <div>
+                <Label htmlFor="signedBy">Nome di chi firma</Label>
+                <Input
+                  id="signedBy"
+                  value={signedByName}
+                  onChange={(e) => setSignedByName(e.target.value)}
+                  placeholder="Nome del destinatario"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <Label>Firma sul quadro sottostante</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearSignature}
+                  >
+                    Cancella
+                  </Button>
+                </div>
+                <div className="border-2 border-gray-300 rounded-lg bg-white">
+                  <SignatureCanvas
+                    ref={signatureRef}
+                    canvasProps={{
+                      className: 'w-full h-48 rounded-lg',
+                    }}
+                    backgroundColor="white"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Chiedi al cliente di firmare con il dito sullo schermo
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
-              onClick={markAsDelivered} 
+              onClick={() => markAsDelivered(false)} 
               className="flex-1"
             >
               ✅ Conferma Consegna
             </Button>
+            {signatureRequired && (
+              <Button 
+                onClick={() => {
+                  if (window.confirm('Sei sicuro di voler completare la consegna senza firma? Questa azione è irreversibile.')) {
+                    markAsDelivered(true);
+                  }
+                }}
+                variant="outline"
+                className="flex-1 border-yellow-500 text-yellow-700 hover:bg-yellow-50"
+              >
+                ⚠️ Salta Firma
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={() => setShowCompleteDialog(false)}
