@@ -3803,6 +3803,16 @@ function CompanyAdminDashboard() {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
+                              {order.status === 'delivered' && order.signature_data && (
+                                <Button
+                                  onClick={() => downloadDeliveryPDF(order.id)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs bg-green-50 hover:bg-green-100"
+                                >
+                                  📄 PDF
+                                </Button>
+                              )}
                               <Button
                                 onClick={() => handleEditOrderClick(order)}
                                 variant="outline"
