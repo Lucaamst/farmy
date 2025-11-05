@@ -843,7 +843,8 @@ async def create_order(
         phone_number=request.phone_number or "",  # Store empty string if no phone
         reference_number=request.reference_number,
         company_id=current_user.company_id,
-        customer_id=customer_id
+        customer_id=customer_id,
+        requires_signature=request.requires_signature
     )
     await db.orders.insert_one(order.dict())
     
