@@ -391,6 +391,18 @@ frontend:
           agent: "testing"
           comment: "✅ FINAL REVIEW CONFIRMED: Banner Management System working perfectly. Complete CRUD operations verified - PUT /api/super-admin/banner (upload), GET /api/banner/current (public view), DELETE /api/super-admin/banner (removal). All access controls, validation, and data persistence working correctly."
 
+  - task: "Digital Signature System for Deliveries"
+    implemented: true
+    working: "NA"
+    file: "server.py, App.js, SignatureScreen.js, DeliveryDetailScreen.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented complete digital signature system with 3 phases: BACKEND - Added signature fields to Order model (requires_signature, signature_data, signed_by_name, signed_at, signature_skipped), updated MarkDeliveredRequest model, modified mark_delivery_completed API to handle signature validation and storage, created PDF generation endpoint /api/orders/{order_id}/delivery-confirmation-pdf with reportlab. FRONTEND WEB - Added 'Requires Signature' checkbox in order creation form, added signature status column in orders table with visual badges (Firmato/Saltata/Richiesta), added PDF download button for completed deliveries with signature, implemented downloadDeliveryPDF function. COURIER APP - Created SignatureScreen.js with canvas signature capture using react-native-signature-canvas, updated DeliveryDetailScreen to show comment dialog and check signature requirement, updated AuthService.markDeliveryCompleted to accept signature parameters, added Signature screen to navigation stack. All translations added in Italian and English. Ready for backend testing."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
