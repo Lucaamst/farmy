@@ -83,6 +83,11 @@ class Order(BaseModel):
     delivery_comment: Optional[str] = None
     commented_at: Optional[datetime] = None
     commented_by: Optional[str] = None
+    # Digital signature system
+    requires_signature: bool = False
+    signature_data: Optional[str] = None  # Base64 encoded signature image
+    signed_by_name: Optional[str] = None
+    signed_at: Optional[datetime] = None
 
 class Customer(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
