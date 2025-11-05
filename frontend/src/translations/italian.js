@@ -270,6 +270,13 @@ export const italian = {
   enterEmail: "Inserisci email (opzionale)",
   enterNotes: "Inserisci note (opzionale)",
   phoneOptionalNote: "Lascia vuoto se il cliente non vuole ricevere SMS di conferma consegna",
+  requiresSignature: "Richiede firma digitale",
+  signatureRequired: "Firma richiesta",
+  signatureSigned: "Firmato",
+  signatureSkipped: "Firma saltata",
+  noSignature: "Nessuna firma",
+  downloadPDF: "Scarica PDF",
+  deliveryConfirmation: "Conferma Consegna",
   
   // Order Creation with Customers
   selectExistingCustomer: "Seleziona Cliente Esistente",
