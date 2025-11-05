@@ -92,15 +92,24 @@ class AuthServiceClass {
     }
   }
 
-  async markDeliveryCompleted(orderId) {
+  async markDeliveryCompleted(orderId, deliveryComment = null, signatureData = null, signedByName = null, signatureSkipped = false) {
     try {
-      const response = await this.apiClient.patch('/courier/deliveries/mark-delivered', {
-        order_id: orderId
-      });
+      const requestBody = {
+        order_id: orderId,
+        delivery_comment: deliveryComment,
+        signature_data: signatureData,
+        signed_by_name: signedByName,
+        signature_skipped: signatureSkipped
+      };
+
+      const response = await this.apiClient.patch('/courier/deliveries/mark-delivered', requestBody);
       return response.data;
     } catch (error) {
       console.error('Failed to mark completed:', error);
-      throw new Error('Impossibile completare la consegna');
+      throw new Error(
+        error.response?.data?.detail || 
+        'Impossibile completare la consegna'
+      );
     }
   }
 }
