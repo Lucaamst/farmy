@@ -161,6 +161,16 @@ export default function App() {
                 headerTintColor: '#fff',
               }}
             />
+            <Stack.Screen 
+              name="Signature" 
+              component={SignatureScreen} 
+              options={{
+                title: 'Firma Digitale',
+                headerStyle: { backgroundColor: theme.colors.primary },
+                headerTintColor: '#fff',
+                headerShown: false, // Using custom header in SignatureScreen
+              }}
+            />
           </Stack.Navigator>
         ) : (
           <Stack.Navigator>
