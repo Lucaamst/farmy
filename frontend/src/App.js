@@ -288,7 +288,15 @@ function CourierDashboard() {
   const openCompleteDialog = (delivery) => {
     setCompletingDelivery(delivery);
     setDeliveryComment('');
+    setSignedByName(delivery.customer_name || '');
+    setSignatureRequired(delivery.requires_signature || false);
     setShowCompleteDialog(true);
+    // Clear signature if exists
+    setTimeout(() => {
+      if (signatureRef.current) {
+        signatureRef.current.clear();
+      }
+    }, 100);
   };
 
   const markAsDelivered = async () => {
