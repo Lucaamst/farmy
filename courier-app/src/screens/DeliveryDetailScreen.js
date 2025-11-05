@@ -9,7 +9,10 @@ import {
   Divider,
   List,
   Badge,
-  ActivityIndicator 
+  ActivityIndicator,
+  Dialog,
+  Portal,
+  TextInput as PaperTextInput
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
