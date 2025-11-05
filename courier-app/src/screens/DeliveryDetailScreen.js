@@ -24,6 +24,8 @@ export default function DeliveryDetailScreen({ navigation, route }) {
   const { delivery: initialDelivery } = route.params;
   const [delivery, setDelivery] = useState(initialDelivery);
   const [loading, setLoading] = useState(false);
+  const [showCommentDialog, setShowCommentDialog] = useState(false);
+  const [deliveryComment, setDeliveryComment] = useState('');
 
   useEffect(() => {
     navigation.setOptions({
