@@ -1036,6 +1036,16 @@ async def download_delivery_confirmation_pdf(
         spaceBefore=20
     )
     
+    # Add FarmyGo logo at top left
+    logo_path = ROOT_DIR / 'farmygo_logo.png'
+    if logo_path.exists():
+        try:
+            logo = RLImage(str(logo_path), width=4*cm, height=2*cm)
+            elements.append(logo)
+            elements.append(Spacer(1, 0.5*cm))
+        except Exception as e:
+            print(f"Error loading logo: {e}")
+    
     # Title
     elements.append(Paragraph("📦 CONFERMA DI CONSEGNA", title_style))
     elements.append(Spacer(1, 0.5*cm))
