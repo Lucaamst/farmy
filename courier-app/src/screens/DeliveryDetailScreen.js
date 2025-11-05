@@ -54,37 +54,58 @@ export default function DeliveryDetailScreen({ navigation, route }) {
     }
   };
 
-  const handleCompleteDelivery = async () => {
-    Alert.alert(
-      'Conferma Consegna',
-      'Sei sicuro di voler segnare questa consegna come completata?',
-      [
-        { text: 'Annulla', style: 'cancel' },
-        { 
-          text: 'Conferma', 
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await AuthService.markDeliveryCompleted(delivery.id);
-              setDelivery({ ...delivery, status: 'delivered' });
-              Toast.show({
-                type: 'success',
-                text1: 'Consegna Completata',
-                text2: 'Il cliente è stato notificato',
-              });
-            } catch (error) {
-              Toast.show({
-                type: 'error',
-                text1: 'Errore',
-                text2: error.message,
-              });
-            } finally {
-              setLoading(false);
+  const handleCompleteDelivery = () => {
+    // Show comment dialog first
+    setShowCommentDialog(true);
+  };
+
+  const confirmCompleteDelivery = async () => {
+    setShowCommentDialog(false);
+    
+    // Check if signature is required
+    if (delivery.requires_signature) {
+      // Navigate to signature screen
+      navigation.navigate('Signature', {
+        delivery: delivery,
+        comment: deliveryComment.trim() || null
+      });
+    } else {
+      // Complete without signature
+      Alert.alert(
+        'Conferma Consegna',
+        'Completare la consegna senza firma?',
+        [
+          { text: 'Annulla', style: 'cancel' },
+          { 
+            text: 'Conferma', 
+            onPress: async () => {
+              setLoading(true);
+              try {
+                await AuthService.markDeliveryCompleted(
+                  delivery.id, 
+                  deliveryComment.trim() || null
+                );
+                setDelivery({ ...delivery, status: 'delivered' });
+                Toast.show({
+                  type: 'success',
+                  text1: 'Consegna Completata',
+                  text2: 'Il cliente è stato notificato',
+                });
+                navigation.navigate('Deliveries', { refresh: true });
+              } catch (error) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Errore',
+                  text2: error.message,
+                });
+              } finally {
+                setLoading(false);
+              }
             }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const openMaps = () => {
