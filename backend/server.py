@@ -159,6 +159,9 @@ class AssignOrderRequest(BaseModel):
 class MarkDeliveredRequest(BaseModel):
     order_id: str
     delivery_comment: Optional[str] = None
+    signature_data: Optional[str] = None  # Base64 encoded signature image
+    signed_by_name: Optional[str] = None
+    signature_skipped: bool = False
 
 class CreateCustomerRequest(BaseModel):
     name: str
