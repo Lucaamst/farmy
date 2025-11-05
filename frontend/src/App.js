@@ -2900,6 +2900,36 @@ function CompanyAdminDashboard() {
     }
   };
 
+  const downloadDeliveryPDF = async (orderId) => {
+    try {
+      const response = await axios.get(`${API}/orders/${orderId}/delivery-confirmation-pdf`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `conferma_consegna_${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: t.success,
+        description: t.deliveryConfirmation + ' PDF scaricato con successo',
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: "Errore durante il download del PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
+
   const applyFilters = () => {
     // Force immediate fetch with current filter values
     setTimeout(async () => {
