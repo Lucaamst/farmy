@@ -5198,7 +5198,7 @@ def main():
         elif test_type == "final":
             success = tester.run_final_review_tests()
         elif test_type == "comprehensive":
-            success = tester.run_comprehensive_tests()
+            success = tester.run_all_tests()
         elif test_type == "luca":
             success = tester.run_luca_specific_tests()
         else:
