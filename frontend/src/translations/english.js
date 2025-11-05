@@ -246,6 +246,13 @@ export const english = {
   enterEmail: "Enter email (optional)",
   enterNotes: "Enter notes (optional)",
   phoneOptionalNote: "Leave empty if customer doesn't want delivery confirmation SMS",
+  requiresSignature: "Requires digital signature",
+  signatureRequired: "Signature required",
+  signatureSigned: "Signed",
+  signatureSkipped: "Signature skipped",
+  noSignature: "No signature",
+  downloadPDF: "Download PDF",
+  deliveryConfirmation: "Delivery Confirmation",
   
   // Order Creation with Customers
   selectExistingCustomer: "Select Existing Customer",
