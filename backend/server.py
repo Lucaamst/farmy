@@ -979,6 +979,167 @@ async def export_orders(
             headers={"Content-Disposition": "attachment; filename=ordini.csv"}
         )
 
+
+@api_router.get("/orders/{order_id}/delivery-confirmation-pdf")
+async def download_delivery_confirmation_pdf(
+    order_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    """Generate and download PDF confirmation with digital signature"""
+    # Find order and verify it belongs to same company
+    order = await db.orders.find_one({
+        "id": order_id,
+        "company_id": current_user.company_id
+    })
+    
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    if order["status"] != "delivered":
+        raise HTTPException(status_code=400, detail="Order not yet delivered")
+    
+    # Get courier info
+    courier_name = "N/A"
+    if order.get("courier_id"):
+        courier = await db.users.find_one({"id": order["courier_id"]})
+        if courier:
+            courier_name = courier.get("full_name") or courier.get("username")
+    
+    # Get company info
+    company = await db.companies.find_one({"id": current_user.company_id})
+    company_name = company["name"] if company else "FarmyGo"
+    
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
+    
+    # Container for PDF elements
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#2563eb'),
+        spaceAfter=30,
+        alignment=TA_CENTER
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#1e40af'),
+        spaceAfter=12,
+        spaceBefore=20
+    )
+    
+    # Title
+    elements.append(Paragraph("📦 CONFERMA DI CONSEGNA", title_style))
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Company info
+    elements.append(Paragraph(f"<b>{company_name}</b>", styles['Normal']))
+    elements.append(Spacer(1, 0.3*cm))
+    
+    # Delivery info table
+    elements.append(Paragraph("DETTAGLI ORDINE", heading_style))
+    
+    delivery_data = [
+        ["Cliente:", order["customer_name"]],
+        ["Indirizzo di consegna:", order["delivery_address"]],
+        ["Telefono:", order.get("phone_number", "N/A")],
+        ["Numero di riferimento:", order.get("reference_number", "N/A")],
+        ["Corriere:", courier_name],
+        ["Data creazione:", order["created_at"].strftime("%d/%m/%Y %H:%M")],
+        ["Data consegna:", order.get("delivered_at").strftime("%d/%m/%Y %H:%M") if order.get("delivered_at") else "N/A"]
+    ]
+    
+    if order.get("delivery_comment"):
+        delivery_data.append(["Note del corriere:", order.get("delivery_comment", "")])
+    
+    delivery_table = Table(delivery_data, colWidths=[5*cm, 12*cm])
+    delivery_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e0e7ff')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#1e40af')),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#cbd5e1'))
+    ]))
+    
+    elements.append(delivery_table)
+    elements.append(Spacer(1, 1*cm))
+    
+    # Signature section
+    elements.append(Paragraph("FIRMA DIGITALE", heading_style))
+    
+    if order.get("signature_data"):
+        # Add signature image
+        try:
+            # Decode base64 signature
+            signature_base64 = order["signature_data"]
+            if ',' in signature_base64:
+                signature_base64 = signature_base64.split(',')[1]
+            
+            signature_bytes = base64.b64decode(signature_base64)
+            signature_image = io.BytesIO(signature_bytes)
+            
+            # Add signature to PDF
+            img = RLImage(signature_image, width=8*cm, height=4*cm)
+            elements.append(img)
+            elements.append(Spacer(1, 0.3*cm))
+            
+            # Signature info
+            signature_info = [
+                ["Firmato da:", order.get("signed_by_name", order["customer_name"])],
+                ["Data e ora firma:", order.get("signed_at").strftime("%d/%m/%Y %H:%M") if order.get("signed_at") else "N/A"]
+            ]
+            
+            sig_table = Table(signature_info, colWidths=[5*cm, 12*cm])
+            sig_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#dcfce7')),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#166534')),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#bbf7d0'))
+            ]))
+            elements.append(sig_table)
+        except Exception as e:
+            print(f"Error adding signature image: {e}")
+            elements.append(Paragraph(f"<i>Errore nel caricamento della firma</i>", styles['Normal']))
+    elif order.get("signature_skipped"):
+        elements.append(Paragraph("<i>⚠️ Firma non raccolta</i>", styles['Normal']))
+    else:
+        elements.append(Paragraph("<i>Nessuna firma richiesta per questa consegna</i>", styles['Normal']))
+    
+    elements.append(Spacer(1, 1*cm))
+    
+    # Footer
+    elements.append(Paragraph(
+        f"<i>Documento generato il {datetime.now(timezone.utc).strftime('%d/%m/%Y alle %H:%M')} UTC</i>",
+        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=TA_CENTER)
+    ))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    # Return PDF as download
+    filename = f"conferma_consegna_{order['customer_name'].replace(' ', '_')}_{order_id[:8]}.pdf"
+    return StreamingResponse(
+        buffer,
+        media_type='application/pdf',
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 @api_router.get("/orders", response_model=List[Order])
 async def get_orders(
     current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
