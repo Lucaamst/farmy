@@ -365,6 +365,46 @@ export default function DeliveryDetailScreen({ navigation, route }) {
           </View>
         )}
       </View>
+
+      {/* Comment Dialog */}
+      <Portal>
+        <Dialog visible={showCommentDialog} onDismiss={() => setShowCommentDialog(false)}>
+          <Dialog.Title>Commento Consegna</Dialog.Title>
+          <Dialog.Content>
+            <Text style={{ marginBottom: 12 }}>
+              Vuoi aggiungere un commento per questa consegna? (Opzionale)
+            </Text>
+            <PaperTextInput
+              label="Commento (opzionale)"
+              value={deliveryComment}
+              onChangeText={setDeliveryComment}
+              mode="outlined"
+              multiline
+              numberOfLines={3}
+              placeholder="Es: Consegnato al vicino, Lasciato in portineria..."
+            />
+            {delivery.requires_signature && (
+              <View style={{ 
+                marginTop: 12, 
+                padding: 8, 
+                backgroundColor: '#E3F2FD', 
+                borderRadius: 4,
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}>
+                <Icon name="gesture" size={20} color={theme.colors.primary} />
+                <Text style={{ marginLeft: 8, color: theme.colors.primary, fontSize: 12 }}>
+                  Questa consegna richiede una firma digitale
+                </Text>
+              </View>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowCommentDialog(false)}>Annulla</Button>
+            <Button onPress={confirmCompleteDelivery}>Continua</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </SafeAreaView>
   );
 }
