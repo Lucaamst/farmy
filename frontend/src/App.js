@@ -2520,7 +2520,7 @@ function CompanyAdminDashboard() {
   const [showCustomerHistoryDialog, setShowCustomerHistoryDialog] = useState(false);
   
   // Order management states
-  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '', customer_id: '' });
+  const [newOrder, setNewOrder] = useState({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '', customer_id: '', requires_signature: false });
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [assigningOrder, setAssigningOrder] = useState(null);
