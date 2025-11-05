@@ -88,6 +88,7 @@ class Order(BaseModel):
     signature_data: Optional[str] = None  # Base64 encoded signature image
     signed_by_name: Optional[str] = None
     signed_at: Optional[datetime] = None
+    signature_skipped: bool = False
 
 class Customer(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
