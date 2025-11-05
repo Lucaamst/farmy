@@ -3751,6 +3751,25 @@ function CompanyAdminDashboard() {
                           <TableCell className="text-xs sm:text-sm">{order.reference_number || '-'}</TableCell>
                           <TableCell className="text-xs sm:text-sm">{getCourierName(order.courier_id)}</TableCell>
                           <TableCell>{getOrderStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-xs sm:text-sm">
+                            {order.requires_signature ? (
+                              order.signature_data ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  ✅ {t.signatureSigned || 'Firmato'}
+                                </span>
+                              ) : order.signature_skipped ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  ⚠️ {t.signatureSkipped || 'Saltata'}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  ✍️ {t.signatureRequired || 'Richiesta'}
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-gray-400 text-xs">-</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-xs sm:text-sm max-w-48">
                             {order.delivery_comment ? (
                               <div className="group relative">
