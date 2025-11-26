@@ -543,7 +543,10 @@ async def create_company(
         raise HTTPException(status_code=400, detail="Username already exists")
     
     # Create company
-    company = Company(name=request.name)
+    company = Company(
+        name=request.name,
+        sms_sender_name=request.sms_sender_name
+    )
     await db.companies.insert_one(company.dict())
     
     # Create company admin
