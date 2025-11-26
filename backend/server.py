@@ -618,9 +618,13 @@ async def update_company(
         raise HTTPException(status_code=400, detail="Company name already exists")
     
     # Update company
+    update_data = {"name": request.name}
+    if request.sms_sender_name is not None:
+        update_data["sms_sender_name"] = request.sms_sender_name
+    
     await db.companies.update_one(
         {"id": company_id},
-        {"$set": {"name": request.name}}
+        {"$set": update_data}
     )
     
     return {"message": "Company updated successfully"}
