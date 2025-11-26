@@ -433,13 +433,26 @@ async def send_sms_notification(phone_number: str, message: str, company_id: str
             
             # Send SMS via Twilio with error handling
             try:
-                message_obj = client.messages.create(
-                    body=message,
-                    from_=sender_name,
-                    to=phone_number
-                )
+                # Check if Messaging Service SID is configured
+                messaging_service_sid = os.environ.get('TWILIO_MESSAGING_SERVICE_SID')
                 
-                print(f"✅ SMS sent via Twilio from '{sender_name}' to {phone_number}, SID: {message_obj.sid}")
+                if messaging_service_sid:
+                    # Use Messaging Service (supports Alphanumeric Sender ID)
+                    message_obj = client.messages.create(
+                        body=message,
+                        messaging_service_sid=messaging_service_sid,
+                        to=phone_number
+                    )
+                    print(f"✅ SMS sent via Messaging Service (sender: {sender_name}) to {phone_number}, SID: {message_obj.sid}")
+                else:
+                    # Use direct sender (phone number or alphanumeric)
+                    message_obj = client.messages.create(
+                        body=message,
+                        from_=sender_name,
+                        to=phone_number
+                    )
+                    print(f"✅ SMS sent via Twilio from '{sender_name}' to {phone_number}, SID: {message_obj.sid}")
+                
                 success = True
                 
             except Exception as twilio_error:
