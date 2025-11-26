@@ -1540,9 +1540,19 @@ async def mark_delivery_completed(
     
     # Send SMS notification only if phone number is provided
     if order["phone_number"] and order["phone_number"].strip():
-        message = f"Ciao {order['customer_name']}! 📦 La tua consegna è stata completata con successo all'indirizzo: {order['delivery_address']}. Grazie per aver scelto FarmyGo! 🚚"
         # Use order's company_id if available, otherwise use courier's company_id
         company_id = order.get("company_id") or current_user.company_id
+        
+        # Get company name for SMS
+        company_name = "FarmyGo"
+        if company_id:
+            company = await db.companies.find_one({"id": company_id})
+            if company:
+                company_name = company.get("name", "FarmyGo")
+        
+        # Build SMS message with company name
+        message = f"Buongiorno {order['customer_name']}, 📦 la tua consegna è stata effettuata all'indirizzo {order['delivery_address']}. Grazie, {company_name}"
+        
         await send_sms_notification(order["phone_number"], message, company_id)
     else:
         print(f"📱 SMS skipped for order {request.order_id} - no phone number provided")
