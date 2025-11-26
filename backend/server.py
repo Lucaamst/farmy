@@ -421,11 +421,12 @@ async def send_sms_notification(phone_number: str, message: str, company_id: str
             
             # Send SMS via Twilio with error handling
             try:
-                twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER', '+15005550006')
+                # Use Alphanumeric Sender ID (e.g., "FarmyGo") or phone number
+                twilio_from = os.environ.get('TWILIO_FROM_NUMBER', '+15005550006')
                 
                 message_obj = client.messages.create(
                     body=message,
-                    from_=twilio_phone,
+                    from_=twilio_from,
                     to=phone_number
                 )
                 
