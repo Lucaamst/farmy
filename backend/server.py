@@ -415,30 +415,36 @@ async def send_sms_notification(phone_number: str, message: str, company_id: str
         account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
         auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
         
+        # Get company SMS sender name if company_id provided
+        sender_name = os.environ.get('TWILIO_FROM_NUMBER', 'FarmyGo')
+        if company_id:
+            company = await db.companies.find_one({"id": company_id})
+            if company and company.get("sms_sender_name"):
+                # Use company's custom sender name (max 11 chars for Alphanumeric Sender ID)
+                sender_name = company["sms_sender_name"][:11]
+                print(f"📱 Using company sender name: {sender_name}")
+        
         if not account_sid or not auth_token:
             print(f"⚠️ Twilio credentials not found, using mock SMS")
-            print(f"MOCK SMS to {phone_number}: {message}")
+            print(f"MOCK SMS from {sender_name} to {phone_number}: {message}")
             success = True  # Mock SMS considered successful
         else:
             client = Client(account_sid, auth_token)
             
             # Send SMS via Twilio with error handling
             try:
-                # Use Alphanumeric Sender ID (e.g., "FarmyGo") or phone number
-                twilio_from = os.environ.get('TWILIO_FROM_NUMBER', '+15005550006')
-                
                 message_obj = client.messages.create(
                     body=message,
-                    from_=twilio_from,
+                    from_=sender_name,
                     to=phone_number
                 )
                 
-                print(f"✅ SMS sent via Twilio to {phone_number}, SID: {message_obj.sid}")
+                print(f"✅ SMS sent via Twilio from '{sender_name}' to {phone_number}, SID: {message_obj.sid}")
                 success = True
                 
             except Exception as twilio_error:
                 print(f"⚠️ Twilio SMS failed ({twilio_error}), using MOCK SMS as fallback")
-                print(f"📱 MOCK SMS to {phone_number}: {message}")
+                print(f"📱 MOCK SMS from {sender_name} to {phone_number}: {message}")
                 success = True  # Consider mock as successful for user experience
         
         # Store SMS log
