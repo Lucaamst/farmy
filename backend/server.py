@@ -1551,7 +1551,7 @@ async def mark_delivery_completed(
                 company_name = company.get("name", "FarmyGo")
         
         # Build SMS message with company name
-        message = f"Buongiorno {order['customer_name']}, 📦 la tua consegna è stata effettuata all'indirizzo {order['delivery_address']}. Grazie, {company_name}"
+        message = f"Buongiorno {order['customer_name']}, 📦 la consegna del suo ordine è stata effettuata dal nostro corriere presso {order['delivery_address']}. Grazie per aver scelto {company_name}! 😊"
         
         await send_sms_notification(order["phone_number"], message, company_id)
     else:
