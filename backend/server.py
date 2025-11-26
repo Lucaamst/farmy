@@ -60,6 +60,7 @@ class UserRole:
 class Company(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
+    sms_sender_name: Optional[str] = None  # Nome mittente SMS (max 11 caratteri)
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     total_deliveries: int = 0
