@@ -1558,7 +1558,7 @@ function SuperAdminDashboard() {
         title: t.success,
         description: t.companyCreatedSuccessfully,
       });
-      setNewCompany({ name: '', admin_username: '', admin_password: '' });
+      setNewCompany({ name: '', admin_username: '', admin_password: '', sms_sender_name: '' });
       setShowCreateDialog(false);
       fetchCompanies();
     } catch (error) {
