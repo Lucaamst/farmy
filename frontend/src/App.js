@@ -1739,6 +1739,20 @@ function SuperAdminDashboard() {
                       className="text-sm"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="smsSenderName" className="text-sm">Nome Mittente SMS (opzionale)</Label>
+                    <Input
+                      id="smsSenderName"
+                      value={newCompany.sms_sender_name}
+                      onChange={(e) => setNewCompany({ ...newCompany, sms_sender_name: e.target.value })}
+                      placeholder="Es: Farmacia, NomeFarmacia (max 11 caratteri)"
+                      maxLength={11}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Gli SMS saranno inviati con questo nome invece di un numero
+                    </p>
+                  </div>
                   <Button type="submit" className="w-full text-sm">{t.createCompany}</Button>
                 </form>
               </DialogContent>
