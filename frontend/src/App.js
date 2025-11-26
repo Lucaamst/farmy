@@ -1522,7 +1522,7 @@ function BannerDisplay() {
 function SuperAdminDashboard() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '' });
+  const [newCompany, setNewCompany] = useState({ name: '', admin_username: '', admin_password: '', sms_sender_name: '' });
   const [editingCompany, setEditingCompany] = useState(null);
   const [deletingCompany, setDeletingCompany] = useState(null);
   const [resettingPasswordCompany, setResettingPasswordCompany] = useState(null);
