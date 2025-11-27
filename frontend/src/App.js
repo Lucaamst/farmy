@@ -2907,7 +2907,7 @@ function CompanyAdminDashboard() {
         title: t.success,
         description: t.orderCreatedSuccessfully,
       });
-      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '', customer_id: '', requires_signature: false });
+      setNewOrder({ customer_name: '', delivery_address: '', phone_number: '', reference_number: '', customer_id: '', requires_signature: false, send_sms: true });
       setCustomerSearch('');
       setUseExistingCustomer(false);
       setShowCustomerDropdown(false);
