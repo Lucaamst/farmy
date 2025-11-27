@@ -647,7 +647,16 @@ async def verify_and_enable_2fa(
     
     # Verify OTP with wider window for setup (allows for time drift)
     totp = pyotp.TOTP(user_data["two_factor_secret"])
-    if not totp.verify(request.otp_code, valid_window=2):
+    print(f"🔐 2FA Verification - User: {user_data['username']}, Code: {request.otp_code}, Secret exists: {bool(user_data.get('two_factor_secret'))}")
+    
+    # Try to verify
+    is_valid = totp.verify(request.otp_code, valid_window=2)
+    print(f"🔐 OTP Verification result: {is_valid}")
+    
+    if not is_valid:
+        # Also try current code for debugging
+        current_code = totp.now()
+        print(f"🔐 Current expected code: {current_code}")
         raise HTTPException(status_code=401, detail="Invalid OTP code")
     
     # Enable 2FA
