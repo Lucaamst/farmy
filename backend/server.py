@@ -548,23 +548,7 @@ async def login(request: LoginRequest):
     
     user = User(**user_data)
     
-    # Check if 2FA is required for Super Admin and Company Admin
-    requires_2fa_role = user.role in [UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN]
-    
-    # If 2FA is required but not enabled yet, force setup
-    if requires_2fa_role and not user_data.get("two_factor_enabled", False):
-        # Generate a temporary token for 2FA setup
-        temp_token = create_access_token({"sub": user_data["username"], "setup_2fa": True}, expires_delta=timedelta(minutes=15))
-        return LoginResponse(
-            access_token=temp_token,
-            token_type="bearer",
-            requires_2fa=True,
-            user_id=user.id,
-            user=None,
-            company=None
-        )
-    
-    # If 2FA is enabled, verify OTP code
+    # If 2FA is ENABLED (optional), verify OTP code
     if user_data.get("two_factor_enabled", False):
         if not request.otp_code:
             # Need OTP code
