@@ -563,6 +563,7 @@ async def create_company(
     # Create company
     company = Company(
         name=request.name,
+        phone_number=request.phone_number,
         sms_sender_name=request.sms_sender_name
     )
     await db.companies.insert_one(company.dict())
