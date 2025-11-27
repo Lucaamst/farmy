@@ -1740,6 +1740,20 @@ function SuperAdminDashboard() {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="companyPhone" className="text-sm">Numero Telefono Azienda (opzionale)</Label>
+                    <Input
+                      id="companyPhone"
+                      type="tel"
+                      value={newCompany.phone_number}
+                      onChange={(e) => setNewCompany({ ...newCompany, phone_number: e.target.value })}
+                      placeholder="Es: +41 79 123 45 67"
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      I corrieri possono chiamare questo numero
+                    </p>
+                  </div>
+                  <div>
                     <Label htmlFor="smsSenderName" className="text-sm">Nome Mittente SMS (opzionale)</Label>
                     <Input
                       id="smsSenderName"
