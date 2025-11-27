@@ -1541,8 +1541,8 @@ async def mark_delivery_completed(
         {"$set": update_data}
     )
     
-    # Send SMS notification only if phone number is provided
-    if order["phone_number"] and order["phone_number"].strip():
+    # Send SMS notification only if enabled and phone number is provided
+    if order.get("send_sms", True) and order["phone_number"] and order["phone_number"].strip():
         # Use order's company_id if available, otherwise use courier's company_id
         company_id = order.get("company_id") or current_user.company_id
         
@@ -1558,7 +1558,10 @@ async def mark_delivery_completed(
         
         await send_sms_notification(order["phone_number"], message, company_id)
     else:
-        print(f"📱 SMS skipped for order {request.order_id} - no phone number provided")
+        if not order.get("send_sms", True):
+            print(f"📱 SMS skipped for order {request.order_id} - send_sms disabled by user")
+        else:
+            print(f"📱 SMS skipped for order {request.order_id} - no phone number provided")
 
     return {"message": "Delivery marked as completed and customer notified"}
 
