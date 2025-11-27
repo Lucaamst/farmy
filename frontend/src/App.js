@@ -405,10 +405,23 @@ function CourierDashboard() {
               <p className="text-sm sm:text-base text-gray-600 truncate">{t.welcomeBack}, {user.username}</p>
             </div>
           </div>
-          <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
-            <LogOut className="w-4 h-4 mr-2" />
-            {t.logout}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {companyInfo && companyInfo.phone_number && (
+              <Button 
+                onClick={handleCallCompany} 
+                variant="default" 
+                size="sm" 
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                📞 Chiama Azienda
+              </Button>
+            )}
+            <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
+              <LogOut className="w-4 h-4 mr-2" />
+              {t.logout}
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
