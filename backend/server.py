@@ -613,7 +613,7 @@ async def create_company(
     # Check if admin username exists
     existing_user = await db.users.find_one({"username": request.admin_username})
     if existing_user:
-
+        raise HTTPException(status_code=400, detail="Username already exists")
 
 @api_router.post("/auth/setup-2fa")
 async def setup_2fa(
