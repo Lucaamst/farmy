@@ -425,7 +425,7 @@ function CourierDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-white shadow-sm border-0">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
