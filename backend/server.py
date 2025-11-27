@@ -645,9 +645,9 @@ async def verify_and_enable_2fa(
     if not user_data or not user_data.get("two_factor_secret"):
         raise HTTPException(status_code=404, detail="2FA not set up")
     
-    # Verify OTP
+    # Verify OTP with wider window for setup (allows for time drift)
     totp = pyotp.TOTP(user_data["two_factor_secret"])
-    if not totp.verify(request.otp_code, valid_window=1):
+    if not totp.verify(request.otp_code, valid_window=2):
         raise HTTPException(status_code=401, detail="Invalid OTP code")
     
     # Enable 2FA
