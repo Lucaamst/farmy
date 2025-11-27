@@ -613,6 +613,100 @@ async def create_company(
     # Check if admin username exists
     existing_user = await db.users.find_one({"username": request.admin_username})
     if existing_user:
+
+
+@api_router.post("/auth/setup-2fa")
+async def setup_2fa(
+    request: Setup2FARequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate QR code for 2FA setup"""
+    # Verify user is setting up their own 2FA or is the requested user
+    if current_user.id != request.user_id and current_user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    user_data = await db.users.find_one({"id": request.user_id})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Generate secret if not exists
+    if not user_data.get("two_factor_secret"):
+        secret = pyotp.random_base32()
+        await db.users.update_one(
+            {"id": request.user_id},
+            {"$set": {"two_factor_secret": secret}}
+        )
+    else:
+        secret = user_data["two_factor_secret"]
+    
+    # Generate provisioning URI for Google Authenticator
+    totp = pyotp.TOTP(secret)
+    provisioning_uri = totp.provisioning_uri(
+        name=user_data["username"],
+        issuer_name="FarmyGo"
+    )
+    
+    # Generate QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    qr_code_base64 = base64.b64encode(buffered.getvalue()).decode()
+    
+    return {
+        "secret": secret,
+        "qr_code": f"data:image/png;base64,{qr_code_base64}",
+        "provisioning_uri": provisioning_uri
+    }
+
+@api_router.post("/auth/verify-2fa")
+async def verify_and_enable_2fa(
+    request: Verify2FARequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Verify OTP code and enable 2FA"""
+    # Verify user is verifying their own 2FA
+    if current_user.id != request.user_id and current_user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    user_data = await db.users.find_one({"id": request.user_id})
+    if not user_data or not user_data.get("two_factor_secret"):
+        raise HTTPException(status_code=404, detail="2FA not set up")
+    
+    # Verify OTP
+    totp = pyotp.TOTP(user_data["two_factor_secret"])
+    if not totp.verify(request.otp_code, valid_window=1):
+        raise HTTPException(status_code=401, detail="Invalid OTP code")
+    
+    # Enable 2FA
+    await db.users.update_one(
+        {"id": request.user_id},
+        {"$set": {"two_factor_enabled": True}}
+    )
+    
+    # Generate final access token
+    access_token = create_access_token({"sub": user_data["username"]})
+    
+    user = User(**user_data)
+    user.two_factor_enabled = True
+    
+    company = None
+    if user.company_id:
+        company_data = await db.companies.find_one({"id": user.company_id})
+        if company_data:
+            company = Company(**company_data)
+    
+    return {
+        "message": "2FA enabled successfully",
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user,
+        "company": company
+    }
+
         raise HTTPException(status_code=400, detail="Username already exists")
     
     # Create company
