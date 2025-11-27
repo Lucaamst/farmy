@@ -75,6 +75,9 @@ class User(BaseModel):
     company_id: Optional[str] = None
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    # 2FA Google Authenticator
+    two_factor_secret: Optional[str] = None
+    two_factor_enabled: bool = False
 
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
