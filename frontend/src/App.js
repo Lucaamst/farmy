@@ -286,6 +286,28 @@ function CourierDashboard() {
     }
   };
 
+  const fetchCompanyInfo = async () => {
+    try {
+      const response = await axios.get(`${API}/courier/company-info`);
+      setCompanyInfo(response.data);
+    } catch (error) {
+      console.error('Failed to fetch company info:', error);
+    }
+  };
+
+  const handleCallCompany = () => {
+    if (companyInfo && companyInfo.phone_number) {
+      window.location.href = `tel:${companyInfo.phone_number}`;
+    } else {
+      toast({
+        title: t.error,
+        description: 'Numero telefono azienda non disponibile',
+        variant: "destructive",
+      });
+    }
+  };
+
+
   const openCompleteDialog = (delivery) => {
     setCompletingDelivery(delivery);
     setDeliveryComment('');
