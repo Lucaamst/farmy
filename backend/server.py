@@ -884,7 +884,8 @@ async def create_order(
         reference_number=request.reference_number,
         company_id=current_user.company_id,
         customer_id=customer_id,
-        requires_signature=request.requires_signature
+        requires_signature=request.requires_signature,
+        send_sms=request.send_sms
     )
     await db.orders.insert_one(order.dict())
     
