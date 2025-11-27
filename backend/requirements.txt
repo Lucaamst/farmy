@@ -83,3 +83,5 @@ watchfiles==1.1.0
 webauthn==2.7.0
 yarl==1.20.1
 reportlab==4.4.4
+pyotp
+qrcode[pil]
