@@ -22,6 +22,9 @@ from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+import pyotp
+import qrcode
+from io import BytesIO
 
 # WebAuthn imports (will be imported dynamically in functions to avoid dependency issues)
 try:
