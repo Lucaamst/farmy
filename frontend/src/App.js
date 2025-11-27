@@ -1563,57 +1563,6 @@ function SuperAdminDashboard() {
       const response = await axios.get(`${API}/companies`);
       setCompanies(response.data);
     } catch (error) {
-
-  const setup2FA = async () => {
-    try {
-      const response = await axios.post(`${API}/auth/setup-2fa`, {
-        user_id: user.id
-      });
-      setQrCode(response.data.qr_code);
-      setSecret(response.data.secret);
-      setShow2FADialog(true);
-    } catch (error) {
-      toast({
-        title: t.error,
-        description: 'Impossibile configurare 2FA',
-        variant: "destructive",
-      });
-    }
-  };
-
-  const verify2FA = async () => {
-    if (!otpCode || otpCode.length !== 6) {
-      toast({
-        title: t.error,
-        description: 'Inserisci un codice OTP valido a 6 cifre',
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      await axios.post(`${API}/auth/verify-2fa`, {
-        user_id: user.id,
-        otp_code: otpCode
-      });
-      
-      setTwoFactorEnabled(true);
-      setShow2FADialog(false);
-      setOtpCode('');
-      
-      toast({
-        title: 'Successo!',
-        description: '2FA attivato con successo',
-      });
-    } catch (error) {
-      toast({
-        title: t.error,
-        description: 'Codice OTP non valido',
-        variant: "destructive",
-      });
-    }
-  };
-
       toast({
         title: t.error,
         description: t.failedToFetchData,
