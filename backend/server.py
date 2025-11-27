@@ -1503,6 +1503,22 @@ async def mark_delivery_completed(
     # Find the order
     order = await db.orders.find_one({
         "id": request.order_id,
+
+@api_router.get("/courier/company-info")
+async def get_courier_company_info(
+    current_user: User = Depends(require_role([UserRole.COURIER]))
+):
+    """Get courier's company information (phone number, etc.)"""
+    company = await db.companies.find_one({"id": current_user.company_id})
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return {
+        "company_name": company.get("name"),
+        "phone_number": company.get("phone_number", "")
+    }
+
         "courier_id": current_user.id
     })
     
