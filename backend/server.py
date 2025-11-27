@@ -638,6 +638,8 @@ async def update_company(
     
     # Update company
     update_data = {"name": request.name}
+    if request.phone_number is not None:
+        update_data["phone_number"] = request.phone_number
     if request.sms_sender_name is not None:
         update_data["sms_sender_name"] = request.sms_sender_name
     
