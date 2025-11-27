@@ -1555,11 +1555,6 @@ function SuperAdminDashboard() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
-  const [show2FADialog, setShow2FADialog] = useState(false);
-  const [qrCode, setQrCode] = useState('');
-  const [secret, setSecret] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
