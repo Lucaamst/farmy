@@ -546,8 +546,44 @@ async def login(request: LoginRequest):
     if not user_data["is_active"]:
         raise HTTPException(status_code=401, detail="Account disabled")
     
-    access_token = create_access_token({"sub": user_data["username"]})
     user = User(**user_data)
+    
+    # Check if 2FA is required for Super Admin and Company Admin
+    requires_2fa_role = user.role in [UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN]
+    
+    # If 2FA is required but not enabled yet, force setup
+    if requires_2fa_role and not user_data.get("two_factor_enabled", False):
+        # Generate a temporary token for 2FA setup
+        temp_token = create_access_token({"sub": user_data["username"], "setup_2fa": True}, expires_delta=timedelta(minutes=15))
+        return LoginResponse(
+            access_token=temp_token,
+            token_type="bearer",
+            requires_2fa=True,
+            user_id=user.id,
+            user=None,
+            company=None
+        )
+    
+    # If 2FA is enabled, verify OTP code
+    if user_data.get("two_factor_enabled", False):
+        if not request.otp_code:
+            # Need OTP code
+            return LoginResponse(
+                access_token="",
+                token_type="bearer",
+                requires_2fa=True,
+                user_id=user.id,
+                user=None,
+                company=None
+            )
+        
+        # Verify OTP
+        totp = pyotp.TOTP(user_data["two_factor_secret"])
+        if not totp.verify(request.otp_code, valid_window=1):
+            raise HTTPException(status_code=401, detail="Invalid OTP code")
+    
+    # Login successful
+    access_token = create_access_token({"sub": user_data["username"]})
     
     company = None
     if user.company_id:
@@ -558,6 +594,7 @@ async def login(request: LoginRequest):
     return LoginResponse(
         access_token=access_token,
         token_type="bearer",
+        requires_2fa=False,
         user=user,
         company=company
     )
