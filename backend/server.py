@@ -124,10 +124,20 @@ class Customer(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+    otp_code: Optional[str] = None  # For 2FA
 
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str
+    requires_2fa: bool = False  # Indicates if 2FA setup is needed
+    user_id: Optional[str] = None  # For 2FA verification step
+
+class Setup2FARequest(BaseModel):
+    user_id: str
+
+class Verify2FARequest(BaseModel):
+    user_id: str
+    otp_code: str
     user: User
     company: Optional[Company] = None
 
