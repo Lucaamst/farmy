@@ -1571,6 +1571,21 @@ async def mark_delivery_completed(
 
     return {"message": "Delivery marked as completed and customer notified"}
 
+@api_router.get("/courier/company-info")
+async def get_courier_company_info(
+    current_user: User = Depends(require_role([UserRole.COURIER]))
+):
+    """Get courier's company information (phone number, etc.)"""
+    company = await db.companies.find_one({"id": current_user.company_id})
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return {
+        "company_name": company.get("name"),
+        "phone_number": company.get("phone_number", "")
+    }
+
 @api_router.get("/sms-logs")
 async def get_sms_logs(
     current_user: User = Depends(require_role([UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN]))
