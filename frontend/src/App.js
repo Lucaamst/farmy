@@ -266,6 +266,7 @@ function CourierDashboard() {
   const [deliveryComment, setDeliveryComment] = useState('');
   const [signedByName, setSignedByName] = useState('');
   const [signatureRequired, setSignatureRequired] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState(null);
   const signatureRef = useRef(null);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
