@@ -3819,6 +3819,18 @@ function CompanyAdminDashboard() {
                               ✍️ {t.requiresSignature || 'Richiede firma digitale'}
                             </Label>
                           </div>
+                          <div className="flex items-center space-x-2 border rounded-md p-3 bg-green-50 border-green-200">
+                            <input
+                              id="sendSms"
+                              type="checkbox"
+                              checked={newOrder.send_sms !== false}
+                              onChange={(e) => setNewOrder({ ...newOrder, send_sms: e.target.checked })}
+                              className="w-4 h-4 text-green-600"
+                            />
+                            <Label htmlFor="sendSms" className="text-sm font-medium text-green-900 cursor-pointer">
+                              📱 Invia SMS notifica consegna
+                            </Label>
+                          </div>
                           <Button type="submit" className="w-full text-sm">{t.createOrder}</Button>
                         </form>
                       </DialogContent>
