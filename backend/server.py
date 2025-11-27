@@ -131,6 +131,8 @@ class LoginResponse(BaseModel):
     token_type: str
     requires_2fa: bool = False  # Indicates if 2FA setup is needed
     user_id: Optional[str] = None  # For 2FA verification step
+    user: Optional[User] = None
+    company: Optional[Company] = None
 
 class Setup2FARequest(BaseModel):
     user_id: str
