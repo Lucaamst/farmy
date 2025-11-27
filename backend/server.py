@@ -600,21 +600,6 @@ async def login(request: LoginRequest):
     )
 
 # Super Admin Routes
-@api_router.post("/companies")
-async def create_company(
-    request: CreateCompanyRequest,
-    current_user: User = Depends(require_role([UserRole.SUPER_ADMIN]))
-):
-    # Check if company name exists
-    existing_company = await db.companies.find_one({"name": request.name})
-    if existing_company:
-        raise HTTPException(status_code=400, detail="Company name already exists")
-    
-    # Check if admin username exists
-    existing_user = await db.users.find_one({"username": request.admin_username})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-
 @api_router.post("/auth/setup-2fa")
 async def setup_2fa(
     request: Setup2FARequest,
