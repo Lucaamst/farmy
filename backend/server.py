@@ -129,10 +129,12 @@ class CreateCompanyRequest(BaseModel):
     name: str
     admin_username: str
     admin_password: str
+    phone_number: Optional[str] = None
     sms_sender_name: Optional[str] = None
 
 class UpdateCompanyRequest(BaseModel):
     name: str
+    phone_number: Optional[str] = None
     sms_sender_name: Optional[str] = None
 
 class DeleteCompanyRequest(BaseModel):
