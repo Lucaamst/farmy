@@ -388,6 +388,7 @@ function CourierDashboard() {
 
   useEffect(() => {
     fetchDeliveries();
+    fetchCompanyInfo();
   }, []);
 
   return (
