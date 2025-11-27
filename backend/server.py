@@ -88,6 +88,7 @@ class Order(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     delivered_at: Optional[datetime] = None
     sms_sent: bool = False
+    send_sms: bool = True  # Toggle for sending SMS notification
     # Courier delivery comments
     delivery_comment: Optional[str] = None
     commented_at: Optional[datetime] = None
