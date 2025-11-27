@@ -1555,8 +1555,61 @@ function SuperAdminDashboard() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
+
+  const setup2FA = async () => {
+    try {
+      const response = await axios.post(`${API}/auth/setup-2fa`, {
+        user_id: user.id
+      });
+      setQrCode(response.data.qr_code);
+      setSecret(response.data.secret);
+      setShow2FADialog(true);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile configurare 2FA',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const verify2FA = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      toast({
+        title: t.error,
+        description: 'Inserisci un codice OTP valido a 6 cifre',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/auth/verify-2fa`, {
+        user_id: user.id,
+        otp_code: otpCode
+      });
+      
+      setShow2FADialog(false);
+      setOtpCode('');
+      
+      toast({
+        title: 'Successo!',
+        description: '2FA attivato con successo',
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Codice OTP non valido',
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchCompanies = async () => {
     try {
