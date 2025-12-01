@@ -333,17 +333,17 @@ function CourierDashboard() {
       const response = await axios.get(`${API}/courier/company-info`);
 
 
-  // Check if PIN is set on mount
+  // Check if PIN is set on mount - only show once after successful login
   useEffect(() => {
     const checkPIN = async () => {
-      const pinEnabled = localStorage.getItem('courier_pin_enabled');
-      if (!pinEnabled) {
-        // First time, ask to set PIN
-        setShowPINSetup(true);
+      const pinEnabled = localStorage.getItem(`courier_pin_enabled_${user?.id}`);
+      if (!pinEnabled && user) {
+        // First time for this user, ask to set PIN
+        setTimeout(() => setShowPINSetup(true), 1000);
       }
     };
     checkPIN();
-  }, []);
+  }, [user]);
 
   const setupPIN = async () => {
     if (pinCode.length !== 4 || !/^\d{4}$/.test(pinCode)) {
