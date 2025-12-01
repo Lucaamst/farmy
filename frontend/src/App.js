@@ -133,6 +133,7 @@ function useAuth() {
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, language, changeLanguage, t } = useAuth();
   const { toast } = useToast();
