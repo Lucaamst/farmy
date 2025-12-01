@@ -141,7 +141,26 @@ export default function App() {
 
   const handleLogin = async (userData) => {
     setUser(userData);
-    setIsAuthenticated(true);
+    
+    // Check PIN status after login
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    const pinEnabled = await AsyncStorage.getItem(`courier_pin_enabled_${userData.id}`);
+    
+    if (!pinEnabled) {
+      // First time user, needs PIN setup
+      setNeedsPINSetup(true);
+      setIsAuthenticated(false);
+    } else if (pinEnabled === 'skipped') {
+      // User skipped PIN, go directly to main
+      setIsAuthenticated(true);
+      setNeedsPINSetup(false);
+      setNeedsPINVerify(false);
+    } else {
+      // PIN is set, but just logged in, no need to verify immediately
+      setIsAuthenticated(true);
+      setNeedsPINSetup(false);
+      setNeedsPINVerify(false);
+    }
   };
 
   const handleLogout = async () => {
