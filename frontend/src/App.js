@@ -34,6 +34,8 @@ function AuthProvider({ children }) {
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'it');
   const [securityRequired, setSecurityRequired] = useState(false);
   const [securitySetupRequired, setSecuritySetupRequired] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [tempUserId, setTempUserId] = useState(null);
   const [t, setT] = useState(getTranslation(language));
 
   useEffect(() => {
