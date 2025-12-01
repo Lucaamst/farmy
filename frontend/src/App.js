@@ -3449,10 +3449,21 @@ function CompanyAdminDashboard() {
               <p className="text-sm sm:text-base text-gray-600 truncate">{company?.name} • {user.username}</p>
             </div>
           </div>
-          <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
-            <LogOut className="w-4 h-4 mr-2" />
-            {t.logout}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={setup2FA} 
+              variant="outline" 
+              size="sm" 
+              className="w-full sm:w-auto"
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              🔐 2FA
+            </Button>
+            <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
+              <LogOut className="w-4 h-4 mr-2" />
+              {t.logout}
+            </Button>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
