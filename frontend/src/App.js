@@ -135,6 +135,8 @@ function Login() {
   const [password, setPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [tempUserId, setTempUserId] = useState(null);
   const { login, language, changeLanguage, t } = useAuth();
   const { toast } = useToast();
 
