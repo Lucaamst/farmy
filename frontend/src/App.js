@@ -4929,8 +4929,8 @@ function CompanyAdminDashboard() {
                             </div>
                             {getOrderStatusBadge(order.status)}
                           </div>
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-gray-500 space-y-1 sm:space-y-0">
-                            <div className="flex flex-col space-y-1">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs text-gray-500 space-y-2 sm:space-y-0">
+                            <div className="flex flex-col space-y-1 flex-1">
                               <span>📅 Ordinato: {new Date(order.created_at).toLocaleDateString()} alle {new Date(order.created_at).toLocaleTimeString()}</span>
                               {order.delivered_at && (
                                 <span className="text-green-600">
@@ -4944,7 +4944,43 @@ function CompanyAdminDashboard() {
                                 </span>
                               )}
                             </div>
-                            <span>{getCourierName(order.courier_id)}</span>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                              <span className="text-xs">{getCourierName(order.courier_id)}</span>
+                              {order.status === 'delivered' && (order.signature_data || order.signature_skipped === false) && (
+                                <Button
+                                  onClick={async () => {
+                                    try {
+                                      const response = await axios.get(`${API}/orders/${order.id}/delivery-confirmation-pdf`, {
+                                        responseType: 'blob'
+                                      });
+                                      const url = window.URL.createObjectURL(new Blob([response.data]));
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.setAttribute('download', `consegna-${order.reference_number || order.id}.pdf`);
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      link.remove();
+                                      toast({
+                                        title: 'Successo',
+                                        description: 'PDF scaricato con successo',
+                                      });
+                                    } catch (error) {
+                                      toast({
+                                        title: t.error,
+                                        description: 'Impossibile scaricare il PDF',
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs h-7 px-2 bg-purple-50 hover:bg-purple-100 border-purple-300"
+                                >
+                                  <Download className="w-3 h-3 mr-1" />
+                                  PDF Firma
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
