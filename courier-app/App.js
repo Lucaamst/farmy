@@ -71,6 +71,8 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [needsPINSetup, setNeedsPINSetup] = useState(false);
+  const [needsPINVerify, setNeedsPINVerify] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -84,7 +86,21 @@ export default function App() {
         const userData = await AuthService.validateToken(token);
         if (userData && userData.role === 'courier') {
           setUser(userData);
-          setIsAuthenticated(true);
+          
+          // Check PIN status
+          const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+          const pinEnabled = await AsyncStorage.getItem(`courier_pin_enabled_${userData.id}`);
+          
+          if (!pinEnabled) {
+            // First time user, needs PIN setup
+            setNeedsPINSetup(true);
+          } else if (pinEnabled === 'skipped') {
+            // User skipped PIN, go directly to main
+            setIsAuthenticated(true);
+          } else {
+            // PIN is set, needs verification
+            setNeedsPINVerify(true);
+          }
         } else {
           await SecureStore.deleteItemAsync('farmygo_token');
         }
