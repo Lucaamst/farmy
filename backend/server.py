@@ -547,10 +547,10 @@ async def init_super_admin():
 @api_router.post("/auth/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
     user_data = await db.users.find_one({"username": request.username})
-    if not user_data or not verify_password(request.password, user_data["password"]):
+    if not user_data or not verify_password(request.password, user_data.get("password_hash", user_data.get("password", ""))):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    if not user_data["is_active"]:
+    if not user_data.get("is_active", True):
         raise HTTPException(status_code=401, detail="Account disabled")
     
     user = User(**user_data)
