@@ -144,6 +144,12 @@ class Verify2FARequest(BaseModel):
     user_id: str
     otp_code: str
 
+class SetPINRequest(BaseModel):
+    pin_code: str  # 4 digit PIN
+
+class VerifyPINRequest(BaseModel):
+    pin_code: str
+
 class CreateCompanyRequest(BaseModel):
     name: str
     admin_username: str
