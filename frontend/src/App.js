@@ -2846,6 +2846,8 @@ function CompanyAdminDashboard() {
     try {
       const response = await axios.post(`${API}/auth/setup-2fa`, {
         user_id: user.id
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setQrCode(response.data.qr_code);
       setSecret(response.data.secret);
@@ -2873,6 +2875,8 @@ function CompanyAdminDashboard() {
       await axios.post(`${API}/auth/verify-2fa`, {
         user_id: user.id,
         otp_code: otpCode
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
       setShow2FADialog(false);
@@ -2883,7 +2887,7 @@ function CompanyAdminDashboard() {
         description: '2FA attivato con successo',
       });
       
-      window.location.reload();
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error('2FA Error:', error.response?.data);
       toast({
