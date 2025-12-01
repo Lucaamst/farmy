@@ -4651,6 +4651,65 @@ function CompanyAdminDashboard() {
             )}
           </DialogContent>
         </Dialog>
+
+
+        {/* 2FA Dialog */}
+        <Dialog open={show2FADialog} onOpenChange={setShow2FADialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>🔐 Autenticazione a Due Fattori (2FA)</DialogTitle>
+              <DialogDescription>
+                Scansiona il QR code con Google Authenticator
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {qrCode && (
+                <div className="flex flex-col items-center space-y-4">
+                  <img src={qrCode} alt="QR Code" className="w-64 h-64 border rounded" />
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Oppure inserisci manualmente:</p>
+                    <code className="bg-gray-100 px-3 py-1 rounded text-xs">{secret}</code>
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <Label htmlFor="otpCodeCompany">Inserisci il codice a 6 cifre</Label>
+                <Input
+                  id="otpCodeCompany"
+                  type="text"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="text-center text-2xl tracking-widest"
+                />
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <p className="text-sm text-blue-900">
+                  📱 <strong>Come attivare:</strong>
+                  <br />
+                  1. Apri Google Authenticator sul tuo telefono
+                  <br />
+                  2. Scansiona il QR code
+                  <br />
+                  3. Inserisci il codice a 6 cifre generato
+                </p>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShow2FADialog(false)} className="flex-1">
+                  Annulla
+                </Button>
+                <Button onClick={verify2FA} className="flex-1">
+                  Verifica e Attiva
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );
