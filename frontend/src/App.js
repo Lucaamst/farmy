@@ -229,10 +229,33 @@ function Login() {
                 placeholder={t.enterPassword}
               />
             </div>
+            
+            {requires2FA && (
+              <div className="space-y-2 bg-blue-900/30 p-4 rounded-lg border border-blue-500/50">
+                <Label htmlFor="otpCode" className="text-white flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  🔐 Codice 2FA (Google Authenticator)
+                </Label>
+                <Input
+                  id="otpCode"
+                  type="text"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  required
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/60 text-center text-2xl tracking-widest"
+                  placeholder="123456"
+                  autoFocus
+                />
+                <p className="text-xs text-blue-100">Inserisci il codice a 6 cifre da Google Authenticator</p>
+              </div>
+            )}
+            
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5"
               disabled={loading}
+              onClick={(e) => handleLogin(e, requires2FA ? otpCode : null)}
             >
               {loading ? t.signingIn : t.signIn}
             </Button>
