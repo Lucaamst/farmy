@@ -137,15 +137,25 @@ function Login() {
   const { login, language, changeLanguage, t } = useAuth();
   const { toast } = useToast();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e, otpCode = null) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/auth/login`, {
-        username,
-        password
-      });
+      const loginData = { username, password };
+      if (otpCode) {
+        loginData.otp_code = otpCode;
+      }
+      
+      const response = await axios.post(`${API}/auth/login`, loginData);
+
+      // Check if 2FA is required
+      if (response.data.requires_2fa) {
+        setRequires2FA(true);
+        setTempUserId(response.data.user_id);
+        setLoading(false);
+        return;
+      }
 
       const { access_token, user, company } = response.data;
       login(access_token, user, company);
