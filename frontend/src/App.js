@@ -764,7 +764,7 @@ function CourierDashboard() {
                 variant="outline" 
                 onClick={() => {
                   setShowPINSetup(false);
-                  localStorage.setItem('courier_pin_enabled', 'skipped');
+                  localStorage.setItem(`courier_pin_enabled_${user.id}`, 'skipped');
                 }} 
                 className="flex-1"
               >
