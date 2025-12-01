@@ -369,7 +369,7 @@ function CourierDashboard() {
         pin_code: pinCode
       });
       
-      localStorage.setItem('courier_pin_enabled', 'true');
+      localStorage.setItem(`courier_pin_enabled_${user.id}`, 'true');
       setShowPINSetup(false);
       setPinCode('');
       setPinConfirm('');
