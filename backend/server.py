@@ -949,6 +949,34 @@ async def get_couriers(
     
     return [User(**courier) for courier in couriers]
 
+@api_router.get("/couriers/{courier_id}/history")
+async def get_courier_history(
+    courier_id: str,
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    """Get delivery history and statistics for a specific courier"""
+    # Verify courier belongs to same company
+    courier = await db.users.find_one({
+        "id": courier_id,
+        "company_id": current_user.company_id,
+        "role": UserRole.COURIER
+    })
+    
+    if not courier:
+        raise HTTPException(status_code=404, detail="Courier not found")
+    
+    # Get all orders for this courier
+    orders = await db.orders.find(
+        {"courier_id": courier_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    return {
+        "courier": User(**courier),
+        "orders": orders,
+        "total_deliveries": len([o for o in orders if o.get("status") == "delivered"])
+    }
+
 @api_router.patch("/couriers/{courier_id}")
 async def update_courier(
     courier_id: str,
