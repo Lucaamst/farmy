@@ -4562,6 +4562,84 @@ function CompanyAdminDashboard() {
           </DialogContent>
         </Dialog>
 
+        {/* Courier History Dialog */}
+        <Dialog open={showCourierHistoryDialog} onOpenChange={setShowCourierHistoryDialog}>
+          <DialogContent className="mx-4 sm:mx-0 max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-lg">📊 Storico Consegne - {viewingCourier?.full_name || viewingCourier?.username}</DialogTitle>
+              <DialogDescription className="text-sm">
+                Statistiche e storico completo delle consegne
+              </DialogDescription>
+            </DialogHeader>
+            {courierStats && (
+              <div className="space-y-4">
+                {/* Overall Statistics */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="font-semibold text-blue-900 mb-2">📈 Statistiche Generali</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-blue-600">Consegne Totali</p>
+                      <p className="text-2xl font-bold text-blue-900">{courierStats.total}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-blue-600">Mesi Attivi</p>
+                      <p className="text-2xl font-bold text-blue-900">{courierStats.monthly.length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monthly Statistics */}
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">📅 Statistiche Mensili</h3>
+                  <div className="space-y-2">
+                    {courierStats.monthly.map((monthData, index) => (
+                      <div key={index} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-900 capitalize">{monthData.month}</span>
+                          <Badge className="bg-green-100 text-green-800">
+                            {monthData.count} consegne
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Deliveries */}
+                {courierHistory.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">🚚 Ultime Consegne</h3>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {courierHistory.slice(0, 10).map((order) => (
+                        <div key={order.id} className="p-3 bg-white border border-gray-200 rounded-lg text-sm">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-medium text-gray-900">{order.customer_name}</span>
+                            <Badge className={order.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                              {order.status === 'delivered' ? 'Consegnato' : order.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-600">{order.delivery_address}</p>
+                          {order.delivered_at && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              📅 {new Date(order.delivered_at).toLocaleString('it-IT')}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => setShowCourierHistoryDialog(false)}>
+                    Chiudi
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Edit Order Dialog */}
         <Dialog open={showEditOrderDialog} onOpenChange={setShowEditOrderDialog}>
           <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
