@@ -81,6 +81,9 @@ class User(BaseModel):
     # 2FA Google Authenticator
     two_factor_secret: Optional[str] = None
     two_factor_enabled: bool = False
+    # PIN Security for Couriers
+    pin_code: Optional[str] = None  # Hashed PIN
+    pin_enabled: bool = False
 
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
