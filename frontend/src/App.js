@@ -2957,6 +2957,10 @@ function CompanyAdminDashboard() {
   const [showCreateCourierDialog, setShowCreateCourierDialog] = useState(false);
   const [showEditCourierDialog, setShowEditCourierDialog] = useState(false);
   const [showDeleteCourierDialog, setShowDeleteCourierDialog] = useState(false);
+  const [showCourierHistoryDialog, setShowCourierHistoryDialog] = useState(false);
+  const [viewingCourier, setViewingCourier] = useState(null);
+  const [courierHistory, setCourierHistory] = useState([]);
+  const [courierStats, setCourierStats] = useState(null);
   
   // Customer management states
   const [newCustomer, setNewCustomer] = useState({ name: '', phone_number: '', address: '', email: '', notes: '' });
