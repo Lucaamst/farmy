@@ -331,7 +331,11 @@ function CourierDashboard() {
   const fetchCompanyInfo = async () => {
     try {
       const response = await axios.get(`${API}/courier/company-info`);
-
+      setCompanyInfo(response.data);
+    } catch (error) {
+      console.error('Failed to fetch company info:', error);
+    }
+  };
 
   // Check if PIN is set on mount - only show once after successful login
   useEffect(() => {
@@ -384,12 +388,6 @@ function CourierDashboard() {
         description: 'Impossibile impostare il PIN',
         variant: "destructive",
       });
-    }
-  };
-
-      setCompanyInfo(response.data);
-    } catch (error) {
-      console.error('Failed to fetch company info:', error);
     }
   };
 
