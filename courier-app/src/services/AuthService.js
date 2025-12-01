@@ -112,6 +112,37 @@ class AuthServiceClass {
       );
     }
   }
+
+  async setPIN(pinCode) {
+    try {
+      const response = await this.apiClient.post('/courier/set-pin', {
+        pin_code: pinCode
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to set PIN:', error);
+      throw new Error(
+        error.response?.data?.detail || 
+        'Impossibile impostare il PIN'
+      );
+    }
+  }
+
+  async verifyPIN(pinCode) {
+    try {
+      const response = await this.apiClient.post('/courier/verify-pin', {
+        pin_code: pinCode
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to verify PIN:', error);
+      throw new Error(
+        error.response?.data?.detail || 
+        'PIN non valido'
+      );
+    }
+  }
 }
 
 export const AuthService = new AuthServiceClass();
+export default AuthService;
