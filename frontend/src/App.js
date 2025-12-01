@@ -2836,6 +2836,60 @@ function CompanyAdminDashboard() {
   const { user, company, logout, t } = useAuth();
   const { toast } = useToast();
 
+
+  // 2FA functions
+  const setup2FA = async () => {
+    try {
+      const response = await axios.post(`${API}/auth/setup-2fa`, {
+        user_id: user.id
+      });
+      setQrCode(response.data.qr_code);
+      setSecret(response.data.secret);
+      setShow2FADialog(true);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile configurare 2FA',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const verify2FA = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      toast({
+        title: t.error,
+        description: 'Inserisci un codice OTP valido a 6 cifre',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/auth/verify-2fa`, {
+        user_id: user.id,
+        otp_code: otpCode
+      });
+      
+      setShow2FADialog(false);
+      setOtpCode('');
+      
+      toast({
+        title: 'Successo!',
+        description: '2FA attivato con successo',
+      });
+      
+      window.location.reload();
+    } catch (error) {
+      console.error('2FA Error:', error.response?.data);
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || 'Codice OTP non valido',
+        variant: "destructive",
+      });
+    }
+  };
+
   // Fetch data functions
   const fetchCouriers = async () => {
     try {
