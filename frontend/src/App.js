@@ -331,6 +331,62 @@ function CourierDashboard() {
   const fetchCompanyInfo = async () => {
     try {
       const response = await axios.get(`${API}/courier/company-info`);
+
+
+  // Check if PIN is set on mount
+  useEffect(() => {
+    const checkPIN = async () => {
+      const pinEnabled = localStorage.getItem('courier_pin_enabled');
+      if (!pinEnabled) {
+        // First time, ask to set PIN
+        setShowPINSetup(true);
+      }
+    };
+    checkPIN();
+  }, []);
+
+  const setupPIN = async () => {
+    if (pinCode.length !== 4 || !/^\d{4}$/.test(pinCode)) {
+      toast({
+        title: t.error,
+        description: 'Il PIN deve essere di 4 cifre numeriche',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (pinCode !== pinConfirm) {
+      toast({
+        title: t.error,
+        description: 'I PIN non corrispondono',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/courier/set-pin`, {
+        pin_code: pinCode
+      });
+      
+      localStorage.setItem('courier_pin_enabled', 'true');
+      setShowPINSetup(false);
+      setPinCode('');
+      setPinConfirm('');
+      
+      toast({
+        title: 'Successo!',
+        description: 'PIN impostato correttamente',
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile impostare il PIN',
+        variant: "destructive",
+      });
+    }
+  };
+
       setCompanyInfo(response.data);
     } catch (error) {
       console.error('Failed to fetch company info:', error);
