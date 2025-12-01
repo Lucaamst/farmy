@@ -547,6 +547,16 @@ async def init_super_admin():
 @api_router.post("/auth/login", response_model=LoginResponse)
 async def login(request: LoginRequest):
     user_data = await db.users.find_one({"username": request.username})
+    print(f"DEBUG: Login attempt for user: {request.username}")
+    print(f"DEBUG: User found: {user_data is not None}")
+    if user_data:
+        print(f"DEBUG: User has password_hash: {'password_hash' in user_data}")
+        print(f"DEBUG: User has password: {'password' in user_data}")
+        password_field = user_data.get("password_hash", user_data.get("password", ""))
+        print(f"DEBUG: Password field exists: {bool(password_field)}")
+        password_verified = verify_password(request.password, password_field)
+        print(f"DEBUG: Password verified: {password_verified}")
+    
     if not user_data or not verify_password(request.password, user_data.get("password_hash", user_data.get("password", ""))):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
