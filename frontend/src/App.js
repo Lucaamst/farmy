@@ -4083,6 +4083,14 @@ function CompanyAdminDashboard() {
                         <TableCell>
                           <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
                             <Button
+                              onClick={() => handleViewCourierHistory(courier)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs bg-blue-50 hover:bg-blue-100 border-blue-300"
+                            >
+                              📊 Storico
+                            </Button>
+                            <Button
                               onClick={() => handleEditCourierClick(courier)}
                               variant="outline"
                               size="sm"
