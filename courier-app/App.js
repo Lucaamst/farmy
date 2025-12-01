@@ -256,9 +256,18 @@ export default function App() {
           <Stack.Navigator>
             <Stack.Screen 
               name="PINVerify" 
-              component={PINVerifyScreen} 
               options={{ headerShown: false }}
-            />
+            >
+              {(props) => (
+                <PINVerifyScreen 
+                  {...props} 
+                  onPINVerified={() => {
+                    setIsAuthenticated(true);
+                    setNeedsPINVerify(false);
+                  }}
+                />
+              )}
+            </Stack.Screen>
             <Stack.Screen 
               name="Main" 
               options={{ headerShown: false }}
