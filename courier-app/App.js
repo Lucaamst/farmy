@@ -16,6 +16,8 @@ import MapScreen from './src/screens/MapScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import DeliveryDetailScreen from './src/screens/DeliveryDetailScreen';
 import SignatureScreen from './src/screens/SignatureScreen';
+import PINSetupScreen from './src/screens/PINSetupScreen';
+import PINVerifyScreen from './src/screens/PINVerifyScreen';
 
 // Services
 import { AuthService } from './src/services/AuthService';
