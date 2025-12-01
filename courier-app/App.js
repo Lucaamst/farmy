@@ -190,6 +190,41 @@ export default function App() {
               }}
             />
           </Stack.Navigator>
+        ) : needsPINSetup ? (
+          <Stack.Navigator>
+            <Stack.Screen 
+              name="PINSetup" 
+              options={{ headerShown: false }}
+            >
+              {(props) => <PINSetupScreen {...props} userId={user?.id} />}
+            </Stack.Screen>
+            <Stack.Screen 
+              name="Main" 
+              options={{ headerShown: false }}
+            >
+              {(props) => <TabNavigator {...props} user={user} onLogout={handleLogout} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        ) : needsPINVerify ? (
+          <Stack.Navigator>
+            <Stack.Screen 
+              name="PINVerify" 
+              component={PINVerifyScreen} 
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen 
+              name="Main" 
+              options={{ headerShown: false }}
+            >
+              {(props) => <TabNavigator {...props} user={user} onLogout={handleLogout} />}
+            </Stack.Screen>
+            <Stack.Screen 
+              name="Login" 
+              options={{ headerShown: false }}
+            >
+              {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
+            </Stack.Screen>
+          </Stack.Navigator>
         ) : (
           <Stack.Navigator>
             <Stack.Screen 
