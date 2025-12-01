@@ -140,8 +140,6 @@ class Setup2FARequest(BaseModel):
 class Verify2FARequest(BaseModel):
     user_id: str
     otp_code: str
-    user: User
-    company: Optional[Company] = None
 
 class CreateCompanyRequest(BaseModel):
     name: str
