@@ -1851,6 +1851,15 @@ function SuperAdminDashboard() {
                 </form>
               </DialogContent>
             </Dialog>
+            <Button 
+              onClick={setup2FA} 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 sm:flex-none text-sm"
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              🔐 2FA
+            </Button>
             <Button onClick={logout} variant="outline" size="sm" className="flex-1 sm:flex-none text-sm">
               <LogOut className="w-4 h-4 mr-2" />
               {t.logout}
