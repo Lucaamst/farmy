@@ -77,7 +77,35 @@ export default function App() {
   useEffect(() => {
     checkAuthStatus();
     initializeNotifications();
+    setupAppStateListener();
   }, []);
+
+  const setupAppStateListener = () => {
+    const { AppState } = require('react-native');
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    
+    let appState = AppState.currentState;
+    
+    const handleAppStateChange = async (nextAppState) => {
+      // When app comes to foreground from background
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        // Check if user is authenticated and has PIN enabled
+        if (isAuthenticated && user) {
+          const pinEnabled = await AsyncStorage.getItem(`courier_pin_enabled_${user.id}`);
+          if (pinEnabled && pinEnabled !== 'skipped') {
+            // Require PIN verification
+            setIsAuthenticated(false);
+            setNeedsPINVerify(true);
+            setNeedsPINSetup(false);
+          }
+        }
+      }
+      appState = nextAppState;
+    };
+    
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  };
 
   const checkAuthStatus = async () => {
     try {
