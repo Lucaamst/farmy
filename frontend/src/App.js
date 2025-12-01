@@ -713,6 +713,73 @@ function CourierDashboard() {
         </div>
       </DialogContent>
     </Dialog>
+
+
+      {/* PIN Setup Dialog */}
+      <Dialog open={showPINSetup} onOpenChange={() => {}}>
+        <DialogContent className="max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>🔢 Imposta PIN Sicurezza</DialogTitle>
+            <DialogDescription>
+              Crea un PIN a 4 cifre per accessi rapidi futuri
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <p className="text-sm text-blue-900">
+                📱 <strong>Perché un PIN?</strong>
+                <br />
+                La prossima volta che apri l'app, ti basterà inserire il PIN invece di fare login completo.
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="pinCode">Inserisci PIN (4 cifre)</Label>
+              <Input
+                id="pinCode"
+                type="password"
+                maxLength={4}
+                value={pinCode}
+                onChange={(e) => setPinCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="••••"
+                className="text-center text-2xl tracking-widest"
+                inputMode="numeric"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="pinConfirm">Conferma PIN</Label>
+              <Input
+                id="pinConfirm"
+                type="password"
+                maxLength={4}
+                value={pinConfirm}
+                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ''))}
+                placeholder="••••"
+                className="text-center text-2xl tracking-widest"
+                inputMode="numeric"
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowPINSetup(false);
+                  localStorage.setItem('courier_pin_enabled', 'skipped');
+                }} 
+                className="flex-1"
+              >
+                Salta (usa sempre login)
+              </Button>
+              <Button onClick={setupPIN} className="flex-1">
+                Imposta PIN
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
