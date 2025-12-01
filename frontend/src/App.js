@@ -3512,6 +3512,55 @@ function CompanyAdminDashboard() {
     setShowDeleteCourierDialog(true);
   };
 
+  const handleViewCourierHistory = async (courier) => {
+    setViewingCourier(courier);
+    try {
+      // Fetch courier delivery history
+      const response = await axios.get(`${API}/couriers/${courier.id}/history`);
+      setCourierHistory(response.data.orders || []);
+      
+      // Calculate monthly statistics
+      const stats = calculateCourierStats(response.data.orders || []);
+      setCourierStats(stats);
+      
+      setShowCourierHistoryDialog(true);
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile caricare lo storico del corriere',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const calculateCourierStats = (orders) => {
+    const delivered = orders.filter(o => o.status === 'delivered');
+    const monthlyStats = {};
+    
+    delivered.forEach(order => {
+      if (order.delivered_at) {
+        const date = new Date(order.delivered_at);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = date.toLocaleDateString('it-IT', { year: 'numeric', month: 'long' });
+        
+        if (!monthlyStats[monthKey]) {
+          monthlyStats[monthKey] = {
+            month: monthName,
+            count: 0,
+            orders: []
+          };
+        }
+        monthlyStats[monthKey].count++;
+        monthlyStats[monthKey].orders.push(order);
+      }
+    });
+    
+    return {
+      total: delivered.length,
+      monthly: Object.values(monthlyStats).sort((a, b) => b.month.localeCompare(a.month))
+    };
+  };
+
   const handleEditCustomerClick = (customer) => {
     setEditingCustomer({...customer});
     setShowEditCustomerDialog(true);
