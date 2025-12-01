@@ -305,6 +305,10 @@ function CourierDashboard() {
   const [signedByName, setSignedByName] = useState('');
   const [signatureRequired, setSignatureRequired] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(null);
+  const [showPINSetup, setShowPINSetup] = useState(false);
+  const [showPINVerify, setShowPINVerify] = useState(false);
+  const [pinCode, setPinCode] = useState('');
+  const [pinConfirm, setPinConfirm] = useState('');
   const signatureRef = useRef(null);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
