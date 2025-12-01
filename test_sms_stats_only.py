@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 class SMSStatsAPITester:
-    def __init__(self, base_url="https://trackr-app-13.preview.emergentagent.com"):
+    def __init__(self, base_url="https://deliverdocs.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tokens = {}
