@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '../services/AuthService';
 import { theme } from '../theme/colors';
 
-export default function PINVerifyScreen({ navigation }) {
+export default function PINVerifyScreen({ navigation, onPINVerified }) {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,8 +27,10 @@ export default function PINVerifyScreen({ navigation }) {
     try {
       const response = await AuthService.verifyPIN(pin);
       if (response.verified) {
-        // PIN verified, navigate to main
-        navigation.replace('Main');
+        // PIN verified, call callback to update App state
+        if (onPINVerified) {
+          onPINVerified();
+        }
       } else {
         Alert.alert('Errore', 'PIN non valido');
         setPin('');
