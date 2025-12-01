@@ -2808,6 +2808,12 @@ function CompanyAdminDashboard() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [deletingOrder, setDeletingOrder] = useState(null);
   const [assigningOrder, setAssigningOrder] = useState(null);
+  
+  // 2FA states
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [secret, setSecret] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
   const [showEditOrderDialog, setShowEditOrderDialog] = useState(false);
   const [showDeleteOrderDialog, setShowDeleteOrderDialog] = useState(false);
