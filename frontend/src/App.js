@@ -4946,7 +4946,7 @@ function CompanyAdminDashboard() {
                             </div>
                             <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                               <span className="text-xs">{getCourierName(order.courier_id)}</span>
-                              {order.status === 'delivered' && (order.signature_data || order.signature_skipped === false) && (
+                              {order.status === 'delivered' && order.signature_data && (
                                 <Button
                                   onClick={async () => {
                                     try {
