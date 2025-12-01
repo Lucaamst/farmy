@@ -677,6 +677,49 @@ async def verify_and_enable_2fa(
     
     user = User(**user_data)
     user.two_factor_enabled = True
+
+
+@api_router.post("/courier/set-pin")
+async def set_courier_pin(
+    request: SetPINRequest,
+    current_user: User = Depends(require_role([UserRole.COURIER]))
+):
+    """Set PIN code for courier quick access"""
+    # Validate PIN is 4 digits
+    if len(request.pin_code) != 4 or not request.pin_code.isdigit():
+        raise HTTPException(status_code=400, detail="PIN deve essere di 4 cifre numeriche")
+    
+    # Hash the PIN
+    hashed_pin = hash_password(request.pin_code)
+    
+    # Save to database
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": {
+            "pin_code": hashed_pin,
+            "pin_enabled": True
+        }}
+    )
+    
+    return {"message": "PIN impostato con successo"}
+
+@api_router.post("/courier/verify-pin")
+async def verify_courier_pin(
+    request: VerifyPINRequest,
+    current_user: User = Depends(require_role([UserRole.COURIER]))
+):
+    """Verify PIN code for courier quick access"""
+    user_data = await db.users.find_one({"id": current_user.id})
+    
+    if not user_data.get("pin_enabled") or not user_data.get("pin_code"):
+        raise HTTPException(status_code=400, detail="PIN non configurato")
+    
+    # Verify PIN
+    if not verify_password(request.pin_code, user_data["pin_code"]):
+        raise HTTPException(status_code=401, detail="PIN non valido")
+    
+    return {"message": "PIN verificato", "verified": True}
+
     
     company = None
     if user.company_id:
