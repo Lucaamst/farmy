@@ -598,15 +598,15 @@ async def setup_2fa(
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Generate secret if not exists
-    if not user_data.get("two_factor_secret"):
-        secret = pyotp.random_base32()
-        await db.users.update_one(
-            {"id": request.user_id},
-            {"$set": {"two_factor_secret": secret}}
-        )
-    else:
-        secret = user_data["two_factor_secret"]
+    # Always generate a fresh secret for setup (in case user is re-setting up)
+    secret = pyotp.random_base32()
+    await db.users.update_one(
+        {"id": request.user_id},
+        {"$set": {
+            "two_factor_secret": secret,
+            "two_factor_enabled": False  # Reset enabled status during setup
+        }}
+    )
     
     # Generate provisioning URI for Google Authenticator
     totp = pyotp.TOTP(secret)
