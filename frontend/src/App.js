@@ -1722,6 +1722,12 @@ function SuperAdminDashboard() {
   const [qrCode, setQrCode] = useState('');
   const [secret, setSecret] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
 
