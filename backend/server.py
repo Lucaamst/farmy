@@ -594,6 +594,37 @@ async def login(request: LoginRequest):
         company=company
     )
 
+@api_router.post("/auth/change-password")
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Change user password - requires current password verification"""
+    # Get user data from database
+    user_data = await db.users.find_one({"id": current_user.id})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(request.current_password, user_data.get("password_hash", user_data.get("password", ""))):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    
+    # Validate new password (minimum 4 characters)
+    if len(request.new_password) < 4:
+        raise HTTPException(status_code=400, detail="New password must be at least 4 characters")
+    
+    # Hash new password and update
+    new_password_hash = hash_password(request.new_password)
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": {
+            "password_hash": new_password_hash,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    return {"message": "Password changed successfully"}
+
 # Super Admin Routes
 @api_router.post("/auth/setup-2fa")
 async def setup_2fa(
