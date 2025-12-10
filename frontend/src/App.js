@@ -2985,6 +2985,14 @@ function CompanyAdminDashboard() {
   const [qrCode, setQrCode] = useState('');
   const [secret, setSecret] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  
+  // Change Password states
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   const [showCreateOrderDialog, setShowCreateOrderDialog] = useState(false);
   const [showEditOrderDialog, setShowEditOrderDialog] = useState(false);
   const [showDeleteOrderDialog, setShowDeleteOrderDialog] = useState(false);
