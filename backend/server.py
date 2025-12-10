@@ -150,6 +150,10 @@ class SetPINRequest(BaseModel):
 class VerifyPINRequest(BaseModel):
     pin_code: str
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 class CreateCompanyRequest(BaseModel):
     name: str
     admin_username: str
