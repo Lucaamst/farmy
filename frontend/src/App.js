@@ -3036,6 +3036,51 @@ function CompanyAdminDashboard() {
     }
   };
 
+  const changePassword = async (e) => {
+    e.preventDefault();
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: t.error,
+        description: 'Le password non corrispondono',
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 4) {
+      toast({
+        title: t.error,
+        description: 'La nuova password deve essere almeno 4 caratteri',
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await axios.post(`${API}/auth/change-password`, {
+        current_password: passwordData.currentPassword,
+        new_password: passwordData.newPassword
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      setShowChangePasswordDialog(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      
+      toast({
+        title: 'Successo!',
+        description: 'Password cambiata con successo',
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: error.response?.data?.detail || 'Impossibile cambiare la password',
+        variant: "destructive",
+      });
+    }
+  };
+
   const verify2FA = async () => {
     if (!otpCode || otpCode.length !== 6) {
       toast({
