@@ -3867,7 +3867,6 @@ function CompanyAdminDashboard() {
               size="sm" 
               className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 border-blue-300"
             >
-              <FileText className="w-4 h-4 mr-2" />
               📁 Documenti
             </Button>
             <Button 
