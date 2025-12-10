@@ -2363,6 +2363,80 @@ function SuperAdminDashboard() {
           </DialogContent>
         </Dialog>
 
+        {/* Change Password Dialog */}
+        <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>🔑 Cambia Password</DialogTitle>
+              <DialogDescription>
+                Inserisci la password attuale e la nuova password
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={changePassword} className="space-y-4">
+              <div>
+                <Label htmlFor="currentPasswordAdmin">Password Attuale</Label>
+                <Input
+                  id="currentPasswordAdmin"
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  placeholder="Password attuale"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="newPasswordAdmin">Nuova Password</Label>
+                <Input
+                  id="newPasswordAdmin"
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  placeholder="Nuova password (min. 4 caratteri)"
+                  required
+                  minLength={4}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="confirmPasswordAdmin">Conferma Nuova Password</Label>
+                <Input
+                  id="confirmPasswordAdmin"
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  placeholder="Conferma nuova password"
+                  required
+                  minLength={4}
+                />
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <p className="text-sm text-yellow-900">
+                  ⚠️ <strong>Attenzione:</strong> Dopo aver cambiato la password, dovrai effettuare nuovamente il login.
+                </p>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowChangePasswordDialog(false);
+                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                  }} 
+                  className="flex-1"
+                >
+                  Annulla
+                </Button>
+                <Button type="submit" className="flex-1">
+                  Cambia Password
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );
