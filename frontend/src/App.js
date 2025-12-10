@@ -2027,6 +2027,15 @@ function SuperAdminDashboard() {
               <Lock className="w-4 h-4 mr-2" />
               🔐 2FA
             </Button>
+            <Button 
+              onClick={() => setShowChangePasswordDialog(true)} 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 sm:flex-none text-sm"
+            >
+              <Key className="w-4 h-4 mr-2" />
+              🔑 Password
+            </Button>
             <Button onClick={logout} variant="outline" size="sm" className="flex-1 sm:flex-none text-sm">
               <LogOut className="w-4 h-4 mr-2" />
               {t.logout}
