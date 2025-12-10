@@ -3745,6 +3745,15 @@ function CompanyAdminDashboard() {
               <Lock className="w-4 h-4 mr-2" />
               🔐 2FA
             </Button>
+            <Button 
+              onClick={() => setShowChangePasswordDialog(true)} 
+              variant="outline" 
+              size="sm" 
+              className="w-full sm:w-auto"
+            >
+              <Key className="w-4 h-4 mr-2" />
+              🔑 Password
+            </Button>
             <Button onClick={logout} variant="outline" size="sm" className="w-full sm:w-auto">
               <LogOut className="w-4 h-4 mr-2" />
               {t.logout}
