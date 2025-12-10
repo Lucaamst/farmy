@@ -3862,6 +3862,15 @@ function CompanyAdminDashboard() {
           </div>
           <div className="flex gap-2">
             <Button 
+              onClick={() => window.open('https://kdrive.infomaniak.com/app/share/1878092/8ae99023-419b-4cb4-ba45-9b9ca618f916', '_blank')} 
+              variant="outline" 
+              size="sm" 
+              className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 border-blue-300"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              📁 Documenti
+            </Button>
+            <Button 
               onClick={setup2FA} 
               variant="outline" 
               size="sm" 
