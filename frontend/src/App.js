@@ -4638,13 +4638,22 @@ function CompanyAdminDashboard() {
                   <CardTitle className="text-lg sm:text-xl">{t.couriersManagement}</CardTitle>
                   <CardDescription className="text-sm">{t.manageAllCouriers}</CardDescription>
                 </div>
-                <Dialog open={showCreateCourierDialog} onOpenChange={setShowCreateCourierDialog}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      {t.addCourier}
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Button 
+                    onClick={downloadAllCouriersStatsPDF}
+                    variant="outline"
+                    className="bg-purple-50 hover:bg-purple-100 border-purple-300 text-sm w-full sm:w-auto"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    📊 Report PDF Tutti
+                  </Button>
+                  <Dialog open={showCreateCourierDialog} onOpenChange={setShowCreateCourierDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-orange-600 hover:bg-orange-700 text-sm w-full sm:w-auto">
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        {t.addCourier}
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle className="text-lg">{t.createNewCourier}</DialogTitle>
