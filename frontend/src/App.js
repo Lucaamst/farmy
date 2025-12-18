@@ -3756,6 +3756,256 @@ function CompanyAdminDashboard() {
     };
   };
 
+  const downloadAllCouriersStatsPDF = async () => {
+    try {
+      // Fetch statistics for all couriers
+      const courierStatsPromises = couriers.map(async (courier) => {
+        try {
+          const response = await axios.get(`${API}/couriers/${courier.id}/history`);
+          const stats = calculateCourierStats(response.data.orders || []);
+          return {
+            courier,
+            stats,
+            orders: response.data.orders || []
+          };
+        } catch (error) {
+          return {
+            courier,
+            stats: { total: 0, monthly: [] },
+            orders: []
+          };
+        }
+      });
+
+      const allStats = await Promise.all(courierStatsPromises);
+      
+      // Generate PDF with all couriers
+      const printWindow = window.open('', '_blank');
+      const currentDate = new Date().toLocaleDateString('it-IT');
+      
+      // Calculate totals
+      const totalDeliveries = allStats.reduce((sum, s) => sum + s.stats.total, 0);
+      const activeCouriers = allStats.filter(s => s.stats.total > 0).length;
+      
+      let htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Statistiche Tutti i Corrieri</title>
+          <style>
+            @page { margin: 2cm; }
+            body { 
+              font-family: Arial, sans-serif; 
+              padding: 20px;
+              color: #333;
+            }
+            h1 { 
+              color: #2563eb; 
+              border-bottom: 3px solid #2563eb;
+              padding-bottom: 10px;
+              margin-bottom: 20px;
+            }
+            h2 {
+              color: #1e40af;
+              margin-top: 30px;
+              margin-bottom: 15px;
+            }
+            .header-info {
+              background: #f3f4f6;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .stats-box {
+              background: #eff6ff;
+              padding: 20px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              border: 2px solid #3b82f6;
+            }
+            .stats-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 20px;
+              margin-top: 15px;
+            }
+            .stat-item {
+              text-align: center;
+            }
+            .stat-value {
+              font-size: 36px;
+              font-weight: bold;
+              color: #1e40af;
+            }
+            .stat-label {
+              color: #6b7280;
+              font-size: 14px;
+            }
+            .courier-card {
+              background: white;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 15px;
+              page-break-inside: avoid;
+            }
+            .courier-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #e5e7eb;
+            }
+            .courier-name {
+              font-size: 18px;
+              font-weight: bold;
+              color: #1f2937;
+            }
+            .courier-stats {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 10px;
+              margin-top: 10px;
+            }
+            .mini-stat {
+              background: #f9fafb;
+              padding: 10px;
+              border-radius: 6px;
+              text-align: center;
+            }
+            .mini-stat-value {
+              font-size: 24px;
+              font-weight: bold;
+              color: #059669;
+            }
+            .mini-stat-label {
+              font-size: 12px;
+              color: #6b7280;
+            }
+            .badge {
+              display: inline-block;
+              padding: 4px 12px;
+              border-radius: 12px;
+              font-size: 12px;
+              font-weight: 600;
+            }
+            .badge-green {
+              background: #d1fae5;
+              color: #065f46;
+            }
+            .badge-gray {
+              background: #f3f4f6;
+              color: #6b7280;
+            }
+            .footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 2px solid #e5e7eb;
+              text-align: center;
+              color: #6b7280;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-info">
+            <h1>📊 Report Completo - Tutti i Corrieri</h1>
+            <p><strong>Data Report:</strong> ${currentDate}</p>
+            <p><strong>Numero Corrieri:</strong> ${couriers.length}</p>
+          </div>
+
+          <div class="stats-box">
+            <h2>📈 Statistiche Generali Azienda</h2>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-value">${totalDeliveries}</div>
+                <div class="stat-label">Consegne Totali</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">${couriers.length}</div>
+                <div class="stat-label">Corrieri Totali</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">${activeCouriers}</div>
+                <div class="stat-label">Corrieri Attivi</div>
+              </div>
+            </div>
+          </div>
+
+          <h2>👥 Dettaglio per Corriere</h2>
+          ${allStats.map(({ courier, stats }) => {
+            const courierName = courier.full_name || courier.username;
+            const isActive = stats.total > 0;
+            
+            return `
+              <div class="courier-card">
+                <div class="courier-header">
+                  <div class="courier-name">${courierName}</div>
+                  <span class="badge ${isActive ? 'badge-green' : 'badge-gray'}">
+                    ${isActive ? '✓ Attivo' : 'Non Attivo'}
+                  </span>
+                </div>
+                <p style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">
+                  <strong>Username:</strong> ${courier.username}
+                </p>
+                <div class="courier-stats">
+                  <div class="mini-stat">
+                    <div class="mini-stat-value">${stats.total}</div>
+                    <div class="mini-stat-label">Consegne Totali</div>
+                  </div>
+                  <div class="mini-stat">
+                    <div class="mini-stat-value">${stats.monthly.length}</div>
+                    <div class="mini-stat-label">Mesi Attivi</div>
+                  </div>
+                </div>
+                ${stats.monthly.length > 0 ? `
+                  <div style="margin-top: 15px;">
+                    <p style="font-size: 12px; color: #6b7280; margin-bottom: 5px;"><strong>Ultimi 3 Mesi:</strong></p>
+                    ${stats.monthly.slice(0, 3).map(m => `
+                      <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f3f4f6;">
+                        <span style="font-size: 12px; text-transform: capitalize;">${m.month}</span>
+                        <span style="font-size: 12px; font-weight: 600; color: #059669;">${m.count} consegne</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+
+          <div class="footer">
+            <p>Report generato automaticamente da FarmyGo</p>
+            <p>${currentDate}</p>
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 100);
+            };
+          </script>
+        </body>
+        </html>
+      `;
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      toast({
+        title: 'Successo',
+        description: 'Generazione PDF in corso...',
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile generare il PDF',
+        variant: "destructive",
+      });
+    }
+  };
+
   const downloadCourierStatsPDF = (courier, stats, history) => {
     // Create a simple HTML-based PDF using window.print with specific styling
     const printWindow = window.open('', '_blank');
