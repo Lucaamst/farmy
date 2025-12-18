@@ -1771,9 +1771,15 @@ async def get_assigned_deliveries(
     orders = await db.orders.find({
         "courier_id": current_user.id,
         "status": {"$in": ["assigned", "in_progress"]}
-    }).to_list(1000)
+    }, {"_id": 0}).to_list(1000)
     
-    return [Order(**order) for order in orders]
+    # Sort by display_order first, then alphabetically by delivery_address
+    orders_sorted = sorted(orders, key=lambda x: (
+        x.get("display_order", 999),
+        x.get("delivery_address", "").lower()
+    ))
+    
+    return [Order(**order) for order in orders_sorted]
 
 @api_router.patch("/courier/deliveries/mark-delivered")
 async def mark_delivery_completed(
