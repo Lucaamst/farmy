@@ -633,38 +633,71 @@ function CourierDashboard() {
                 <p className="text-gray-500 text-sm">{t.noActiveDeliveries}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {deliveries.map((delivery) => (
-                  <div key={delivery.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
-                      <div className="flex-1 min-w-0 pr-0 sm:pr-4">
-                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{delivery.customer_name}</h3>
-                        <p className="text-gray-600 text-xs sm:text-sm break-words">{delivery.delivery_address}</p>
-                        {delivery.reference_number && (
-                          <p className="text-gray-500 text-xs sm:text-sm">📋 Rif: {delivery.reference_number}</p>
-                        )}
-                      </div>
-                      <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="shrink-0 text-xs">
-                        {delivery.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
-                      </Badge>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="deliveries">
+                  {(provided) => (
+                    <div 
+                      {...provided.droppableProps} 
+                      ref={provided.innerRef}
+                      className="space-y-4"
+                    >
+                      {deliveries.map((delivery, index) => (
+                        <Draggable 
+                          key={delivery.id} 
+                          draggableId={delivery.id} 
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`border-2 rounded-lg p-4 transition-all ${
+                                snapshot.isDragging ? 'shadow-lg scale-105' : 'hover:shadow-md'
+                              } ${getPriorityColor(delivery.priority || 'normal')}`}
+                            >
+                              <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
+                                <div className="flex items-start gap-3 flex-1 min-w-0 pr-0 sm:pr-4">
+                                  <div {...provided.dragHandleProps} className="cursor-move text-gray-400 hover:text-gray-600 text-2xl mt-1">
+                                    ⋮⋮
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{delivery.customer_name}</h3>
+                                    <p className="text-gray-600 text-xs sm:text-sm break-words">{delivery.delivery_address}</p>
+                                    {delivery.reference_number && (
+                                      <p className="text-gray-500 text-xs sm:text-sm">📋 Rif: {delivery.reference_number}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-2 shrink-0">
+                                  {getPriorityBadge(delivery.priority || 'normal')}
+                                  <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="text-xs">
+                                    {delivery.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
+                                  </Badge>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                                <p className="text-xs text-gray-500">
+                                  {t.createdAt}: {new Date(delivery.created_at).toLocaleDateString()}
+                                </p>
+                                <Button 
+                                  onClick={() => openCompleteDialog(delivery)}
+                                  size="sm"
+                                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  {t.markAsDelivered}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
-                    
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-                      <p className="text-xs text-gray-500">
-                        {t.createdAt}: {new Date(delivery.created_at).toLocaleDateString()}
-                      </p>
-                      <Button 
-                        onClick={() => openCompleteDialog(delivery)}
-                        size="sm"
-                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        {t.markAsDelivered}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </CardContent>
         </Card>
