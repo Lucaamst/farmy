@@ -4137,6 +4137,7 @@ function CompanyAdminDashboard() {
       <body>
         <div class="header-info">
           <h1>📊 Statistiche Consegne - ${courierName}</h1>
+          <p><strong>Azienda:</strong> ${companyName}</p>
           <p><strong>Data Report:</strong> ${currentDate}</p>
           <p><strong>ID Corriere:</strong> ${courier.username}</p>
         </div>
