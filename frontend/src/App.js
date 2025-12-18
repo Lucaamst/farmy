@@ -502,6 +502,14 @@ function CourierDashboard() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              onClick={() => window.open('https://kdrive.infomaniak.com/app/share/1878092/2647d515-c6cc-428d-acf1-5af223ab249b', '_blank')} 
+              variant="outline" 
+              size="sm" 
+              className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 border-blue-300"
+            >
+              📁 Documenti
+            </Button>
             {companyInfo && companyInfo.phone_number && (
               <Button 
                 onClick={handleCallCompany} 
