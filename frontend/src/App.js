@@ -3758,6 +3758,17 @@ function CompanyAdminDashboard() {
 
   const downloadAllCouriersStatsPDF = async () => {
     try {
+      // Get company name
+      let companyName = 'Azienda';
+      try {
+        const companyResponse = await axios.get(`${API}/company-admin/company`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        companyName = companyResponse.data.name || 'Azienda';
+      } catch (error) {
+        console.error('Error fetching company name:', error);
+      }
+
       // Fetch statistics for all couriers
       const courierStatsPromises = couriers.map(async (courier) => {
         try {
