@@ -1167,7 +1167,13 @@ async def create_order(
         requires_signature=request.requires_signature,
         send_sms=request.send_sms
     )
-    await db.orders.insert_one(order.dict())
+    
+    # Add priority and display_order to dict before insertion
+    order_dict = order.dict()
+    order_dict["priority"] = request.priority
+    order_dict["display_order"] = 0  # Will be updated when assigned to courier
+    
+    await db.orders.insert_one(order_dict)
     
     return {"message": "Order created successfully", "order": order}
 
