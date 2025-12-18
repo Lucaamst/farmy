@@ -4976,6 +4976,24 @@ function CompanyAdminDashboard() {
                               📱 Invia SMS notifica consegna
                             </Label>
                           </div>
+                          
+                          <div>
+                            <Label htmlFor="priority" className="text-sm">⚡ Priorità Consegna</Label>
+                            <select
+                              id="priority"
+                              value={newOrder.priority}
+                              onChange={(e) => setNewOrder({ ...newOrder, priority: e.target.value })}
+                              className="w-full p-2 border rounded-md text-sm"
+                            >
+                              <option value="urgent">🔴 Urgente</option>
+                              <option value="normal">🟢 Normale</option>
+                              <option value="low">🔵 Bassa</option>
+                            </select>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Il corriere vedrà le consegne con colori diversi
+                            </p>
+                          </div>
+                          
                           <Button type="submit" className="w-full text-sm">{t.createOrder}</Button>
                         </form>
                       </DialogContent>
