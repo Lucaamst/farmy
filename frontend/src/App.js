@@ -302,16 +302,18 @@ function CourierDashboard() {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [completingDelivery, setCompletingDelivery] = useState(null);
   const [deliveryComment, setDeliveryComment] = useState('');
-  const [signedByName, setSignedByName] = useState('');
-  const [signatureRequired, setSignatureRequired] = useState(false);
   const [companyInfo, setCompanyInfo] = useState(null);
-  const [showPINSetup, setShowPINSetup] = useState(false);
-  const [showPINVerify, setShowPINVerify] = useState(false);
-  const [pinCode, setPinCode] = useState('');
-  const [pinConfirm, setPinConfirm] = useState('');
-  const signatureRef = useRef(null);
+  const [isReordering, setIsReordering] = useState(false);
   const { user, logout, t } = useAuth();
   const { toast } = useToast();
+  const [showPINSetup, setShowPINSetup] = useState(false);
+  const [pinCode, setPinCode] = useState('');
+  const [pinConfirm, setPinConfirm] = useState('');
+  const [signatureRequired, setSignatureRequired] = useState(false);
+  const [signatureData, setSignatureData] = useState(null);
+  const [signedByName, setSignedByName] = useState('');
+  const [skipSignature, setSkipSignature] = useState(false);
+  const signatureRef = useRef(null);
 
   const fetchDeliveries = async () => {
     try {
