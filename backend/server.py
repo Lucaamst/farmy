@@ -984,6 +984,21 @@ async def get_couriers(
     
     return [User(**courier) for courier in couriers]
 
+@api_router.get("/company-admin/my-company")
+async def get_my_company(
+    current_user: User = Depends(require_role([UserRole.COMPANY_ADMIN]))
+):
+    """Get company details for current company admin"""
+    company = await db.companies.find_one(
+        {"id": current_user.company_id},
+        {"_id": 0}
+    )
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return company
+
 @api_router.get("/couriers/{courier_id}/history")
 async def get_courier_history(
     courier_id: str,
