@@ -330,6 +330,61 @@ function CourierDashboard() {
     }
   };
 
+  const saveDeliveryOrder = async (reorderedDeliveries) => {
+    try {
+      const orderIds = reorderedDeliveries.map(d => d.id);
+      await axios.post(`${API}/courier/deliveries/update-sequence`, {
+        order_ids: orderIds
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      toast({
+        title: 'Successo',
+        description: 'Ordine consegne salvato!',
+      });
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile salvare l\'ordine',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'urgent':
+        return 'bg-red-50 border-red-300 hover:border-red-400';
+      case 'low':
+        return 'bg-blue-50 border-blue-300 hover:border-blue-400';
+      default:
+        return 'bg-green-50 border-green-300 hover:border-green-400';
+    }
+  };
+
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'urgent':
+        return <Badge className="bg-red-100 text-red-800 border-red-300">🔴 URGENTE</Badge>;
+      case 'low':
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">🔵 Bassa</Badge>;
+      default:
+        return <Badge className="bg-green-100 text-green-800 border-green-300">🟢 Normale</Badge>;
+    }
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(deliveries);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    setDeliveries(items);
+    await saveDeliveryOrder(items);
+  };
+
   const fetchCompanyInfo = async () => {
     try {
       const response = await axios.get(`${API}/courier/company-info`);
