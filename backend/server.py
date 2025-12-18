@@ -205,6 +205,9 @@ class AssignOrderRequest(BaseModel):
     order_id: str
     courier_id: str
 
+class UpdateOrderSequenceRequest(BaseModel):
+    order_ids: list[str]  # List of order IDs in the desired sequence
+
 class MarkDeliveredRequest(BaseModel):
     order_id: str
     delivery_comment: Optional[str] = None
