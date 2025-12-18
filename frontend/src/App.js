@@ -3926,6 +3926,7 @@ function CompanyAdminDashboard() {
         <body>
           <div class="header-info">
             <h1>📊 Report Completo - Tutti i Corrieri</h1>
+            <p><strong>Azienda:</strong> ${companyName}</p>
             <p><strong>Data Report:</strong> ${currentDate}</p>
             <p><strong>Numero Corrieri:</strong> ${couriers.length}</p>
           </div>
