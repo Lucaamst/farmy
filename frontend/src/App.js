@@ -4148,21 +4148,23 @@ function CompanyAdminDashboard() {
           </tbody>
         </table>
 
-        <h2>🚚 Ultime Consegne</h2>
+        <h2>🚚 Storico Completo Consegne (${history.filter(o => o.status === 'delivered').length} totali)</h2>
         <table>
           <thead>
             <tr>
               <th>Cliente</th>
               <th>Indirizzo</th>
               <th>Data Consegna</th>
+              <th>Mese</th>
             </tr>
           </thead>
           <tbody>
-            ${history.slice(0, 20).map(order => `
+            ${history.filter(o => o.status === 'delivered').map(order => `
               <tr>
                 <td>${order.customer_name}</td>
                 <td>${order.delivery_address}</td>
                 <td>${order.delivered_at ? new Date(order.delivered_at).toLocaleString('it-IT') : '-'}</td>
+                <td style="text-transform: capitalize;">${order.delivered_at ? new Date(order.delivered_at).toLocaleDateString('it-IT', { year: 'numeric', month: 'long' }) : '-'}</td>
               </tr>
             `).join('')}
           </tbody>
