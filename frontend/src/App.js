@@ -5020,7 +5020,14 @@ function CompanyAdminDashboard() {
                   </div>
                 )}
 
-                <div className="flex justify-end">
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={() => downloadCourierStatsPDF(viewingCourier, courierStats, courierHistory)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    📥 Scarica PDF
+                  </Button>
                   <Button variant="outline" onClick={() => setShowCourierHistoryDialog(false)}>
                     Chiudi
                   </Button>
