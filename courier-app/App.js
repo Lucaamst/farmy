@@ -77,26 +77,42 @@ export default function App() {
   useEffect(() => {
     checkAuthStatus();
     initializeNotifications();
-    setupAppStateListener();
   }, []);
 
-  const setupAppStateListener = () => {
+  // Separate useEffect for AppState listener with proper dependencies
+  useEffect(() => {
     const { AppState } = require('react-native');
     const AsyncStorage = require('@react-native-async-storage/async-storage').default;
     
     let appState = AppState.currentState;
     
     const handleAppStateChange = async (nextAppState) => {
-      // When app comes to foreground from background
+      console.log('AppState changed:', appState, '->', nextAppState);
+      
+      // When app comes to foreground from background or inactive
       if (appState.match(/inactive|background/) && nextAppState === 'active') {
-        // Check if user is authenticated and has PIN enabled
-        if (isAuthenticated && user) {
-          const pinEnabled = await AsyncStorage.getItem(`courier_pin_enabled_${user.id}`);
-          if (pinEnabled && pinEnabled !== 'skipped') {
-            // Require PIN verification
-            setIsAuthenticated(false);
-            setNeedsPINVerify(true);
-            setNeedsPINSetup(false);
+        console.log('App came to foreground, checking PIN status...');
+        
+        // Re-check auth and PIN status
+        const token = await SecureStore.getItemAsync('farmygo_token');
+        if (token) {
+          try {
+            const userData = await AuthService.validateToken(token);
+            if (userData && userData.role === 'courier') {
+              const pinEnabled = await AsyncStorage.getItem(`courier_pin_enabled_${userData.id}`);
+              console.log('PIN enabled status:', pinEnabled);
+              
+              if (pinEnabled && pinEnabled !== 'skipped') {
+                // Require PIN verification when app returns to foreground
+                console.log('Requiring PIN verification');
+                setUser(userData);
+                setIsAuthenticated(false);
+                setNeedsPINVerify(true);
+                setNeedsPINSetup(false);
+              }
+            }
+          } catch (error) {
+            console.error('Error checking PIN status:', error);
           }
         }
       }
@@ -104,8 +120,11 @@ export default function App() {
     };
     
     const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => subscription?.remove();
-  };
+    
+    return () => {
+      subscription?.remove();
+    };
+  }, []); // Empty dependencies - listener should persist throughout app lifecycle
 
   const checkAuthStatus = async () => {
     try {
