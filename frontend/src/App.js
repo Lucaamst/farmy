@@ -4027,7 +4027,7 @@ function CompanyAdminDashboard() {
     // Get company name
     let companyName = 'Azienda';
     try {
-      const companyResponse = await axios.get(`${API}/company-admin/company`, {
+      const companyResponse = await axios.get(`${API}/company-admin/my-company`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       companyName = companyResponse.data.name || 'Azienda';
