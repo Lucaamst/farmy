@@ -1781,6 +1781,30 @@ async def get_assigned_deliveries(
     
     return [Order(**order) for order in orders_sorted]
 
+@api_router.post("/courier/deliveries/update-sequence")
+async def update_delivery_sequence(
+    request: UpdateOrderSequenceRequest,
+    current_user: User = Depends(require_role([UserRole.COURIER]))
+):
+    """Update the display order of deliveries for the courier"""
+    # Verify all orders belong to this courier
+    for idx, order_id in enumerate(request.order_ids):
+        order = await db.orders.find_one({
+            "id": order_id,
+            "courier_id": current_user.id
+        })
+        
+        if not order:
+            raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
+        
+        # Update display_order
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {"display_order": idx}}
+        )
+    
+    return {"message": "Delivery sequence updated successfully"}
+
 @api_router.patch("/courier/deliveries/mark-delivered")
 async def mark_delivery_completed(
     request: MarkDeliveredRequest,
