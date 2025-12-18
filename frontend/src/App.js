@@ -3761,7 +3761,9 @@ function CompanyAdminDashboard() {
       // Fetch statistics for all couriers
       const courierStatsPromises = couriers.map(async (courier) => {
         try {
-          const response = await axios.get(`${API}/couriers/${courier.id}/history`);
+          const response = await axios.get(`${API}/couriers/${courier.id}/history`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           const stats = calculateCourierStats(response.data.orders || []);
           return {
             courier,
@@ -3769,6 +3771,7 @@ function CompanyAdminDashboard() {
             orders: response.data.orders || []
           };
         } catch (error) {
+          console.error(`Error fetching stats for courier ${courier.username}:`, error);
           return {
             courier,
             stats: { total: 0, monthly: [] },
