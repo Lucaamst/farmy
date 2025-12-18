@@ -4023,7 +4023,18 @@ function CompanyAdminDashboard() {
     }
   };
 
-  const downloadCourierStatsPDF = (courier, stats, history) => {
+  const downloadCourierStatsPDF = async (courier, stats, history) => {
+    // Get company name
+    let companyName = 'Azienda';
+    try {
+      const companyResponse = await axios.get(`${API}/company-admin/company`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      companyName = companyResponse.data.name || 'Azienda';
+    } catch (error) {
+      console.error('Error fetching company name:', error);
+    }
+
     // Create a simple HTML-based PDF using window.print with specific styling
     const printWindow = window.open('', '_blank');
     const courierName = courier.full_name || courier.username;
