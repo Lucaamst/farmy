@@ -3711,7 +3711,9 @@ function CompanyAdminDashboard() {
     setViewingCourier(courier);
     try {
       // Fetch courier delivery history
-      const response = await axios.get(`${API}/couriers/${courier.id}/history`);
+      const response = await axios.get(`${API}/couriers/${courier.id}/history`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       setCourierHistory(response.data.orders || []);
       
       // Calculate monthly statistics
