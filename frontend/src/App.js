@@ -668,12 +668,9 @@ function CourierDashboard() {
                                     )}
                                   </div>
                                 </div>
-                                <div className="flex flex-col gap-2 shrink-0">
-                                  {getPriorityBadge(delivery.priority || 'normal')}
-                                  <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="text-xs">
-                                    {delivery.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
-                                  </Badge>
-                                </div>
+                                <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="text-xs shrink-0">
+                                  {delivery.status === 'assigned' ? t.assigned.toUpperCase() : t.inProgress.toUpperCase()}
+                                </Badge>
                               </div>
                               
                               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
