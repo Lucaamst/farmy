@@ -109,6 +109,9 @@ class Order(BaseModel):
     signed_by_name: Optional[str] = None
     signed_at: Optional[datetime] = None
     signature_skipped: bool = False
+    # Delivery priority and ordering
+    priority: str = "normal"  # urgent, normal, low
+    display_order: int = 0  # For custom ordering by courier
 
 class Customer(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
