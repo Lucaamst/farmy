@@ -557,6 +557,11 @@ function CourierDashboard() {
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.courierDashboard}</h1>
               <p className="text-sm sm:text-base text-gray-600 truncate">{t.welcomeBack}, {user.username}</p>
+              {companyInfo && (
+                <p className="text-xs sm:text-sm text-gray-500 truncate">
+                  🏢 {companyInfo.name}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
