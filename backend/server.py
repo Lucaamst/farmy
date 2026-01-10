@@ -103,6 +103,8 @@ class Order(BaseModel):
     delivery_comment: Optional[str] = None
     commented_at: Optional[datetime] = None
     commented_by: Optional[str] = None
+    # Order notes from company admin to courier
+    order_notes: Optional[str] = None
     # Digital signature system
     requires_signature: bool = False
     signature_data: Optional[str] = None  # Base64 encoded signature image
