@@ -5045,6 +5045,22 @@ function CompanyAdminDashboard() {
                               className="text-sm"
                             />
                           </div>
+                          
+                          <div>
+                            <Label htmlFor="orderNotes" className="text-sm">💬 Note per il Corriere (Opzionale)</Label>
+                            <textarea
+                              id="orderNotes"
+                              value={newOrder.order_notes}
+                              onChange={(e) => setNewOrder({ ...newOrder, order_notes: e.target.value })}
+                              placeholder="Es: Suonare al citofono, consegnare al portiere, ecc..."
+                              className="w-full p-2 border rounded-md text-sm min-h-[80px]"
+                              rows={3}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Il corriere vedrà queste note nella consegna
+                            </p>
+                          </div>
+                          
                           <div className="flex items-center space-x-2 border rounded-md p-3 bg-blue-50 border-blue-200">
                             <input
                               id="requiresSignature"
