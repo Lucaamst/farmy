@@ -198,6 +198,7 @@ class CreateOrderRequest(BaseModel):
     requires_signature: bool = False  # Digital signature requirement
     send_sms: bool = True  # Toggle for sending SMS notification
     priority: str = "normal"  # Priority: urgent, normal, low
+    order_notes: Optional[str] = None  # Notes for courier
 
 class UpdateOrderRequest(BaseModel):
     customer_name: str
@@ -205,6 +206,7 @@ class UpdateOrderRequest(BaseModel):
     phone_number: str
     reference_number: Optional[str] = None
     priority: Optional[str] = None
+    order_notes: Optional[str] = None
 
 class AssignOrderRequest(BaseModel):
     order_id: str
