@@ -671,6 +671,12 @@ function CourierDashboard() {
                                     {delivery.reference_number && (
                                       <p className="text-gray-500 text-xs sm:text-sm">📋 Rif: {delivery.reference_number}</p>
                                     )}
+                                    {delivery.order_notes && (
+                                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                                        <p className="font-semibold text-yellow-900">💬 Note:</p>
+                                        <p className="text-yellow-800">{delivery.order_notes}</p>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 <Badge variant={delivery.status === 'assigned' ? 'default' : 'secondary'} className="text-xs shrink-0">
