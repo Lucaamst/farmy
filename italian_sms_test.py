@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 class ItalianSMSTest:
-    def __init__(self, base_url="https://deliverdocs.preview.emergentagent.com"):
+    def __init__(self, base_url="https://courier-hub-32.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tokens = {}
