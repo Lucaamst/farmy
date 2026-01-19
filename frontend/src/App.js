@@ -801,6 +801,14 @@ function CourierDashboard() {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Show order notes if present */}
+          {completingDelivery?.order_notes && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="font-semibold text-yellow-900 text-sm">💬 Note Ordine:</p>
+              <p className="text-yellow-800 text-sm mt-1">{completingDelivery.order_notes}</p>
+            </div>
+          )}
+          
           <div>
             <Label htmlFor="comment">Commento Consegna (opzionale)</Label>
             <textarea
