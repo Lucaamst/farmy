@@ -28,6 +28,9 @@ const API = `${BACKEND_URL}/api`;
 // Auth Context
 const AuthContext = React.createContext();
 
+// Inactivity timeout in milliseconds (1 hour = 3600000 ms)
+const INACTIVITY_TIMEOUT = 60 * 60 * 1000;
+
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
@@ -38,6 +41,75 @@ function AuthProvider({ children }) {
   const [requires2FA, setRequires2FA] = useState(false);
   const [tempUserId, setTempUserId] = useState(null);
   const [t, setT] = useState(getTranslation(language));
+  const [sessionLocked, setSessionLocked] = useState(false);
+  const inactivityTimerRef = useRef(null);
+  const lastActivityRef = useRef(Date.now());
+
+  // Reset activity timer
+  const resetActivityTimer = useCallback(() => {
+    lastActivityRef.current = Date.now();
+  }, []);
+
+  // Handle session lock due to inactivity
+  const lockSession = useCallback(() => {
+    if (user) {
+      // For couriers with PIN enabled, lock session instead of full logout
+      const pinEnabled = localStorage.getItem(`courier_pin_enabled_${user.id}`);
+      if (user.role === 'courier' && pinEnabled === 'true') {
+        setSessionLocked(true);
+      } else {
+        // For other users or couriers without PIN, do full logout
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('company');
+        setUser(null);
+        setCompany(null);
+        setSecurityRequired(false);
+        setSecuritySetupRequired(false);
+        delete axios.defaults.headers.common['Authorization'];
+        window.location.href = '/';
+      }
+    }
+  }, [user]);
+
+  // Unlock session after PIN verification
+  const unlockSession = useCallback(() => {
+    setSessionLocked(false);
+    resetActivityTimer();
+  }, [resetActivityTimer]);
+
+  // Setup inactivity detection
+  useEffect(() => {
+    if (!user) return;
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    
+    const handleActivity = () => {
+      resetActivityTimer();
+    };
+
+    // Add event listeners
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    // Check inactivity every minute
+    inactivityTimerRef.current = setInterval(() => {
+      const timeSinceActivity = Date.now() - lastActivityRef.current;
+      if (timeSinceActivity >= INACTIVITY_TIMEOUT) {
+        lockSession();
+      }
+    }, 60000); // Check every 60 seconds
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      if (inactivityTimerRef.current) {
+        clearInterval(inactivityTimerRef.current);
+      }
+    };
+  }, [user, lockSession, resetActivityTimer]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -74,7 +146,9 @@ function AuthProvider({ children }) {
       setCompany(companyData);
     }
     setUser(userData);
+    setSessionLocked(false);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    resetActivityTimer();
     
     // Login successful
     
@@ -90,6 +164,7 @@ function AuthProvider({ children }) {
     setCompany(null);
     setSecurityRequired(false);
     setSecuritySetupRequired(false);
+    setSessionLocked(false);
     delete axios.defaults.headers.common['Authorization'];
   };
 
@@ -119,7 +194,9 @@ function AuthProvider({ children }) {
       securityRequired,
       securitySetupRequired,
       onSecuritySetupComplete,
-      onSecurityVerificationComplete
+      onSecurityVerificationComplete,
+      sessionLocked,
+      unlockSession
     }}>
       {children}
     </AuthContext.Provider>
