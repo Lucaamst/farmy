@@ -556,7 +556,7 @@ function CourierDashboard() {
             </div>
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{t.courierDashboard}</h1>
-              <p className="text-sm sm:text-base text-gray-600 truncate">{t.welcomeBack}, {user.username}</p>
+              <p className="text-sm sm:text-base text-gray-600 truncate">{t.welcomeBack}, {user.full_name || user.username}</p>
               {companyInfo && companyInfo.company_name && (
                 <p className="text-xs sm:text-sm text-gray-500 truncate">
                   🏢 {companyInfo.company_name}
