@@ -1175,10 +1175,11 @@ async def create_order(
         send_sms=request.send_sms
     )
     
-    # Add priority and display_order to dict before insertion
+    # Add priority, display_order and order_notes to dict before insertion
     order_dict = order.dict()
     order_dict["priority"] = request.priority
     order_dict["display_order"] = 0  # Will be updated when assigned to courier
+    order_dict["order_notes"] = request.order_notes  # Notes for courier
     
     await db.orders.insert_one(order_dict)
     
