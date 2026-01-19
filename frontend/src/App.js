@@ -6139,8 +6139,7 @@ function SessionLockScreen() {
     setError('');
 
     try {
-      await axios.post(`${API}/auth/verify-pin`, {
-        user_id: user.id,
+      await axios.post(`${API}/courier/verify-pin`, {
         pin_code: pin
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
