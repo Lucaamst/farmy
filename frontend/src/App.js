@@ -4552,6 +4552,63 @@ function CompanyAdminDashboard() {
               </Card>
             </div>
 
+            {/* Unassigned Orders */}
+            {orders.filter(o => !o.courier_id && o.status === 'pending').length > 0 && (
+              <Card className="bg-orange-50 shadow-sm border-2 border-orange-300">
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-lg sm:text-xl text-orange-900">⚠️ Ordini da Assegnare</CardTitle>
+                      <CardDescription className="text-sm text-orange-700">
+                        {orders.filter(o => !o.courier_id && o.status === 'pending').length} ordini in attesa di corriere
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="space-y-3">
+                    {orders.filter(o => !o.courier_id && o.status === 'pending').map((order) => (
+                      <div key={order.id} className="bg-white p-4 border-2 border-orange-200 rounded-lg">
+                        <div className="flex flex-col sm:flex-row justify-between items-start space-y-3 sm:space-y-0">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-base text-gray-900">{order.customer_name}</p>
+                            <p className="text-sm text-gray-600 mt-1">{order.delivery_address}</p>
+                            {order.reference_number && (
+                              <p className="text-xs text-gray-500 mt-1">📋 Rif: {order.reference_number}</p>
+                            )}
+                            {order.order_notes && (
+                              <p className="text-xs text-blue-600 mt-1">💬 {order.order_notes}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              📅 Creato: {new Date(order.created_at).toLocaleString('it-IT')}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <select
+                              className="flex-1 sm:flex-none border rounded-md px-3 py-2 text-sm"
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  handleQuickAssign(order.id, e.target.value);
+                                }
+                              }}
+                              defaultValue=""
+                            >
+                              <option value="" disabled>Seleziona corriere...</option>
+                              {couriers.filter(c => c.is_active).map(courier => (
+                                <option key={courier.id} value={courier.id}>
+                                  {courier.full_name || courier.username}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Recent Orders */}
             <Card className="bg-white shadow-sm border-0">
               <CardHeader className="p-4 sm:p-6">
