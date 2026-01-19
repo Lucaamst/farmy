@@ -3758,7 +3758,7 @@ function CompanyAdminDashboard() {
 
   const handleQuickAssign = async (orderId, courierId) => {
     try {
-      await axios.post(`${API}/orders/assign`, {
+      await axios.patch(`${API}/orders/assign`, {
         order_id: orderId,
         courier_id: courierId
       }, {
