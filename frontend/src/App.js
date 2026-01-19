@@ -3679,6 +3679,29 @@ function CompanyAdminDashboard() {
     }
   };
 
+  const handleQuickAssign = async (orderId, courierId) => {
+    try {
+      await axios.post(`${API}/orders/assign`, {
+        order_id: orderId,
+        courier_id: courierId
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      toast({
+        title: 'Successo',
+        description: 'Ordine assegnato al corriere',
+      });
+      fetchOrders();
+    } catch (error) {
+      toast({
+        title: t.error,
+        description: 'Impossibile assegnare ordine',
+        variant: "destructive",
+      });
+    }
+  };
+
   const exportOrders = async (format = 'excel') => {
     try {
       const params = new URLSearchParams();
