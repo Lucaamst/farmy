@@ -6121,11 +6121,142 @@ function CompanyAdminDashboard() {
   );
 }
 
+// Session Lock Screen Component (for PIN re-authentication)
+function SessionLockScreen() {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { user, unlockSession, logout, t } = useAuth();
+  const { toast } = useToast();
+
+  const handleVerifyPIN = async () => {
+    if (pin.length !== 4) {
+      setError('Inserisci un PIN a 4 cifre');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await axios.post(`${API}/auth/verify-pin`, {
+        user_id: user.id,
+        pin_code: pin
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      toast({
+        title: 'Sessione sbloccata',
+        description: 'Benvenuto di nuovo!',
+      });
+      
+      unlockSession();
+    } catch (err) {
+      setError('PIN non valido');
+      setPin('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && pin.length === 4) {
+      handleVerifyPIN();
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-2">
+            <Lock className="w-8 h-8 text-orange-600" />
+          </div>
+          <CardTitle className="text-xl">Sessione Bloccata</CardTitle>
+          <CardDescription>
+            La sessione è stata bloccata per inattività. Inserisci il PIN per continuare.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 mb-4">
+              Ciao, <strong>{user?.full_name || user?.username}</strong>
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="lockPin" className="text-sm font-medium">PIN (4 cifre)</Label>
+            <Input
+              id="lockPin"
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              value={pin}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                setPin(value);
+                setError('');
+              }}
+              onKeyPress={handleKeyPress}
+              placeholder="••••"
+              className="text-center text-2xl tracking-widest h-14"
+              autoFocus
+            />
+            {error && (
+              <p className="text-sm text-red-500 text-center">{error}</p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 pt-2">
+            <Button 
+              onClick={handleVerifyPIN} 
+              disabled={loading || pin.length !== 4}
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Verifica...
+                </div>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Sblocca Sessione
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={logout}
+              className="w-full"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout Completo
+            </Button>
+          </div>
+          
+          <p className="text-xs text-gray-500 text-center mt-4">
+            Per motivi di sicurezza, la sessione si blocca dopo 1 ora di inattività.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Dashboard Router
 function DashboardRouter() {
-  const { user, securityRequired, securitySetupRequired, onSecuritySetupComplete, onSecurityVerificationComplete } = useAuth();
+  const { user, securityRequired, securitySetupRequired, onSecuritySetupComplete, onSecurityVerificationComplete, sessionLocked } = useAuth();
 
   if (!user) return <Navigate to="/login" replace />;
+
+  // Show session lock screen if session is locked due to inactivity
+  if (sessionLocked) {
+    return <SessionLockScreen />;
+  }
 
   // Show security setup if required
   if (securitySetupRequired) {
