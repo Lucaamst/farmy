@@ -5745,7 +5745,15 @@ function CompanyAdminDashboard() {
                                 <p className="text-xs text-gray-500">Rif: {order.reference_number}</p>
                               )}
                               {order.phone_number && (
-                                <p className="text-xs text-gray-500">📱 {order.phone_number}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs text-gray-500">📱 {order.phone_number}</p>
+                                  {order.send_sms && (
+                                    <span className="text-xs text-green-600">✓ SMS inviato</span>
+                                  )}
+                                  {order.send_sms === false && (
+                                    <span className="text-xs text-gray-400">SMS non richiesto</span>
+                                  )}
+                                </div>
                               )}
                             </div>
                             {getOrderStatusBadge(order.status)}
