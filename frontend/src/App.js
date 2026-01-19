@@ -4927,12 +4927,12 @@ function CompanyAdminDashboard() {
                           {t.addOrder}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md">
+                      <DialogContent className="mx-4 sm:mx-0 max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle className="text-lg">{t.createNewOrder}</DialogTitle>
                           <DialogDescription className="text-sm">{t.addNewOrderDescription}</DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={createOrder} className="space-y-4">
+                        <form onSubmit={createOrder} className="space-y-4 pb-4">
                           {/* Customer Selection */}
                           <div className="space-y-3">
                             <div className="flex items-center space-x-4">
