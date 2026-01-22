@@ -163,6 +163,8 @@ function AuthProvider({ children }) {
     }
     setUser(userData);
     setSessionLocked(false);
+    // Mark PIN as verified for this session after fresh login
+    sessionStorage.setItem(`pin_verified_${userData.id}`, 'true');
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     resetActivityTimer();
     
