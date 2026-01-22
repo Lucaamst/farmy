@@ -76,7 +76,11 @@ function AuthProvider({ children }) {
   const unlockSession = useCallback(() => {
     setSessionLocked(false);
     resetActivityTimer();
-  }, [resetActivityTimer]);
+    // Mark PIN as verified for this session (cleared when browser/tab closes)
+    if (user) {
+      sessionStorage.setItem(`pin_verified_${user.id}`, 'true');
+    }
+  }, [resetActivityTimer, user]);
 
   // Setup inactivity detection
   useEffect(() => {
