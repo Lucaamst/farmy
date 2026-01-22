@@ -128,8 +128,10 @@ function AuthProvider({ children }) {
         // Check if courier has PIN enabled - require PIN on every app start
         if (parsedUser.role === 'courier') {
           const pinEnabled = localStorage.getItem(`courier_pin_enabled_${parsedUser.id}`);
-          if (pinEnabled === 'true') {
-            // PIN is enabled, lock session until PIN is verified
+          const pinVerifiedThisSession = sessionStorage.getItem(`pin_verified_${parsedUser.id}`);
+          
+          if (pinEnabled === 'true' && !pinVerifiedThisSession) {
+            // PIN is enabled and not yet verified in this session - lock until verified
             setSessionLocked(true);
           }
         }
