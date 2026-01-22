@@ -173,6 +173,10 @@ function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // Clear session PIN verification
+    if (user) {
+      sessionStorage.removeItem(`pin_verified_${user.id}`);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('company');
