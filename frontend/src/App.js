@@ -118,11 +118,21 @@ function AuthProvider({ children }) {
     
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
         if (companyData) {
           setCompany(JSON.parse(companyData));
         }
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Check if courier has PIN enabled - require PIN on every app start
+        if (parsedUser.role === 'courier') {
+          const pinEnabled = localStorage.getItem(`courier_pin_enabled_${parsedUser.id}`);
+          if (pinEnabled === 'true') {
+            // PIN is enabled, lock session until PIN is verified
+            setSessionLocked(true);
+          }
+        }
         
         // User data loaded successfully
       } catch (e) {
