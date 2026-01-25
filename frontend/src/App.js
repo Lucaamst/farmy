@@ -6196,7 +6196,16 @@ function SessionLockScreen() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+      {/* Logo in alto */}
+      <div className="mb-6">
+        <img 
+          src="/farmygo-logo.png" 
+          alt="FarmyGo" 
+          className="h-16 w-auto object-contain"
+        />
+      </div>
+      
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-2">
@@ -6204,7 +6213,7 @@ function SessionLockScreen() {
           </div>
           <CardTitle className="text-xl">Sessione Bloccata</CardTitle>
           <CardDescription>
-            La sessione è stata bloccata per inattività. Inserisci il PIN per continuare.
+            Inserisci il PIN per continuare.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
